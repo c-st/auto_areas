@@ -1,0 +1,12 @@
+{
+  "name": "Auto Areas",
+  "domain": "auto_areas",
+  "version": "1.0.0",
+  "documentation": "https://github.com/c-st/auto_areas",
+  "issue_tracker": "https://github.com/c-st/auto_areas/issues",
+  "codeowners": ["@c-st"],
+  "config_flow": false,
+  "iot_class": "local_push",
+  "dependencies": [],
+  "requirements": []
+}
