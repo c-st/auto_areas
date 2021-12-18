@@ -1,10 +1,7 @@
-"""Constants for auto_areas."""
-# Base component constants
-NAME = "Integration blueprint"
+NAME = "Auto Areas"
 DOMAIN = "auto_areas"
 DOMAIN_DATA = f"{DOMAIN}_data"
 VERSION = "0.0.1"
-ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 ISSUE_URL = "https://github.com/custom-components/auto_areas/issues"
 
 # Icons
@@ -19,16 +16,8 @@ SENSOR = "sensor"
 SWITCH = "switch"
 PLATFORMS = [BINARY_SENSOR, SENSOR, SWITCH]
 
-
-# Configuration and options
-CONF_ENABLED = "enabled"
-CONF_USERNAME = "username"
-CONF_PASSWORD = "password"
-
 # Defaults
 DEFAULT_NAME = DOMAIN
-
-
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
 {NAME}

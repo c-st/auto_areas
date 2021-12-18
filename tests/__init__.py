@@ -1,1 +1,1 @@
-"""Tests for auto_areas integration."""
+"""Tests for the Auto Areas component"""
