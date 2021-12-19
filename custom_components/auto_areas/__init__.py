@@ -1,3 +1,4 @@
+"""AutoAreas custom_component for Home Assistant"""
 import logging
 
 from homeassistant.core import Config, HomeAssistant
