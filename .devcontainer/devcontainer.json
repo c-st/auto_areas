@@ -44,7 +44,8 @@
     "github.vscode-pull-request-github",
     "ryanluker.vscode-coverage-gutters",
     "esbenp.prettier-vscode",
-    "k--kato.intellij-idea-keybindings"
+    "k--kato.intellij-idea-keybindings",
+    "vtenentes.bdd"
   ],
   "remoteUser": "vscode"
 }

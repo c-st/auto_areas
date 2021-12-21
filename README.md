@@ -1,11 +1,11 @@
 # Auto Areas
 
-A custom component for Home Assistant for automatically setting up area-based automations.
+A custom_component for Home Assistant for automatically setting up area-based automations.
 
 Features:
 
-- auto-discovery based on area config. No configuration necessary
-- turn lights on/off based on presence in an area
+- Auto-discovery based on area config. No configuration necessary.
+- Turns lights on/off based on presence in an area.
 
 ## Configuration
 

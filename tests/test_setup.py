@@ -107,7 +107,7 @@ async def fixture_devices(hass, areas, entity_registry: ent_reg.EntityRegistry) 
     )
 
 
-async def test_area_initialization(hass, areas, entity_registry, devices):
+async def test_area_initialization(hass, entity_registry, devices):
     """Verify area initialization"""
 
     # setup component

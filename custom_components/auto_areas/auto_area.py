@@ -19,7 +19,7 @@ class AutoArea(object):
         self.hass = hass
         self.area_name = area.name
         self.area_id = area.id
-        self.entities = []
+        self.entities = set([])
 
         # Schedule initialization of entities for this area:
         if self.hass.is_running:
@@ -31,7 +31,7 @@ class AutoArea(object):
 
     async def initialize(self) -> None:
         """Register relevant entities for this area"""
-        _LOGGER.info("AutoArea %s", self.area_name)
+        _LOGGER.info("AutoArea '%s'", self.area_name)
         entity_registry: EntityRegistry = (
             await self.hass.helpers.entity_registry.async_get_registry()
         )
@@ -40,18 +40,17 @@ class AutoArea(object):
         )
 
         # Collect entities for this area
-        for _entity_id, entity in entity_registry.entities.items():
-            # _LOGGER.debug("Evaluating entity %s", entity_id)
+        for __, entity in entity_registry.entities.items():
             if not is_valid(entity):
                 continue
 
             if not get_area_id(entity, device_registry) == self.area_id:
                 continue
 
-            self.entities.append(entity)
+            self.entities.add(entity)
 
         for entity in self.entities:
-            _LOGGER.info("- Entity %s ", entity.entity_id)
+            _LOGGER.info("- %s ", entity.entity_id)
 
         return
 
@@ -68,11 +67,12 @@ def get_area_id(
     entity: RegistryEntry, device_registry: DeviceRegistry
 ) -> Optional[str]:
     """Determines area_id from a registry entry"""
-    # Check entity_id of entity:
+
+    # Defined directly at entity
     if entity.area_id is not None:
         return entity.area_id
 
-    # Check area of device from device registry
+    # Inherited from device
     if entity.device_id is not None:
         device = device_registry.devices[entity.device_id]
         if device is not None:
