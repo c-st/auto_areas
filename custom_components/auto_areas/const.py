@@ -1,3 +1,26 @@
+"""Constants"""
+from homeassistant.components.binary_sensor import (
+    DEVICE_CLASS_DOOR,
+    DEVICE_CLASS_GAS,
+    DEVICE_CLASS_LIGHT,
+    DEVICE_CLASS_MOISTURE,
+    DEVICE_CLASS_MOTION,
+    DEVICE_CLASS_OCCUPANCY,
+    DEVICE_CLASS_POWER,
+    DEVICE_CLASS_PRESENCE,
+    DEVICE_CLASS_PROBLEM,
+    DEVICE_CLASS_SAFETY,
+    DEVICE_CLASS_SMOKE,
+    DEVICE_CLASS_WINDOW,
+    BinarySensorDeviceClass,
+)
+from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
+from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
+from homeassistant.components.media_player import DOMAIN as MEDIA_PLAYER_DOMAIN
+from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
+from homeassistant.const import STATE_HOME, STATE_ON, STATE_OPEN, STATE_PLAYING
+
 NAME = "Auto Areas"
 DOMAIN = "auto_areas"
 DOMAIN_DATA = f"{DOMAIN}_data"
@@ -10,20 +33,28 @@ ICON = "mdi:format-quote-close"
 # Device classes
 BINARY_SENSOR_DEVICE_CLASS = "connectivity"
 
-# Platforms
-BINARY_SENSOR = "binary_sensor"
-SENSOR = "sensor"
-SWITCH = "switch"
-PLATFORMS = [BINARY_SENSOR, SENSOR, SWITCH]
-
 # Defaults
 DEFAULT_NAME = DOMAIN
-STARTUP_MESSAGE = f"""
--------------------------------------------------------------------
-{NAME}
-Version: {VERSION}
-This is a custom integration!
-If you have any issues with this you need to open an issue here:
-{ISSUE_URL}
--------------------------------------------------------------------
-"""
+
+# AutoAreas
+
+DOMAINS = [BINARY_SENSOR_DOMAIN, SENSOR_DOMAIN, SWITCH_DOMAIN, LIGHT_DOMAIN]
+
+DEVICE_CLASSES = [cls.value for cls in BinarySensorDeviceClass]
+
+DEVICE_CLASS_DOMAINS = (BINARY_SENSOR_DOMAIN, SENSOR_DOMAIN)
+
+# Presence
+
+PRESENCE_BINARY_SENSOR_DEVICE_CLASSES = (
+    DEVICE_CLASS_MOTION,
+    DEVICE_CLASS_OCCUPANCY,
+    DEVICE_CLASS_PRESENCE,
+)
+
+PRESENCE_BINARY_SENSOR_STATES = [
+    STATE_ON,
+    STATE_HOME,
+    STATE_PLAYING,
+    # STATE_OPEN,
+]
