@@ -4,8 +4,9 @@ A custom component for Home Assistant for automatically setting up area-based au
 
 Features:
 
-- auto-discovery based on area config. No configuration necessary
-- turn lights on/off based on presence in an area
+- Auto-discovery based on area config. No configuration necessary.
+- Detect presence in an area based on multiple sensors (device classes: motion, occupancy, presence).
+- Automatically turn lights on/off based on presence in an area.
 
 ## Configuration
 

@@ -34,7 +34,7 @@ class AutoArea(object):
             self.hass.async_create_task(self.initialize())
         else:
             self.hass.bus.async_listen_once(
-                EVENT_HOMEASSISTANT_STARTED, self.initialize
+                EVENT_HOMEASSISTANT_STARTED, self.initialize()
             )
 
     async def initialize(self) -> None:
@@ -53,10 +53,12 @@ class AutoArea(object):
         )
         for entity in self.entities:
             _LOGGER.info(
-                "- Entity %s (class: %s)", entity.entity_id, entity.device_class
+                "- Entity %s (device_class: %s)",
+                entity.entity_id,
+                entity.device_class or entity.original_device_class,
             )
 
-        # Track state of all presence/motion sensors
+        # Presence awareness (track state of all presence/motion sensors):
         self.track_presence_sensor_state()
 
     def track_presence_sensor_state(self) -> None:
@@ -64,37 +66,62 @@ class AutoArea(object):
         presence_indicating_entities = [
             entity
             for entity in self.entities
-            if entity.device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
+            if entity.device_class
+            or entity.original_device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
         ]
 
         if not presence_indicating_entities:
-            _LOGGER.info("* No presence binary_sensors found for tracking")
+            _LOGGER.info("* No presence binary_sensors found")
             return
 
-        for entity in presence_indicating_entities:
-            _LOGGER.info("- Tracking: %s ", entity.entity_id)
+        _LOGGER.info(
+            "- Tracking: %s ",
+            [entity.entity_id for entity in presence_indicating_entities],
+        )
+
+        def all_states_are_off(
+            presence_indicating_entities: List[RegistryEntry],
+        ) -> bool:
+            all_states = [
+                self.hass.states.get(entity.entity_id)
+                for entity in presence_indicating_entities
+            ]
+            all_states = filter(None, all_states)
+            all_states_are_off = all(
+                state.state not in PRESENCE_BINARY_SENSOR_STATES for state in all_states
+            )
+            return all_states_are_off
 
         def handle_presence_state_change(entity_id, from_state: State, to_state: State):
+            previous_state = from_state.state if from_state else ""
+            current_state = to_state.state
+
+            if previous_state is current_state:
+                return
+
             _LOGGER.info(
                 "State change %s: %s -> %s",
                 entity_id,
-                from_state.state if from_state else "None",
-                to_state.state,
+                previous_state,
+                current_state,
             )
 
-            if to_state.state in PRESENCE_BINARY_SENSOR_STATES:
-                self.presence = True
+            if current_state in PRESENCE_BINARY_SENSOR_STATES:
+                if not self.presence:
+                    _LOGGER.info("Presence detected in %s", self.area_name)
+                    self.presence = True
             else:
-                # check if all sensors are off
-                all_states = [
-                    self.hass.states.get(entity.entity_id).state
-                    for entity in presence_indicating_entities
-                ]
-                if all(
-                    state not in PRESENCE_BINARY_SENSOR_STATES for state in all_states
-                ):
-                    self.presence = False
+                if all_states_are_off(presence_indicating_entities):
+                    if self.presence:
+                        _LOGGER.info("Presence cleared in %s", self.area_name)
+                        self.presence = False
 
+        # Derive presence initially:
+        self.presence = (
+            False if all_states_are_off(presence_indicating_entities) else True
+        )
+
+        # Subscribe to state changes:
         async_track_state_change(
             self.hass,
             [entity.entity_id for entity in presence_indicating_entities],
@@ -114,7 +141,11 @@ def get_all_entities(
     entities = []
 
     for _entity_id, entity in entity_registry.entities.items():
-        # _LOGGER.info("Entity %s %s", entity.domain, entity.device_class)
+        # _LOGGER.debug(
+        #     "Evaluating entity %s (device class %s)",
+        #     entity_id,
+        #     entity.device_class or entity.original_device_class,
+        # )
 
         if not is_valid(entity):
             continue

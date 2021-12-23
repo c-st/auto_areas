@@ -5,3 +5,4 @@ venv
 .venv
 .coverage
 .idea
+.DS_Store

@@ -1,25 +1,14 @@
 """Tests for verifying component setup"""
-import logging
-from collections import OrderedDict
-
 from homeassistant.setup import async_setup_component
-from homeassistant.helpers import (
-    device_registry as dev_reg,
-    entity_registry as ent_reg,
-)
 
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-)
 from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.const import DOMAIN
-from tests.conftest import create_entity
 
-_LOGGER = logging.getLogger(__name__)
+from tests.conftest import create_entity
 
 
 async def test_presence_state_tracking(hass, entity_registry, default_entities):
-    """Verify only entities from supported domains are registered"""
+    """Verify that only entities from supported domains are registered"""
     bedroom_sensor = create_entity(
         entity_registry,
         domain="binary_sensor",
@@ -64,6 +53,7 @@ async def test_presence_state_tracking(hass, entity_registry, default_entities):
 
 
 async def test_clears_presence_state(hass, entity_registry, default_entities):
+    """Make sure that presence is cleared"""
     bedroom_sensor = create_entity(
         entity_registry,
         domain="binary_sensor",
@@ -90,3 +80,31 @@ async def test_clears_presence_state(hass, entity_registry, default_entities):
 
     # presence state should be cleared
     assert auto_areas["bedroom"].presence is False
+
+
+async def test_evaluates_all_entities_initially(
+    hass, entity_registry, default_entities
+):
+    """Set presence based on state of all sensors initially"""
+    bedroom_sensor = create_entity(
+        entity_registry,
+        domain="binary_sensor",
+        device_class="motion",
+        area_id="bedroom",
+    )
+    bedroom_sensor2 = create_entity(
+        entity_registry,
+        domain="binary_sensor",
+        device_class="motion",
+        area_id="bedroom",
+    )
+
+    hass.states.async_set(bedroom_sensor.entity_id, "on")
+    hass.states.async_set(bedroom_sensor2.entity_id, "off")
+    await hass.async_block_till_done()
+
+    await async_setup_component(hass, DOMAIN, {})
+    auto_areas: dict[str, AutoArea] = hass.data[DOMAIN]
+
+    # initial presence should be detected (without state change)
+    assert auto_areas["bedroom"].presence is True
