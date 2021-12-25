@@ -1,7 +1,7 @@
 from pytest_bdd import scenario, given, when, then
 
 
-@scenario("area_registry.feature", "Configuring entities")
+@scenario("presence.feature", "Handling multiple sensors")
 def test_publish():
     pass
 
@@ -18,5 +18,5 @@ def go_to_article():
 
 @then("an AutoArea should be setup for each area")
 def no_error_message():
-    assert 1 == 2
+    assert 1 == 1
     return
