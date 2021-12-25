@@ -13,7 +13,7 @@
       "NODE_VERSION": "lts/*"
     }
   },
-  "postCreateCommand": "pip3 install --user -r requirements_test.txt",
+  "postCreateCommand": "pip3 install --disable-pip-version-check -r requirements_test.txt",
   "settings": {
     "terminal.integrated.profiles.linux": {
       "zsh": {
