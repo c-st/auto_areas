@@ -1,4 +1,9 @@
-"""Tests for verifying component setup"""
+"""
+Tests for verifying component setup
+
+(partially converted to BDD scenarios)
+"""
+
 from homeassistant.setup import async_setup_component
 
 from custom_components.auto_areas.auto_area import AutoArea

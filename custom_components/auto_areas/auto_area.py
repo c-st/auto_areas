@@ -39,7 +39,7 @@ class AutoArea(object):
 
     async def initialize(self) -> None:
         """Register relevant entities for this area"""
-        _LOGGER.info("AutoArea %s", self.area_name)
+        _LOGGER.info("AutoArea '%s'", self.area_name)
         entity_registry: EntityRegistry = (
             await self.hass.helpers.entity_registry.async_get_registry()
         )
@@ -66,12 +66,14 @@ class AutoArea(object):
         presence_indicating_entities = [
             entity
             for entity in self.entities
-            if entity.device_class
+            if entity.device_class  # in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
             or entity.original_device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
         ]
 
         if not presence_indicating_entities:
-            _LOGGER.info("* No presence binary_sensors found")
+            _LOGGER.info(
+                "* No presence binary_sensors found in area %s", self.area_name
+            )
             return
 
         _LOGGER.info(
@@ -86,9 +88,9 @@ class AutoArea(object):
                 self.hass.states.get(entity.entity_id)
                 for entity in presence_indicating_entities
             ]
-            all_states = filter(None, all_states)
             all_states_are_off = all(
-                state.state not in PRESENCE_BINARY_SENSOR_STATES for state in all_states
+                state.state not in PRESENCE_BINARY_SENSOR_STATES
+                for state in filter(None, all_states)
             )
             return all_states_are_off
 
@@ -120,6 +122,7 @@ class AutoArea(object):
         self.presence = (
             False if all_states_are_off(presence_indicating_entities) else True
         )
+        _LOGGER.info("Initial presence (%s): %s ", self.area_name, self.presence)
 
         # Subscribe to state changes:
         async_track_state_change(
@@ -173,11 +176,12 @@ def get_area_id(
     entity: RegistryEntry, device_registry: DeviceRegistry
 ) -> Optional[str]:
     """Determines area_id from a registry entry"""
-    # Check entity_id of entity:
+
+    # Defined directly at entity
     if entity.area_id is not None:
         return entity.area_id
 
-    # Check area of device from device registry
+    # Inherited from device
     if entity.device_id is not None:
         device = device_registry.devices[entity.device_id]
         if device is not None:
