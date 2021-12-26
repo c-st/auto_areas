@@ -1,22 +1,34 @@
 """Fixtures for testing."""
-from collections import OrderedDict
-import logging
-from typing import List
-from homeassistant.util import slugify, uuid
-import pytest
 from uuid import uuid4
+from collections import OrderedDict
+
+import logging
+import asyncio
+import pytest
+
+from pytest_bdd import parsers
+from pytest_bdd.steps import given, then, when
 
 from pytest_homeassistant_custom_component.common import (
     mock_area_registry,
     mock_device_registry,
     mock_registry,
 )
+
+from homeassistant.core import HomeAssistant
+from homeassistant.setup import async_setup_component
+from homeassistant.util import slugify
 from homeassistant.helpers import (
     device_registry as dev_reg,
     entity_registry as ent_reg,
 )
 
+from custom_components.auto_areas.const import DOMAIN
+
+
 AREAS = ("Kitchen", "Living Room", "Bathroom", "Bedroom")
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(autouse=True)
@@ -52,8 +64,8 @@ def fixture_entity_registry(hass) -> ent_reg.EntityRegistry:
     )
 
 
-@pytest.fixture(name="default_areas", autouse=True)
-def fixture_default_areas(hass) -> dict:
+@pytest.fixture(name="default_areas")
+def fixture_default_areas(hass: HomeAssistant) -> dict:
     """Create and provide Areas"""
     area_registry = mock_area_registry(hass)
     areas = OrderedDict()
@@ -98,3 +110,99 @@ def create_entity(
         entity_registry.async_update_entity(entity.entity_id, device_class=device_class)
 
     return entity
+
+
+@pytest.fixture(name="auto_areas")
+async def fixture_auto_areas(hass):
+    _LOGGER.info("Initializing AutoAreas fixture")
+    await async_setup_component(hass, DOMAIN, {})
+    return hass.data[DOMAIN]
+
+
+@given(parsers.parse("There are the following areas:\n{text}"), target_fixture="areas")
+def fixture_create_areas(hass, text: str) -> dict:
+    area_registry = mock_area_registry(hass)
+    areas = OrderedDict()
+    for area in text.split("\n"):
+        created_area = area_registry.async_create(area)
+        areas[slugify(area)] = created_area
+
+    return areas
+
+
+@given(
+    parsers.parse("There are motion sensors placed in these areas:\n{text}"),
+    target_fixture="motion_sensors",
+)
+def fixture_create_motion_sensors(entity_registry, areas, text: str) -> dict:
+    motion_sensors = []
+    for area in text.split("\n"):
+        entity = create_entity(
+            entity_registry,
+            domain="binary_sensor",
+            device_class="motion",
+            area_id=areas[area].id,
+        )
+        motion_sensors.append(entity)
+
+    return motion_sensors
+
+
+# @given(
+#     parsers.parse("I have a {domain} of device class {device_class} in the area {area}")
+# )
+# def fixture_create_entity(
+#     entity_registry,
+#     entities: Set[ent_reg.RegistryEntry],
+#     domain,
+#     device_class,
+#     area,
+# ):
+#     _LOGGER.info("create entity %s %s %s ", domain, device_class, area)
+#     entity = create_entity(
+#         entity_registry,
+#         domain=domain,
+#         device_class=device_class,
+#         area_id=area,
+#     )
+#     entities.add(entity)
+
+
+@given(parsers.parse("The state of all motion sensors is '{state}'"))
+def fixture_set_entity_state(hass, motion_sensors, state):
+    for entity in motion_sensors:
+        hass.states.async_set(entity.entity_id, state)
+
+    asyncio.run(hass.async_block_till_done())
+
+
+@given(parsers.parse("entity states are evaluated"))
+@when(parsers.parse("entity states are evaluated"))
+@when(parsers.parse("component is started"))
+def ensure_initialization(
+    hass,
+    auto_areas,
+):
+    """Hook to initalize AutoAreas"""
+    return
+
+
+@when(parsers.parse("state of motion sensor {index:d} is set to '{state}'"))
+def fixture_set_motion_sensor_state(hass, motion_sensors, index, state):
+    sensor = motion_sensors[index - 1]
+    _LOGGER.info("Set state of %s to %s", sensor.entity_id, state)
+    hass.states.async_set(sensor.entity_id, state)
+    asyncio.run(hass.async_block_till_done())
+
+
+@then(parsers.parse("presence is detected in area '{area}'"))
+def expect_presence(hass, auto_areas, area):
+    assert auto_areas[area].presence is True
+
+
+@then(parsers.parse("no presence is detected in area '{area}'"))
+def expect_no_presence(hass: HomeAssistant, auto_areas, area):
+    # FIXME: await handling of state change properly
+    _LOGGER.info("Presence state in %s is %s", area, hass.data[DOMAIN][area].presence)
+    # TODO: use published binary_sensor instead
+    assert auto_areas[area].presence is False

@@ -24,7 +24,10 @@ async def async_setup(hass: HomeAssistant, config: Config) -> bool:
     # Initialize and store areas
     area_registry: AreaRegistry = await hass.helpers.area_registry.async_get_registry()
     auto_areas: MutableMapping[str, AutoArea] = {}
+
     for area in area_registry.async_list_areas():
         auto_areas[area.id] = AutoArea(hass, area)
+
     hass.data[DOMAIN] = auto_areas
+
     return True
