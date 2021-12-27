@@ -39,8 +39,8 @@ async def test_presence_state_tracking(hass, entity_registry, default_entities):
     # verify entities amount
     assert len(auto_areas["bedroom"].entities) is 3
     assert len(auto_areas["bathroom"].entities) is 2
-    assert auto_areas["bathroom"].presence is False
-    assert auto_areas["bedroom"].presence is False
+    assert auto_areas["bathroom"].auto_presence.presence is False
+    assert auto_areas["bedroom"].auto_presence.presence is False
 
     # set initial state
     hass.states.async_set(bathroom_sensor.entity_id, "off")
@@ -53,8 +53,8 @@ async def test_presence_state_tracking(hass, entity_registry, default_entities):
     await hass.async_block_till_done()
 
     # presence state should be set
-    assert auto_areas["bathroom"].presence is False
-    assert auto_areas["bedroom"].presence is True
+    assert auto_areas["bathroom"].auto_presence.presence is False
+    assert auto_areas["bedroom"].auto_presence.presence is True
 
 
 async def test_clears_presence_state(hass, entity_registry, default_entities):
@@ -77,14 +77,14 @@ async def test_clears_presence_state(hass, entity_registry, default_entities):
     hass.states.async_set(bedroom_sensor.entity_id, "on")
     hass.states.async_set(bedroom_sensor2.entity_id, "off")
     await hass.async_block_till_done()
-    assert auto_areas["bedroom"].presence is True
+    assert auto_areas["bedroom"].auto_presence.presence is True
 
     # presence off
     hass.states.async_set(bedroom_sensor.entity_id, "off")
     await hass.async_block_till_done()
 
     # presence state should be cleared
-    assert auto_areas["bedroom"].presence is False
+    assert auto_areas["bedroom"].auto_presence.presence is False
 
 
 async def test_evaluates_all_entities_initially(
@@ -112,4 +112,4 @@ async def test_evaluates_all_entities_initially(
     auto_areas: dict[str, AutoArea] = hass.data[DOMAIN]
 
     # initial presence should be detected (without state change)
-    assert auto_areas["bedroom"].presence is True
+    assert auto_areas["bedroom"].auto_presence.presence is True

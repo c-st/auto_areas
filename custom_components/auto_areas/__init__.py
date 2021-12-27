@@ -2,8 +2,9 @@
 import logging
 from typing import MutableMapping
 
-from homeassistant.core import Config, HomeAssistant
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.area_registry import AreaRegistry
+from homeassistant.helpers.typing import ConfigType
 
 from custom_components.auto_areas.auto_area import AutoArea
 
@@ -14,7 +15,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass: HomeAssistant, config: Config) -> bool:
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Setup integration (YAML-based)"""
 
     # Load config

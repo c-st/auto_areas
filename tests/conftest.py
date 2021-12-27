@@ -197,12 +197,14 @@ def fixture_set_motion_sensor_state(hass, motion_sensors, index, state):
 
 @then(parsers.parse("presence is detected in area '{area}'"))
 def expect_presence(hass, auto_areas, area):
-    assert auto_areas[area].presence is True
+    assert auto_areas[area].auto_presence.presence is True
 
 
 @then(parsers.parse("no presence is detected in area '{area}'"))
 def expect_no_presence(hass: HomeAssistant, auto_areas, area):
     # FIXME: await handling of state change properly
-    _LOGGER.info("Presence state in %s is %s", area, hass.data[DOMAIN][area].presence)
+    _LOGGER.info(
+        "Presence state in %s is %s", area, hass.data[DOMAIN][area].auto_presence
+    )
     # TODO: use published binary_sensor instead
-    assert auto_areas[area].presence is False
+    assert auto_areas[area].auto_presence.presence is False
