@@ -1,12 +1,15 @@
 """
 AutoPresence
-Presence based on aggregated sensors in
+Determine presence based on aggregated sensors in an area
 """
 import logging
-from typing import List, Set
+from typing import Set
 
+from homeassistant.components.binary_sensor import (
+    DEVICE_CLASS_OCCUPANCY,
+    BinarySensorEntity,
+)
 from homeassistant.core import HomeAssistant, State
-from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
 from homeassistant.helpers.event import async_track_state_change
@@ -15,30 +18,44 @@ from custom_components.auto_areas.const import (
     PRESENCE_BINARY_SENSOR_DEVICE_CLASSES,
     PRESENCE_BINARY_SENSOR_STATES,
 )
+from custom_components.auto_areas.ha_helpers import all_states_are_off
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class AutoPresence(object):
+class AutoPresenceBinarySensor(BinarySensorEntity):
     def __init__(
         self, hass: HomeAssistant, all_entities: Set[RegistryEntry], area: AreaEntry
     ) -> None:
         self.hass = hass
         self.area = area
+
         self.all_entities = all_entities
-        self.presence: bool = False
         self.presence_indicating_entities = []
 
-        # Schedule initialization
-        if self.hass.is_running:
-            self.hass.async_create_task(self.initialize())
-        else:
-            self.hass.bus.async_listen_once(
-                EVENT_HOMEASSISTANT_STARTED, self.initialize()
-            )
-        return
+        self.presence: bool = None
 
-    async def initialize(self) -> None:
+        self.initialize()
+
+    @property
+    def device_class(self):
+        """Return the device class of the entity."""
+        return DEVICE_CLASS_OCCUPANCY
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return f"Auto Presence {self.area.name}"
+
+    @property
+    def should_poll(self) -> bool:
+        return False
+
+    @property
+    def is_on(self) -> bool:
+        return self.presence
+
+    def initialize(self) -> None:
         """Register relevant entities from this area"""
         _LOGGER.info("AutoPresence '%s'", self.area.name)
 
@@ -64,7 +81,11 @@ class AutoPresence(object):
         # Initial presence:
         self.presence = (
             False
-            if all_states_are_off(self.hass, self.presence_indicating_entities)
+            if all_states_are_off(
+                self.hass,
+                self.presence_indicating_entities,
+                PRESENCE_BINARY_SENSOR_STATES,
+            )
             else True
         )
         _LOGGER.info("Initial presence (%s): %s ", self.area.name, self.presence)
@@ -98,21 +119,20 @@ class AutoPresence(object):
             if not self.presence:
                 _LOGGER.info("Presence detected in %s", self.area.name)
                 self.presence = True
+                self.schedule_update_ha_state()
         else:
-            if all_states_are_off(self.hass, self.presence_indicating_entities):
+            if all_states_are_off(
+                self.hass,
+                self.presence_indicating_entities,
+                PRESENCE_BINARY_SENSOR_STATES,
+            ):
                 if self.presence:
                     _LOGGER.info("Presence cleared in %s", self.area.name)
                     self.presence = False
+                    self.schedule_update_ha_state()
 
+    async def async_added_to_hass(self):
+        _LOGGER.info("callback async_added_to_hass")
 
-def all_states_are_off(
-    hass: HomeAssistant,
-    presence_indicating_entities: List[RegistryEntry],
-) -> bool:
-    all_states = [
-        hass.states.get(entity.entity_id) for entity in presence_indicating_entities
-    ]
-    return all(
-        state.state not in PRESENCE_BINARY_SENSOR_STATES
-        for state in filter(None, all_states)
-    )
+    async def async_will_remove_from_hass(self):
+        _LOGGER.info("callback async_will_remove_from_hass")

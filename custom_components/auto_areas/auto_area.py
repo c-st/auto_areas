@@ -5,17 +5,13 @@ Has a set of managed entities assigned to the same area.
 import logging
 from typing import Set
 
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.area_registry import AreaEntry
-from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
-from homeassistant.helpers.entity_registry import EntityRegistry, RegistryEntry
 from homeassistant.helpers.device_registry import DeviceRegistry
+from homeassistant.helpers.entity_registry import EntityRegistry, RegistryEntry
 
-from custom_components.auto_areas.auto_presence import AutoPresence
-
-from custom_components.auto_areas.const import (
-    DOMAINS,
-)
+from custom_components.auto_areas.const import DOMAINS
 from custom_components.auto_areas.ha_helpers import get_all_entities
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,7 +21,7 @@ class AutoArea(object):
     """An area managed by AutoAreas"""
 
     def __init__(self, hass: HomeAssistant, area: AreaEntry) -> None:
-        self.hass = hass
+        self.hass: HomeAssistant = hass
         self.area = area
         self.area_name = area.name
         self.area_id = area.id
@@ -63,20 +59,13 @@ class AutoArea(object):
                 entity.device_class or entity.original_device_class,
             )
 
-        # Presence awareness (track state of all presence/motion sensors):
-        self.auto_presence = AutoPresence(self.hass, self.entities, self.area)
-
-        # Setup platform
-        # self.hass.helpers.discovery.load_platform(
-        #     platform="binary_sensor",
-        #     component=DOMAIN,
-        #     discovered={},
-        #     hass_config=self.hass.config,
-        # )
-
     def is_valid_entity(self, entity: RegistryEntry) -> bool:
         """Checks whether an entity should be included"""
         if entity.disabled:
+            return False
+
+        entity_state = self.hass.states.get(entity.entity_id)
+        if entity_state and entity_state.state == STATE_UNAVAILABLE:
             return False
 
         return True

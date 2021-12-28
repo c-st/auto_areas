@@ -27,14 +27,14 @@ BINARY_SENSOR_DEVICE_CLASS = "connectivity"
 
 # Defaults
 DEFAULT_NAME = DOMAIN
-
-# AutoAreas
-
 DOMAINS = [BINARY_SENSOR_DOMAIN, SENSOR_DOMAIN, SWITCH_DOMAIN, LIGHT_DOMAIN]
 
 DEVICE_CLASSES = [cls.value for cls in BinarySensorDeviceClass]
-
 DEVICE_CLASS_DOMAINS = (BINARY_SENSOR_DOMAIN, SENSOR_DOMAIN)
+
+# AutoAreas
+DATA_AUTO_AREA = "auto-area"
+DATA_AUTO_PRESENCE = "auto-presence"
 
 # Presence
 

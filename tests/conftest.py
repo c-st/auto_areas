@@ -16,6 +16,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from homeassistant.core import HomeAssistant
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.setup import async_setup_component
 from homeassistant.util import slugify
 from homeassistant.helpers import (
@@ -23,8 +24,11 @@ from homeassistant.helpers import (
     entity_registry as ent_reg,
 )
 
-from custom_components.auto_areas.const import DOMAIN
-
+from custom_components.auto_areas.const import (
+    DATA_AUTO_AREA,
+    DOMAIN,
+)
+from custom_components.auto_areas.ha_helpers import get_data
 
 AREAS = ("Kitchen", "Living Room", "Bathroom", "Bedroom")
 
@@ -116,7 +120,8 @@ def create_entity(
 async def fixture_auto_areas(hass):
     _LOGGER.info("Initializing AutoAreas fixture")
     await async_setup_component(hass, DOMAIN, {})
-    return hass.data[DOMAIN]
+    await hass.async_block_till_done()
+    return get_data(hass, DATA_AUTO_AREA)
 
 
 @given(parsers.parse("There are the following areas:\n{text}"), target_fixture="areas")
@@ -190,21 +195,16 @@ def ensure_initialization(
 @when(parsers.parse("state of motion sensor {index:d} is set to '{state}'"))
 def fixture_set_motion_sensor_state(hass, motion_sensors, index, state):
     sensor = motion_sensors[index - 1]
-    _LOGGER.info("Set state of %s to %s", sensor.entity_id, state)
+    _LOGGER.info("Setting state of %s to %s", sensor.entity_id, state)
     hass.states.async_set(sensor.entity_id, state)
     asyncio.run(hass.async_block_till_done())
 
 
 @then(parsers.parse("presence is detected in area '{area}'"))
 def expect_presence(hass, auto_areas, area):
-    assert auto_areas[area].auto_presence.presence is True
+    assert hass.states.get(f"binary_sensor.auto_presence_{area}").state is STATE_ON
 
 
 @then(parsers.parse("no presence is detected in area '{area}'"))
 def expect_no_presence(hass: HomeAssistant, auto_areas, area):
-    # FIXME: await handling of state change properly
-    _LOGGER.info(
-        "Presence state in %s is %s", area, hass.data[DOMAIN][area].auto_presence
-    )
-    # TODO: use published binary_sensor instead
-    assert auto_areas[area].auto_presence.presence is False
+    assert hass.states.get(f"binary_sensor.auto_presence_{area}").state is STATE_OFF

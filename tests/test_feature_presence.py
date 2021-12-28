@@ -1,8 +1,7 @@
-import logging
 from functools import partial
+import logging
 
 import pytest_bdd
-
 from pytest_bdd import scenario
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,6 +24,6 @@ def test_multiple_sensors_on():
     pass
 
 
-# @scenario("Presence is cleared")
-# def test_presence_is_cleared():
-#     pass
+@scenario("Presence is cleared")
+def test_presence_is_cleared():
+    pass
