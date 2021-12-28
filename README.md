@@ -1,54 +1,67 @@
 # Auto Areas
 
-A custom component for [Home Assistant](https://www.home-assistant.io) which automates entities by area.
+> A custom component for [Home Assistant](https://www.home-assistant.io) which automates your areas.
 
-Having your devices structured by areas (for example per room) makes it easy to create certain kind of automations automatically.
+An **area** could be a room or any part of your house ("garden", "hallway", etc.).
+Assigning entities and devices to areas allows to create certain kind of automations **automatically**.
 
-For example controlling _lights in a room based on presence_:
-In most of the cases you want the lights in a room to be turned on when presence is detected. Likewise you want the lights to turn off as soon as the occupancy is cleared. Also you only want the lights to turn on if it is necessary (for example based on measured illuminance or when you're not sleeping).
+Example:
 
-Normally it would be necessary to set up automations for each of the sensors, switches and lights (and also maintain them).
+> Controlling lights in your rooms based on presence:
+> In most of the cases you want the lights in a room to be turned on when presence is detected.
+> Additionally you want the lights to turn off as soon as the occupancy is cleared.
 
-🤖 Auto Areas tries to take over some of this work: it gathers relevant entities from each area. It then keeps track of all presence sensors (`binary_sensor`) in each area. If presence is detected, it turns on all lights in the area. If no presence is reported anymore by any sensor in the area, the lights are turned off.
+Normally it would be necessary to set up automations for all sensors and lights for each of your areas (and also maintain them).
 
-Domains:
+🤖 **Auto Areas** tries to make your life easier.
 
-- binary_sensor (`motion`, `occupancy`, `presence`)
-- light
-- switch
-- sensor
-
-Features:
-
-- Detect presence in an area based on multiple sensors
-- Automatically turn lights on/off based on presence in an area
-- ...
+It checks each of your areas for relevant devices and starts managing them automatically. The only prerequisite is to assign them to areas in HomeAssistant.
 
 ## Features
 
-### Presence detection
+### Aggregated presence detection
 
-- [ ] Create a `binary_sensor` indicating presence detected for each area
-- [ ] Create a `switch`. If on, presence should be assumed even when sensors disagree ("presence lock", "presence hold"). Reset automatically?
-- [ ] Support `media_player` domain. (What about others - door?)
+Track the state of multiple sensor entities (for example motion sensors) to detect area presence.
+
+It aggregates presence based on these rules:
+An area is considered "occupied" if there is at least one sensor in state `on` (for example "motion detected").
+Only if all sensors are `off` the area presence is cleared and it is considered empty.
+
+Supported entities:
+
+- `binary_sensor` (with device class: `motion`, `occupancy`, `presence`)
+
+[Scenarios (Gherkin)](tests/features/presence.feature)
 
 ### Control lights automatically
 
-- [ ] Create switch for sleep mode
+Turn lights on and off based on area presence.
+
+### Behaviours
+
+Control the behaviour of how your devices are managed.
+
+- presence lock (treat a room as occupied regardless of sensor state)
+- sleeping room (adds a sleep mode `switch`)
+  - disable automatic light control (keep light off)
+- ...
 
 ### Aggregate sensor data
 
 Measurement values for `temperature`, `humidity`, `illuminance` from multiple devices are aggregated per area.
 
-## Configuration
+## Installation
 
-Install in the custom_components folder of your Home Assistant installation (for example using [HACS](https://hacs.xyz)). Add an entry to `configuration.yaml`:
+Install as custom_component for HomeAssistant.
+
+1. Place in `custom_components` folder of your Home Assistant installation. Or add as [custom repository](https://hacs.xyz/docs/faq/custom_repositories) in HACS.
+2. Add an entry in `configuration.yaml`:
 
 ```yaml
 auto_areas:
 ```
 
-Entities are auto-discovered based on the area they're assigned to in Home Assistant.
+That's it (for now). Entities are auto-discovered based on the area they're assigned to in Home Assistant.
 
 ## Development
 
@@ -58,5 +71,8 @@ Install dependencies:
 Run tests:
 `pytest`
 
-_Note_:
-This project is heavily inspired by [Magic Areas](https://github.com/jseidl/hass-magic_areas).
+Using [DevContainer](https://code.visualstudio.com/docs/remote/containers) is recommended (see config in `.devcontainer`).
+
+## Acknowledgements
+
+Auto Areas is inspired by [Magic Areas](https://github.com/jseidl/hass-magic_areas).

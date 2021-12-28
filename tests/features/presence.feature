@@ -29,8 +29,8 @@ Feature: Presence tracking
         Then presence is detected in area 'bedroom'
         And presence is detected in area 'bathroom'
 
-    # Scenario: Presence is cleared
-    #     Given The state of all motion sensors is 'on'
-    #     When state of motion sensor 3 is set to 'off'
-    #     Then no presence is detected in area 'bathroom'
-    #     And no presence is detected in area 'bedroom'
+    Scenario: Presence is cleared
+        Given The state of all motion sensors is 'on'
+        When state of motion sensor 3 is set to 'off'
+        Then no presence is detected in area 'bathroom'
+        And presence is detected in area 'bedroom'
