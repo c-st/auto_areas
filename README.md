@@ -35,7 +35,7 @@ Supported entities:
 
 ### Control lights automatically
 
-Turn lights on and off based on area presence.
+Turns lights on and off based on area presence.
 
 [Scenarios (Gherkin)](tests/features/lights.feature)
 

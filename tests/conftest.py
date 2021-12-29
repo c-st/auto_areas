@@ -102,7 +102,7 @@ def fixture_default_entities(default_areas, entity_registry) -> None:
 @pytest.fixture(name="light_service_fakes", autouse=True)
 def fixture_light_service_fakes(hass: HomeAssistant):
     # @ha.callback
-    async def mock_service_behaviour(call: ServiceCall):
+    def mock_service_behaviour(call: ServiceCall):
         """Mock service call."""
         entity_ids = call.data.get(ATTR_ENTITY_ID)
         if call.service == SERVICE_TURN_ON:
@@ -112,8 +112,6 @@ def fixture_light_service_fakes(hass: HomeAssistant):
             _ = [
                 hass.states.async_set(entity_id, STATE_OFF) for entity_id in entity_ids
             ]
-
-        await hass.async_block_till_done()
 
     hass.services.async_register(
         LIGHT_DOMAIN, SERVICE_TURN_ON, mock_service_behaviour, schema=None

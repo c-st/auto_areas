@@ -32,7 +32,6 @@ class AutoLights(object):
             entity for entity in all_entities if entity.domain in LIGHT_DOMAIN
         ]
 
-        # listen for event when AutoAreas is setup?
         self.initialize()
 
     def initialize(self) -> None:
@@ -61,7 +60,7 @@ class AutoLights(object):
         )
 
         light_entity_ids = [entity.entity_id for entity in self.light_entities]
-        _LOGGER.info("Light entities %s", light_entity_ids)
+        _LOGGER.info("Toggling light entities %s", light_entity_ids)
 
         if current_state is STATE_ON:
             # turn lights on

@@ -26,3 +26,9 @@ Feature: Automatic light control
         When state of motion sensor 2 is set to 'on'
         Then lights are on in area 'living room'
         And lights are off in area 'bedroom'
+
+    Scenario: Lights are turned off again if presence is cleared
+        Given The state of all motion sensors is 'on'
+        When state of motion sensor 3 is set to 'off'
+        Then lights are on in area 'living room'
+        And lights are off in area 'bedroom'
