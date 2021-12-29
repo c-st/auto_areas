@@ -34,7 +34,6 @@ DEVICE_CLASS_DOMAINS = (BINARY_SENSOR_DOMAIN, SENSOR_DOMAIN)
 
 # AutoAreas
 DATA_AUTO_AREA = "auto-area"
-DATA_AUTO_PRESENCE = "auto-presence"
 
 # Presence
 

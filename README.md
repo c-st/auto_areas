@@ -2,7 +2,7 @@
 
 > A custom component for [Home Assistant](https://www.home-assistant.io) which automates your areas.
 
-An **area** could be a room or any part of your house ("garden", "hallway", etc.).
+An **area** could be a room or any part of your home ("garden", "hallway", etc.).
 Assigning entities and devices to areas allows to create certain kind of automations **automatically**.
 
 Example:
@@ -13,19 +13,18 @@ Example:
 
 Normally it would be necessary to set up automations for all sensors and lights for each of your areas (and also maintain them).
 
-🤖 **Auto Areas** tries to make your life easier.
-
-It checks each of your areas for relevant devices and starts managing them automatically. The only prerequisite is to assign them to areas in HomeAssistant.
+🤖 **Auto Areas** tries to make your life easier: it checks each of your areas for relevant devices and starts managing them automatically. The only prerequisite is to define a few areas and assign your devices and entities to them in HomeAssistant.
 
 ## Features
 
 ### Aggregated presence detection
 
-Track the state of multiple sensor entities (for example motion sensors) to detect area presence.
+Tracks the state of multiple sensor entities (for example motion sensors) to detect area presence.
 
 It aggregates presence based on these rules:
-An area is considered "occupied" if there is at least one sensor in state `on` (for example "motion detected").
-Only if all sensors are `off` the area presence is cleared and it is considered empty.
+
+- An area is considered "occupied" if there is at least one sensor in state `on` (for example "motion detected").
+- Only if all sensors are `off` the area presence is cleared is considered empty.
 
 Supported entities:
 
@@ -35,7 +34,9 @@ Supported entities:
 
 ### Control lights automatically
 
-Turn lights on and off based on area presence.
+Turns lights on and off based on area presence.
+
+[Scenarios (Gherkin)](tests/features/lights.feature)
 
 ### Behaviours
 
