@@ -20,3 +20,9 @@ Feature: Automatic light control
         When component is started
         Then lights are off in area 'living room'
         And lights are off in area 'bedroom'
+
+    Scenario: Lights are turned on if presence is detected
+        Given The state of all motion sensors is 'off'
+        When state of motion sensor 2 is set to 'on'
+        Then lights are on in area 'living room'
+        And lights are off in area 'bedroom'
