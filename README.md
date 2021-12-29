@@ -37,6 +37,8 @@ Supported entities:
 
 Turn lights on and off based on area presence.
 
+[Scenarios (Gherkin)](tests/features/lights.feature)
+
 ### Behaviours
 
 Control the behaviour of how your devices are managed.

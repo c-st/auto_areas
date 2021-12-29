@@ -10,13 +10,22 @@ from pytest_bdd import parsers
 from pytest_bdd.steps import given, then, when
 
 from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_mock_service,
     mock_area_registry,
     mock_device_registry,
     mock_registry,
 )
 
-from homeassistant.core import HomeAssistant
-from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    SERVICE_TURN_ON,
+    SERVICE_TURN_OFF,
+    STATE_OFF,
+    STATE_ON,
+)
+from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.setup import async_setup_component
 from homeassistant.util import slugify
 from homeassistant.helpers import (
@@ -90,6 +99,30 @@ def fixture_default_entities(default_areas, entity_registry) -> None:
     create_entity(entity_registry, domain="light", unique_id="1", area_id="bathroom")
 
 
+@pytest.fixture(name="light_service_fakes", autouse=True)
+def fixture_light_service_fakes(hass: HomeAssistant):
+    # @ha.callback
+    async def mock_service_behaviour(call: ServiceCall):
+        """Mock service call."""
+        entity_ids = call.data.get(ATTR_ENTITY_ID)
+        if call.service == SERVICE_TURN_ON:
+            _ = [hass.states.async_set(entity_id, STATE_ON) for entity_id in entity_ids]
+
+        if call.service == SERVICE_TURN_OFF:
+            _ = [
+                hass.states.async_set(entity_id, STATE_OFF) for entity_id in entity_ids
+            ]
+
+        await hass.async_block_till_done()
+
+    hass.services.async_register(
+        LIGHT_DOMAIN, SERVICE_TURN_ON, mock_service_behaviour, schema=None
+    )
+    hass.services.async_register(
+        LIGHT_DOMAIN, SERVICE_TURN_OFF, mock_service_behaviour, schema=None
+    )
+
+
 def create_entity(
     entity_registry: ent_reg.EntityRegistry,
     domain: str,
@@ -160,13 +193,15 @@ def fixture_create_motion_sensors(entity_registry, areas, text: str) -> dict:
     parsers.parse("There are lights placed in these areas:\n{text}"),
     target_fixture="lights",
 )
-def fixture_create_lights(hass, entity_registry, areas, text: str) -> dict:
+def fixture_create_lights(
+    hass, entity_registry, device_registry, areas, text: str
+) -> dict:
     lights = []
     for area in text.split("\n"):
         area = slugify(area)
         entity = create_entity(
             entity_registry,
-            domain="light",
+            domain=LIGHT_DOMAIN,
             area_id=areas[area].id,
         )
         lights.append(entity)
@@ -216,23 +251,12 @@ def expect_no_presence(hass: HomeAssistant, auto_areas, area):
     assert hass.states.get(f"binary_sensor.auto_presence_{area}").state is STATE_OFF
 
 
-@then(parsers.parse("lights are on in area '{area}'"))
-def expect_lights(hass: HomeAssistant, auto_areas, area):
+@then(parsers.parse("lights are {expected_state} in area '{area}'"))
+def expect_lights(hass: HomeAssistant, auto_areas, expected_state: str, area: str):
     area = slugify(area)
     auto_lights: AutoLights = auto_areas[area].auto_lights
     light_states = [
-        hass.states.get(entity.entity_id) for entity in auto_lights.light_entities
+        hass.states.get(entity.entity_id).state for entity in auto_lights.light_entities
     ]
     assert len(light_states) > 0
-    assert all(state.state in STATE_ON for state in light_states)
-
-
-@then(parsers.parse("lights are off in area '{area}'"))
-def expect_no_lights(hass: HomeAssistant, auto_areas, area):
-    area = slugify(area)
-    auto_lights: AutoLights = auto_areas[area].auto_lights
-    light_states = [
-        hass.states.get(entity.entity_id) for entity in auto_lights.light_entities
-    ]
-    assert len(light_states) > 0
-    assert all(state.state in STATE_OFF for state in light_states)
+    assert all(state == expected_state for state in light_states)

@@ -6,7 +6,12 @@ import logging
 from typing import Set
 
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
-from homeassistant.const import ATTR_ENTITY_ID, SERVICE_TURN_ON, STATE_ON
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    SERVICE_TURN_OFF,
+    SERVICE_TURN_ON,
+    STATE_ON,
+)
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
@@ -59,7 +64,7 @@ class AutoLights(object):
         _LOGGER.info("Light entities %s", light_entity_ids)
 
         if current_state is STATE_ON:
-            # turn on lights
+            # turn lights on
             await self.hass.services.async_call(
                 LIGHT_DOMAIN,
                 SERVICE_TURN_ON,
@@ -68,4 +73,9 @@ class AutoLights(object):
             return
         else:
             # turn lights off
+            await self.hass.services.async_call(
+                LIGHT_DOMAIN,
+                SERVICE_TURN_OFF,
+                {ATTR_ENTITY_ID: light_entity_ids},
+            )
             return
