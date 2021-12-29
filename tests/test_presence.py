@@ -1,7 +1,5 @@
 """
-Tests for verifying component setup
-
-(partially converted to BDD scenarios)
+Tests for verifying component behavior with regard to presence detection.
 """
 
 from homeassistant.const import STATE_OFF, STATE_ON

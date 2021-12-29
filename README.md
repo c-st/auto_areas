@@ -2,7 +2,7 @@
 
 > A custom component for [Home Assistant](https://www.home-assistant.io) which automates your areas.
 
-An **area** could be a room or any part of your house ("garden", "hallway", etc.).
+An **area** could be a room or any part of your home ("garden", "hallway", etc.).
 Assigning entities and devices to areas allows to create certain kind of automations **automatically**.
 
 Example:

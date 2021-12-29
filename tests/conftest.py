@@ -23,6 +23,7 @@ from homeassistant.helpers import (
     device_registry as dev_reg,
     entity_registry as ent_reg,
 )
+from custom_components.auto_areas.auto_lights import AutoLights
 
 from custom_components.auto_areas.const import (
     DATA_AUTO_AREA,
@@ -129,6 +130,7 @@ def fixture_create_areas(hass, text: str) -> dict:
     area_registry = mock_area_registry(hass)
     areas = OrderedDict()
     for area in text.split("\n"):
+        area = slugify(area)
         created_area = area_registry.async_create(area)
         areas[slugify(area)] = created_area
 
@@ -142,6 +144,7 @@ def fixture_create_areas(hass, text: str) -> dict:
 def fixture_create_motion_sensors(entity_registry, areas, text: str) -> dict:
     motion_sensors = []
     for area in text.split("\n"):
+        area = slugify(area)
         entity = create_entity(
             entity_registry,
             domain="binary_sensor",
@@ -153,24 +156,27 @@ def fixture_create_motion_sensors(entity_registry, areas, text: str) -> dict:
     return motion_sensors
 
 
-# @given(
-#     parsers.parse("I have a {domain} of device class {device_class} in the area {area}")
-# )
-# def fixture_create_entity(
-#     entity_registry,
-#     entities: Set[ent_reg.RegistryEntry],
-#     domain,
-#     device_class,
-#     area,
-# ):
-#     _LOGGER.info("create entity %s %s %s ", domain, device_class, area)
-#     entity = create_entity(
-#         entity_registry,
-#         domain=domain,
-#         device_class=device_class,
-#         area_id=area,
-#     )
-#     entities.add(entity)
+@given(
+    parsers.parse("There are lights placed in these areas:\n{text}"),
+    target_fixture="lights",
+)
+def fixture_create_lights(hass, entity_registry, areas, text: str) -> dict:
+    lights = []
+    for area in text.split("\n"):
+        area = slugify(area)
+        entity = create_entity(
+            entity_registry,
+            domain="light",
+            area_id=areas[area].id,
+        )
+        lights.append(entity)
+
+    for entity in lights:
+        hass.states.async_set(entity.entity_id, STATE_OFF)
+
+    asyncio.run(hass.async_block_till_done())
+
+    return lights
 
 
 @given(parsers.parse("The state of all motion sensors is '{state}'"))
@@ -208,3 +214,25 @@ def expect_presence(hass, auto_areas, area):
 @then(parsers.parse("no presence is detected in area '{area}'"))
 def expect_no_presence(hass: HomeAssistant, auto_areas, area):
     assert hass.states.get(f"binary_sensor.auto_presence_{area}").state is STATE_OFF
+
+
+@then(parsers.parse("lights are on in area '{area}'"))
+def expect_lights(hass: HomeAssistant, auto_areas, area):
+    area = slugify(area)
+    auto_lights: AutoLights = auto_areas[area].auto_lights
+    light_states = [
+        hass.states.get(entity.entity_id) for entity in auto_lights.light_entities
+    ]
+    assert len(light_states) > 0
+    assert all(state.state in STATE_ON for state in light_states)
+
+
+@then(parsers.parse("lights are off in area '{area}'"))
+def expect_no_lights(hass: HomeAssistant, auto_areas, area):
+    area = slugify(area)
+    auto_lights: AutoLights = auto_areas[area].auto_lights
+    light_states = [
+        hass.states.get(entity.entity_id) for entity in auto_lights.light_entities
+    ]
+    assert len(light_states) > 0
+    assert all(state.state in STATE_OFF for state in light_states)

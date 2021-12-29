@@ -6,8 +6,6 @@ from homeassistant.helpers.device_registry import DeviceRegistry
 from homeassistant.helpers.entity_registry import EntityRegistry, RegistryEntry
 
 from custom_components.auto_areas.const import (
-    DATA_AUTO_AREA,
-    DATA_AUTO_PRESENCE,
     DOMAIN,
 )
 
