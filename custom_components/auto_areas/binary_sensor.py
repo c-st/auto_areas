@@ -8,7 +8,9 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_registry import EntityRegistry
 
-from custom_components.auto_areas.auto_presence import AutoPresenceBinarySensor
+from custom_components.auto_areas.presence_binary_sensor import (
+    PresenceBinarySensor,
+)
 from custom_components.auto_areas.const import RELEVANT_DOMAINS
 from custom_components.auto_areas.ha_helpers import get_all_entities
 
@@ -22,8 +24,6 @@ async def async_setup_platform(
     discovery_info=None,
 ):
     """Set up all binary_sensors"""
-    _LOGGER.info("Setup AutoPresence platform")
-
     area_registry: AreaRegistry = await hass.helpers.area_registry.async_get_registry()
     entity_registry: EntityRegistry = (
         await hass.helpers.entity_registry.async_get_registry()
@@ -32,12 +32,11 @@ async def async_setup_platform(
         await hass.helpers.device_registry.async_get_registry()
     )
 
-    # Setup area presence sensors
-    presence_sensors: List[Entity] = []
+    binary_sensor_entities = []
     for area in area_registry.async_list_areas():
-        area_entities = get_all_entities(
+        area_entities: List[Entity] = get_all_entities(
             entity_registry, device_registry, area.id, RELEVANT_DOMAINS
         )
-        presence_sensors.append(AutoPresenceBinarySensor(hass, area_entities, area))
+        binary_sensor_entities.append(PresenceBinarySensor(hass, area_entities, area))
 
-    async_add_entities(presence_sensors)
+    async_add_entities(binary_sensor_entities)

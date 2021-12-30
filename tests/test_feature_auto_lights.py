@@ -6,7 +6,7 @@ from pytest_bdd import scenario
 
 _LOGGER = logging.getLogger(__name__)
 
-scenario = partial(pytest_bdd.scenario, "features/lights.feature")
+scenario = partial(pytest_bdd.scenario, "features/auto_lights.feature")
 
 
 @scenario("Lights are off in areas without presence")

@@ -12,25 +12,25 @@ Feature: Presence tracking
 
     Scenario: Initially off
         Given The state of all motion sensors is 'off'
-        When component is started
-        Then no presence is detected in area 'bedroom'
-        And no presence is detected in area 'bathroom'
+        When Component is started
+        Then No presence is detected in area 'bedroom'
+        And No presence is detected in area 'bathroom'
 
     Scenario: Single sensor turns on
         Given The state of all motion sensors is 'off'
-        When state of motion sensor 2 is set to 'on'
-        Then presence is detected in area 'bedroom'
-        And no presence is detected in area 'bathroom'
+        When State of motion sensor 2 is set to 'on'
+        Then Presence is detected in area 'bedroom'
+        And No presence is detected in area 'bathroom'
 
     Scenario: Multiple sensors turn on
         Given The state of all motion sensors is 'off'
-        When state of motion sensor 2 is set to 'on'
-        And state of motion sensor 3 is set to 'on'
-        Then presence is detected in area 'bedroom'
-        And presence is detected in area 'bathroom'
+        When State of motion sensor 2 is set to 'on'
+        And State of motion sensor 3 is set to 'on'
+        Then Presence is detected in area 'bedroom'
+        And Presence is detected in area 'bathroom'
 
     Scenario: Presence is cleared
         Given The state of all motion sensors is 'on'
-        When state of motion sensor 3 is set to 'off'
-        Then no presence is detected in area 'bathroom'
-        And presence is detected in area 'bedroom'
+        When State of motion sensor 3 is set to 'off'
+        Then No presence is detected in area 'bathroom'
+        And Presence is detected in area 'bedroom'

@@ -17,15 +17,16 @@ Feature: Automatic light control
 
     Scenario: Lights are off in areas without presence
         Given The state of all motion sensors is 'off'
+        And All lights are turned 'on'
         When component is started
         Then lights are off in area 'living room'
         And lights are off in area 'bedroom'
 
     Scenario: Lights are turned on if presence is detected
         Given The state of all motion sensors is 'off'
-        When state of motion sensor 2 is set to 'on'
-        Then lights are on in area 'living room'
-        And lights are off in area 'bedroom'
+        When State of motion sensor 2 is set to 'on'
+        Then Lights are on in area 'living room'
+        And Lights are off in area 'bedroom'
 
     Scenario: Lights are turned off again if presence is cleared
         Given The state of all motion sensors is 'on'

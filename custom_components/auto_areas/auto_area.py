@@ -10,8 +10,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.helpers.device_registry import DeviceRegistry
 from homeassistant.helpers.entity_registry import EntityRegistry, RegistryEntry
-from custom_components.auto_areas.auto_lights import AutoLights
 
+from custom_components.auto_areas.auto_lights import AutoLights
 from custom_components.auto_areas.const import RELEVANT_DOMAINS
 from custom_components.auto_areas.ha_helpers import get_all_entities
 
@@ -21,14 +21,14 @@ _LOGGER = logging.getLogger(__name__)
 class AutoArea(object):
     """An area managed by AutoAreas"""
 
-    def __init__(self, hass: HomeAssistant, area: AreaEntry) -> None:
+    def __init__(self, hass: HomeAssistant, area: AreaEntry, config: dict) -> None:
         self.hass: HomeAssistant = hass
         self.area = area
         self.area_name = area.name
         self.area_id = area.id
+        self.config = config.get(area.normalized_name, {})
         self.entities: Set[RegistryEntry] = set()
 
-        # Schedule initialization of entities for this area:
         if self.hass.is_running:
             self.hass.async_create_task(self.initialize())
         else:
@@ -38,7 +38,7 @@ class AutoArea(object):
 
     async def initialize(self) -> None:
         """Register relevant entities for this area"""
-        _LOGGER.info("AutoArea '%s'", self.area_name)
+        _LOGGER.info("AutoArea '%s' (config %s)", self.area_name, self.config)
 
         entity_registry: EntityRegistry = (
             await self.hass.helpers.entity_registry.async_get_registry()
@@ -54,7 +54,7 @@ class AutoArea(object):
         self.entities = [entity for entity in entities if self.is_valid_entity(entity)]
 
         # Setup AutoLights
-        self.auto_lights = AutoLights(self.hass, self.entities, self.area)
+        self.auto_lights = AutoLights(self.hass, self.entities, self.area, self.config)
 
         for entity in self.entities:
             _LOGGER.info(

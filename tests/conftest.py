@@ -1,48 +1,39 @@
 """Fixtures for testing."""
-from uuid import uuid4
-from collections import OrderedDict
-
-import logging
 import asyncio
-import pytest
+from collections import OrderedDict
+from uuid import uuid4
 
+from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    SERVICE_TURN_OFF,
+    SERVICE_TURN_ON,
+    STATE_OFF,
+    STATE_ON,
+)
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers import device_registry as dev_reg, entity_registry as ent_reg
+from homeassistant.setup import async_setup_component
+from homeassistant.util import slugify
+import pytest
 from pytest_bdd import parsers
 from pytest_bdd.steps import given, then, when
-
 from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
     mock_area_registry,
     mock_device_registry,
     mock_registry,
 )
 
-from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.const import (
-    ATTR_ENTITY_ID,
-    SERVICE_TURN_ON,
-    SERVICE_TURN_OFF,
-    STATE_OFF,
-    STATE_ON,
-)
-from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
-from homeassistant.setup import async_setup_component
-from homeassistant.util import slugify
-from homeassistant.helpers import (
-    device_registry as dev_reg,
-    entity_registry as ent_reg,
-)
 from custom_components.auto_areas.auto_lights import AutoLights
-
 from custom_components.auto_areas.const import (
     DATA_AUTO_AREA,
     DOMAIN,
+    ENTITY_NAME_AREA_PRESENCE,
+    ENTITY_NAME_AREA_SLEEP_MODE,
 )
 from custom_components.auto_areas.ha_helpers import get_data
 
 AREAS = ("Kitchen", "Living Room", "Bathroom", "Bedroom")
-
-_LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(autouse=True)
@@ -149,15 +140,27 @@ def create_entity(
 
 
 @pytest.fixture(name="auto_areas")
-async def fixture_auto_areas(hass):
-    _LOGGER.info("Initializing AutoAreas fixture")
-    await async_setup_component(hass, DOMAIN, {})
+async def fixture_auto_areas(hass: HomeAssistant, config):
+    await async_setup_component(hass, DOMAIN, config)
     await hass.async_block_till_done()
     return get_data(hass, DATA_AUTO_AREA)
 
 
+@pytest.fixture(name="config")
+async def fixture_config(hass):
+    return {}
+
+
+@given(
+    parsers.parse("The area '{area_name}' is marked as sleeping area"),
+    target_fixture="config",
+)
+def fixture_config_sleeping_area(hass: HomeAssistant, config, area_name) -> dict:
+    return {"auto_areas": {area_name: {"is_sleeping_area": True}}}
+
+
 @given(parsers.parse("There are the following areas:\n{text}"), target_fixture="areas")
-def fixture_create_areas(hass, text: str) -> dict:
+def fixture_create_areas(hass: HomeAssistant, text: str) -> dict:
     area_registry = mock_area_registry(hass)
     areas = OrderedDict()
     for area in text.split("\n"):
@@ -166,6 +169,13 @@ def fixture_create_areas(hass, text: str) -> dict:
         areas[slugify(area)] = created_area
 
     return areas
+
+
+@given(parsers.parse("sleep mode is {state} in the area '{area_name}'"))
+@when(parsers.parse("sleep mode is {state} in the area '{area_name}'"))
+def fixture_disable_sleep_mode(hass: HomeAssistant, state: str, area_name: str) -> dict:
+    hass.states.async_set(f"{ENTITY_NAME_AREA_SLEEP_MODE}{area_name}", state)
+    return
 
 
 @given(
@@ -192,7 +202,7 @@ def fixture_create_motion_sensors(entity_registry, areas, text: str) -> dict:
     target_fixture="lights",
 )
 def fixture_create_lights(
-    hass, entity_registry, device_registry, areas, text: str
+    hass: HomeAssistant, entity_registry, device_registry, areas, text: str
 ) -> dict:
     lights = []
     for area in text.split("\n"):
@@ -207,46 +217,47 @@ def fixture_create_lights(
     for entity in lights:
         hass.states.async_set(entity.entity_id, STATE_OFF)
 
-    asyncio.run(hass.async_block_till_done())
-
     return lights
 
 
 @given(parsers.parse("The state of all motion sensors is '{state}'"))
-def fixture_set_entity_state(hass, motion_sensors, state):
+def fixture_set_entity_state(hass: HomeAssistant, motion_sensors, state):
     for entity in motion_sensors:
         hass.states.async_set(entity.entity_id, state)
 
-    asyncio.run(hass.async_block_till_done())
+
+@given(parsers.parse("All lights are turned '{state}'"))
+def fixture_set_light_state(hass: HomeAssistant, lights, state):
+    for entity in lights:
+        hass.states.async_set(entity.entity_id, state)
 
 
 @given(parsers.parse("entity states are evaluated"))
 @when(parsers.parse("entity states are evaluated"))
 @when(parsers.parse("component is started"))
 def ensure_initialization(
-    hass,
+    hass: HomeAssistant,
     auto_areas,
 ):
     """Hook to initalize AutoAreas"""
     return
 
 
+@given(parsers.parse("the state of motion sensor {index:d} is '{state}'"))
 @when(parsers.parse("state of motion sensor {index:d} is set to '{state}'"))
-def fixture_set_motion_sensor_state(hass, motion_sensors, index, state):
+def fixture_set_motion_sensor_state(hass: HomeAssistant, motion_sensors, index, state):
     sensor = motion_sensors[index - 1]
-    _LOGGER.info("Setting state of %s to %s", sensor.entity_id, state)
     hass.states.async_set(sensor.entity_id, state)
-    asyncio.run(hass.async_block_till_done())
 
 
 @then(parsers.parse("presence is detected in area '{area}'"))
-def expect_presence(hass, auto_areas, area):
-    assert hass.states.get(f"binary_sensor.auto_presence_{area}").state is STATE_ON
+def expect_presence(hass: HomeAssistant, auto_areas, area):
+    assert hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}{area}").state is STATE_ON
 
 
 @then(parsers.parse("no presence is detected in area '{area}'"))
 def expect_no_presence(hass: HomeAssistant, auto_areas, area):
-    assert hass.states.get(f"binary_sensor.auto_presence_{area}").state is STATE_OFF
+    assert hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}{area}").state is STATE_OFF
 
 
 @then(parsers.parse("lights are {expected_state} in area '{area}'"))

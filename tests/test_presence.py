@@ -10,6 +10,7 @@ from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.const import (
     DATA_AUTO_AREA,
     DOMAIN,
+    ENTITY_NAME_AREA_PRESENCE,
 )
 from custom_components.auto_areas.ha_helpers import get_data
 
@@ -47,8 +48,8 @@ async def test_presence_state_tracking(
     assert len(auto_areas["bedroom"].entities) is 3
     assert len(auto_areas["bathroom"].entities) is 2
 
-    assert hass.states.get("binary_sensor.auto_presence_bathroom").state is STATE_OFF
-    assert hass.states.get("binary_sensor.auto_presence_bedroom").state is STATE_OFF
+    assert hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}bathroom").state is STATE_OFF
+    assert hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}bedroom").state is STATE_OFF
 
     # set initial state
     hass.states.async_set(bathroom_sensor.entity_id, STATE_OFF)
@@ -62,8 +63,8 @@ async def test_presence_state_tracking(
 
     # presence state should be set
     print(hass.states)
-    assert hass.states.get("binary_sensor.auto_presence_bathroom").state is STATE_OFF
-    assert hass.states.get("binary_sensor.auto_presence_bedroom").state is STATE_ON
+    assert hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}bathroom").state is STATE_OFF
+    assert hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}bedroom").state is STATE_ON
 
 
 async def test_clears_presence_state(hass, entity_registry, default_entities):
@@ -86,14 +87,14 @@ async def test_clears_presence_state(hass, entity_registry, default_entities):
     hass.states.async_set(bedroom_sensor2.entity_id, STATE_OFF)
     await hass.async_block_till_done()
 
-    assert hass.states.get("binary_sensor.auto_presence_bedroom").state is STATE_ON
+    assert hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}bedroom").state is STATE_ON
 
     # presence off
     hass.states.async_set(bedroom_sensor.entity_id, STATE_OFF)
     await hass.async_block_till_done()
 
     # presence state should be cleared
-    assert hass.states.get("binary_sensor.auto_presence_bedroom").state is STATE_OFF
+    assert hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}bedroom").state is STATE_OFF
 
 
 async def test_evaluates_all_entities_initially(
@@ -121,4 +122,4 @@ async def test_evaluates_all_entities_initially(
     await hass.async_block_till_done()
 
     # initial presence should be detected (without state change)
-    assert hass.states.get("binary_sensor.auto_presence_bedroom").state is STATE_ON
+    assert hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}bedroom").state is STATE_ON
