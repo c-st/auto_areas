@@ -21,14 +21,14 @@ _LOGGER = logging.getLogger(__name__)
 class AutoArea(object):
     """An area managed by AutoAreas"""
 
-    def __init__(self, hass: HomeAssistant, area: AreaEntry) -> None:
+    def __init__(self, hass: HomeAssistant, area: AreaEntry, config: dict) -> None:
         self.hass: HomeAssistant = hass
         self.area = area
         self.area_name = area.name
         self.area_id = area.id
+        self.config = config.get(area.normalized_name, {})
         self.entities: Set[RegistryEntry] = set()
 
-        # Schedule initialization of entities for this area:
         if self.hass.is_running:
             self.hass.async_create_task(self.initialize())
         else:
@@ -38,7 +38,7 @@ class AutoArea(object):
 
     async def initialize(self) -> None:
         """Register relevant entities for this area"""
-        _LOGGER.info("AutoArea '%s'", self.area_name)
+        _LOGGER.info("AutoArea '%s' (config %s)", self.area_name, self.config)
 
         entity_registry: EntityRegistry = (
             await self.hass.helpers.entity_registry.async_get_registry()

@@ -4,6 +4,7 @@ from collections import OrderedDict
 
 import logging
 import asyncio
+from _pytest.fixtures import FixtureRequest
 import pytest
 
 from pytest_bdd import parsers
@@ -149,11 +150,23 @@ def create_entity(
 
 
 @pytest.fixture(name="auto_areas")
-async def fixture_auto_areas(hass):
-    _LOGGER.info("Initializing AutoAreas fixture")
-    await async_setup_component(hass, DOMAIN, {})
+async def fixture_auto_areas(hass, config):
+    await async_setup_component(hass, DOMAIN, config)
     await hass.async_block_till_done()
     return get_data(hass, DATA_AUTO_AREA)
+
+
+@pytest.fixture(name="config")
+async def fixture_config(hass):
+    return {}
+
+
+@given(
+    parsers.parse("The area '{area_name}' is marked as sleeping area"),
+    target_fixture="config",
+)
+def fixture_config_sleeping_area(hass, config, area_name) -> dict:
+    return {"auto_areas": {area_name: {"is_sleeping_area": True}}}
 
 
 @given(parsers.parse("There are the following areas:\n{text}"), target_fixture="areas")
@@ -166,6 +179,12 @@ def fixture_create_areas(hass, text: str) -> dict:
         areas[slugify(area)] = created_area
 
     return areas
+
+
+@given(parsers.parse("sleep mode is off in the area '{area_name}'"))
+def fixture_disable_sleep_mode(hass, area_name: str, request: FixtureRequest) -> dict:
+    # set switch state to off
+    return
 
 
 @given(

@@ -17,7 +17,7 @@ async def test_area_initialization(hass, default_entities):
     """Verify area initialization"""
 
     # setup component
-    config: dict = {"auto_areas": {"foo": "bar"}}
+    config: dict = {"auto_areas": {"bedroom": {"is_sleeping_area": False}}}
     result = await async_setup_component(hass, DOMAIN, config)
     assert result is True
 
