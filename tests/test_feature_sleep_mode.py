@@ -14,6 +14,11 @@ def test_lights_behave_normally_without_sleep_mode():
     pass
 
 
-# @scenario("Lights stay off during sleep mode")
-# def test_lights_stay_off_with_sleep_mode():
-#     pass
+@scenario("Lights stay off during sleep mode")
+def test_lights_stay_off_with_sleep_mode():
+    pass
+
+
+@scenario("Lights turn off when sleep mode is turned on")
+def test_lights_turn_off_with_sleep_mode():
+    pass

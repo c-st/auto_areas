@@ -54,7 +54,7 @@ class AutoArea(object):
         self.entities = [entity for entity in entities if self.is_valid_entity(entity)]
 
         # Setup AutoLights
-        self.auto_lights = AutoLights(self.hass, self.entities, self.area)
+        self.auto_lights = AutoLights(self.hass, self.entities, self.area, self.config)
 
         for entity in self.entities:
             _LOGGER.info(

@@ -3,23 +3,24 @@ import logging
 from typing import MutableMapping
 
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import discovery
 from homeassistant.helpers.area_registry import AreaRegistry
 from homeassistant.helpers.typing import ConfigType
 import voluptuous as vol
 from voluptuous.error import MultipleInvalid
-from voluptuous.schema_builder import PREVENT_EXTRA, REMOVE_EXTRA
+from voluptuous.schema_builder import PREVENT_EXTRA
 
 from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.ha_helpers import set_data
 
-from .const import DATA_AUTO_AREA, DOMAIN
+from .const import CONFIG_SLEEPING_AREA, DATA_AUTO_AREA, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-area_config_schema = vol.Schema({"is_sleeping_area": bool}, extra=PREVENT_EXTRA)
-config_schema = vol.Schema({str: {"is_sleeping_area": bool}})
+area_config_schema = vol.Schema({CONFIG_SLEEPING_AREA: bool}, extra=PREVENT_EXTRA)
+config_schema = vol.Schema({str: {CONFIG_SLEEPING_AREA: bool}})
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -54,7 +55,17 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             component=BINARY_SENSOR_DOMAIN,  # un-intuitive but correct
             platform=DOMAIN,
             discovered={},
-            hass_config={"foo": "bar"},  # should not be an empty dict
+            hass_config={"nonempty": "dict"},  # should not be an empty dict
+        )
+    )
+
+    hass.async_create_task(
+        discovery.async_load_platform(
+            hass,
+            component=SWITCH_DOMAIN,
+            platform=DOMAIN,
+            discovered={},
+            hass_config={"nonempty": "dict"},
         )
     )
 

@@ -14,6 +14,7 @@ from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
 from homeassistant.helpers.event import async_track_state_change
 
+from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.const import (
     PRESENCE_BINARY_SENSOR_DEVICE_CLASSES,
     PRESENCE_BINARY_SENSOR_STATES,
@@ -25,10 +26,11 @@ _LOGGER = logging.getLogger(__name__)
 
 class AutoPresenceBinarySensor(BinarySensorEntity):
     def __init__(
-        self, hass: HomeAssistant, all_entities: Set[RegistryEntry], area: AreaEntry
+        self, hass: HomeAssistant, all_entities: Set[RegistryEntry], auto_area: AutoArea
     ) -> None:
         self.hass = hass
-        self.area = area
+        self.auto_area = auto_area
+        self.area_name = auto_area.area_name
         self.presence: bool = None
 
         self.presence_indicating_entities = [
@@ -48,7 +50,7 @@ class AutoPresenceBinarySensor(BinarySensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"Auto Presence {self.area.name}"
+        return f"Auto Presence {self.area_name}"
 
     @property
     def should_poll(self) -> bool:
@@ -60,12 +62,12 @@ class AutoPresenceBinarySensor(BinarySensorEntity):
 
     def initialize(self) -> None:
         """Register relevant entities from this area"""
-        _LOGGER.info("AutoPresence '%s'", self.area.name)
+        _LOGGER.info("AutoPresence '%s'", self.area_name)
 
         if not self.presence_indicating_entities:
             _LOGGER.info(
                 "* No presence binary_sensors found in area %s",
-                self.area.name,
+                self.area_name,
             )
             return
 
@@ -84,7 +86,7 @@ class AutoPresenceBinarySensor(BinarySensorEntity):
             )
             else True
         )
-        _LOGGER.info("Initial presence (%s): %s ", self.area.name, self.presence)
+        _LOGGER.info("Initial presence (%s): %s ", self.area_name, self.presence)
 
         # Subscribe to state changes
         async_track_state_change(
@@ -111,7 +113,7 @@ class AutoPresenceBinarySensor(BinarySensorEntity):
 
         if current_state in PRESENCE_BINARY_SENSOR_STATES:
             if not self.presence:
-                _LOGGER.info("Presence detected in %s", self.area.name)
+                _LOGGER.info("Presence detected in %s", self.area_name)
                 self.presence = True
                 self.schedule_update_ha_state()
         else:
@@ -121,7 +123,7 @@ class AutoPresenceBinarySensor(BinarySensorEntity):
                 PRESENCE_BINARY_SENSOR_STATES,
             ):
                 if self.presence:
-                    _LOGGER.info("Presence cleared in %s", self.area.name)
+                    _LOGGER.info("Presence cleared in %s", self.area_name)
                     self.presence = False
                     self.schedule_update_ha_state()
 

@@ -35,8 +35,10 @@ DEVICE_CLASS_DOMAINS = (BINARY_SENSOR_DOMAIN, SENSOR_DOMAIN)
 # AutoAreas
 DATA_AUTO_AREA = "auto-area"
 
-# Presence
+# Area Config options
+CONFIG_SLEEPING_AREA = "is_sleeping_area"
 
+# Presence entities
 PRESENCE_BINARY_SENSOR_DEVICE_CLASSES = (
     DEVICE_CLASS_MOTION,
     DEVICE_CLASS_OCCUPANCY,

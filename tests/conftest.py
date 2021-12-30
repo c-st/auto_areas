@@ -1,49 +1,35 @@
 """Fixtures for testing."""
-from uuid import uuid4
-from collections import OrderedDict
-
-import logging
 import asyncio
-from _pytest.fixtures import FixtureRequest
-import pytest
+from collections import OrderedDict
+import logging
+from uuid import uuid4
 
+from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    SERVICE_TURN_OFF,
+    SERVICE_TURN_ON,
+    STATE_OFF,
+    STATE_ON,
+)
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers import device_registry as dev_reg, entity_registry as ent_reg
+from homeassistant.setup import async_setup_component
+from homeassistant.util import slugify
+import pytest
 from pytest_bdd import parsers
 from pytest_bdd.steps import given, then, when
-
 from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_mock_service,
     mock_area_registry,
     mock_device_registry,
     mock_registry,
 )
 
-from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.const import (
-    ATTR_ENTITY_ID,
-    SERVICE_TURN_ON,
-    SERVICE_TURN_OFF,
-    STATE_OFF,
-    STATE_ON,
-)
-from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
-from homeassistant.setup import async_setup_component
-from homeassistant.util import slugify
-from homeassistant.helpers import (
-    device_registry as dev_reg,
-    entity_registry as ent_reg,
-)
 from custom_components.auto_areas.auto_lights import AutoLights
-
-from custom_components.auto_areas.const import (
-    DATA_AUTO_AREA,
-    DOMAIN,
-)
+from custom_components.auto_areas.const import DATA_AUTO_AREA, DOMAIN
 from custom_components.auto_areas.ha_helpers import get_data
 
 AREAS = ("Kitchen", "Living Room", "Bathroom", "Bedroom")
-
-_LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(autouse=True)
@@ -181,9 +167,10 @@ def fixture_create_areas(hass, text: str) -> dict:
     return areas
 
 
-@given(parsers.parse("sleep mode is off in the area '{area_name}'"))
-def fixture_disable_sleep_mode(hass, area_name: str, request: FixtureRequest) -> dict:
-    # set switch state to off
+@given(parsers.parse("sleep mode is {state} in the area '{area_name}'"))
+@when(parsers.parse("sleep mode is {state} in the area '{area_name}'"))
+def fixture_disable_sleep_mode(hass, state: str, area_name: str) -> dict:
+    hass.states.async_set(f"switch.auto_sleep_mode_{area_name}", state)
     return
 
 
@@ -253,7 +240,6 @@ def ensure_initialization(
 @when(parsers.parse("state of motion sensor {index:d} is set to '{state}'"))
 def fixture_set_motion_sensor_state(hass, motion_sensors, index, state):
     sensor = motion_sensors[index - 1]
-    _LOGGER.info("Setting state of %s to %s", sensor.entity_id, state)
     hass.states.async_set(sensor.entity_id, state)
     asyncio.run(hass.async_block_till_done())
 
