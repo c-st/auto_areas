@@ -1,7 +1,7 @@
 from homeassistant.setup import async_setup_component
 
 from custom_components.auto_areas.auto_area import AutoArea
-from custom_components.auto_areas.const import DATA_AUTO_AREA, DOMAIN
+from custom_components.auto_areas.const import DOMAIN_DATA, DOMAIN
 from custom_components.auto_areas.ha_helpers import get_data
 
 
@@ -17,5 +17,5 @@ async def test_copies_configuration_to_auto_area(hass, default_entities):
     assert result is True
 
     # verify that config has been copied to auto_area
-    auto_areas: dict[str, AutoArea] = get_data(hass, DATA_AUTO_AREA)
+    auto_areas: dict[str, AutoArea] = get_data(hass, DOMAIN_DATA)
     assert auto_areas["bedroom"].config.get("is_sleeping_area") is True

@@ -1,5 +1,4 @@
 """Fixtures for testing."""
-import asyncio
 from collections import OrderedDict
 from uuid import uuid4
 
@@ -26,7 +25,7 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.auto_areas.auto_lights import AutoLights
 from custom_components.auto_areas.const import (
-    DATA_AUTO_AREA,
+    DOMAIN_DATA,
     DOMAIN,
     ENTITY_NAME_AREA_PRESENCE,
     ENTITY_NAME_AREA_SLEEP_MODE,
@@ -143,7 +142,7 @@ def create_entity(
 async def fixture_auto_areas(hass: HomeAssistant, config):
     await async_setup_component(hass, DOMAIN, config)
     await hass.async_block_till_done()
-    return get_data(hass, DATA_AUTO_AREA)
+    return get_data(hass, DOMAIN_DATA)
 
 
 @pytest.fixture(name="config")

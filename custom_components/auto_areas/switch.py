@@ -8,7 +8,7 @@ from homeassistant.helpers.entity import Entity
 from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.const import (
     CONFIG_SLEEPING_AREA,
-    DATA_AUTO_AREA,
+    DOMAIN_DATA,
 )
 from custom_components.auto_areas.ha_helpers import get_data
 from custom_components.auto_areas.sleep_mode_switch import SleepModeSwitch
@@ -26,7 +26,7 @@ async def async_setup_platform(
     _LOGGER.info("Setup switch platform %s", config)
 
     entities: List[Entity] = []
-    auto_areas: Dict[AutoArea] = get_data(hass, DATA_AUTO_AREA)
+    auto_areas: Dict[AutoArea] = get_data(hass, DOMAIN_DATA)
     for area in auto_areas.values():
         if area.config.get(CONFIG_SLEEPING_AREA) is True:
             entities.append(SleepModeSwitch(hass, area))

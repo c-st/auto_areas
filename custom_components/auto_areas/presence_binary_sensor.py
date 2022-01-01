@@ -43,8 +43,6 @@ class PresenceBinarySensor(BinarySensorEntity):
             or entity.original_device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
         ]
 
-        # self.initialize()
-
     async def async_added_to_hass(self):
         self.initialize()
         return

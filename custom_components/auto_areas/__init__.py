@@ -15,7 +15,7 @@ from voluptuous.schema_builder import PREVENT_EXTRA
 from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.ha_helpers import set_data
 
-from .const import CONFIG_SLEEPING_AREA, DATA_AUTO_AREA, DOMAIN
+from .const import CONFIG_SLEEPING_AREA, DOMAIN, DOMAIN_DATA
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     for area in area_registry.async_list_areas():
         auto_areas[area.id] = AutoArea(hass, area, auto_areas_config)
 
-    set_data(hass, DATA_AUTO_AREA, auto_areas)
+    set_data(hass, DOMAIN_DATA, auto_areas)
 
     hass.async_create_task(
         discovery.async_load_platform(

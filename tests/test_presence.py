@@ -8,7 +8,7 @@ from homeassistant.setup import async_setup_component
 
 from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.const import (
-    DATA_AUTO_AREA,
+    DOMAIN_DATA,
     DOMAIN,
     ENTITY_NAME_AREA_PRESENCE,
 )
@@ -42,7 +42,7 @@ async def test_presence_state_tracking(
 
     await async_setup_component(hass, DOMAIN, {})
     await hass.async_block_till_done()
-    auto_areas: dict[str, AutoArea] = get_data(hass, DATA_AUTO_AREA) or {}
+    auto_areas: dict[str, AutoArea] = get_data(hass, DOMAIN_DATA) or {}
 
     # verify entities amount
     assert len(auto_areas["bedroom"].entities) is 3

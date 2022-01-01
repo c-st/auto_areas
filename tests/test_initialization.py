@@ -6,7 +6,7 @@ from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.auto_areas.auto_area import AutoArea
-from custom_components.auto_areas.const import DATA_AUTO_AREA, DOMAIN
+from custom_components.auto_areas.const import DOMAIN_DATA, DOMAIN
 from custom_components.auto_areas.ha_helpers import get_data
 from tests.conftest import create_entity
 
@@ -22,7 +22,7 @@ async def test_area_initialization(hass, default_entities):
     assert result is True
 
     # verify that areas have been registered
-    auto_areas: dict[str, AutoArea] = get_data(hass, DATA_AUTO_AREA)
+    auto_areas: dict[str, AutoArea] = get_data(hass, DOMAIN_DATA)
     assert len(auto_areas) is 4
 
     # verify entities amount
@@ -60,7 +60,7 @@ async def test_area_assignment_through_device(
     result = await async_setup_component(hass, DOMAIN, {})
     assert result is True
 
-    auto_areas: dict[str, AutoArea] = get_data(hass, DATA_AUTO_AREA)
+    auto_areas: dict[str, AutoArea] = get_data(hass, DOMAIN_DATA)
     assert len(auto_areas["kitchen"].entities) is 0
     assert len(auto_areas["living_room"].entities) is 0
     assert len(auto_areas["bedroom"].entities) is 1
@@ -75,6 +75,6 @@ async def test_entity_domain_filtering(hass, entity_registry, default_entities):
     result = await async_setup_component(hass, DOMAIN, {})
     assert result is True
 
-    auto_areas: dict[str, AutoArea] = get_data(hass, DATA_AUTO_AREA)
+    auto_areas: dict[str, AutoArea] = get_data(hass, DOMAIN_DATA)
     assert len(auto_areas["bedroom"].entities) is 1
     assert len(auto_areas["bathroom"].entities) is 1
