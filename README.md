@@ -56,17 +56,19 @@ Currently the following entities are supported:
 
 The presence state is published to a `binary_sensor` which will be named according to the area: `binary_sensor.area_presence_{area_name}`.
 
+[Scenarios (Gherkin)](tests/features/presence.feature)
+
 #### Presence lock
 
 If only relying on motion sensors, presence could be cleared if there is only little or no movement. Presence lock can be used to treat an area as "occupied" regardless of sensor state.
 
 A new switch with ID `switch.area_presence_lock_{area_name}` is created for each area. If the switch is `on`, lights will not be turned off.
 
-[Scenarios (Gherkin)](tests/features/presence.feature)
+[Scenarios (Gherkin)](tests/features/presence_lock.feature)
 
 ### Control lights automatically
 
-Turns lights on and off based on area presence.
+Automatically turns lights on and off based on presence in an area.
 
 [Scenarios (Gherkin)](tests/features/auto_lights.feature)
 
@@ -118,10 +120,11 @@ auto_areas:
 
 Created entities:
 
-| Name                                      | Description                      |
-| ----------------------------------------- | :------------------------------- |
-| `binary_sensor.area_presence_{area_name}` |                                  |
-| `switch.area_sleep_mode_{area_name}`      | Only created for sleeping areas. |
+| Name                                      | Description                                                                     |
+| ----------------------------------------- | :------------------------------------------------------------------------------ |
+| `binary_sensor.area_presence_{area_name}` | Indicates whether area is currently considered occupied or not.                 |
+| `switch.area_presence_lock_{area_name}`   | Created for all areas. If enabled, area presence is always on.                  |
+| `switch.area_sleep_mode_{area_name}`      | Only created for sleeping areas. If enabled, light in sleeping areas stays off. |
 
 ## Development
 

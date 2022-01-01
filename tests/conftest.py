@@ -1,5 +1,4 @@
 """Fixtures for testing."""
-import asyncio
 from collections import OrderedDict
 from uuid import uuid4
 
@@ -26,9 +25,10 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.auto_areas.auto_lights import AutoLights
 from custom_components.auto_areas.const import (
-    DATA_AUTO_AREA,
+    DOMAIN_DATA,
     DOMAIN,
     ENTITY_NAME_AREA_PRESENCE,
+    ENTITY_NAME_AREA_PRESENCE_LOCK,
     ENTITY_NAME_AREA_SLEEP_MODE,
 )
 from custom_components.auto_areas.ha_helpers import get_data
@@ -143,7 +143,7 @@ def create_entity(
 async def fixture_auto_areas(hass: HomeAssistant, config):
     await async_setup_component(hass, DOMAIN, config)
     await hass.async_block_till_done()
-    return get_data(hass, DATA_AUTO_AREA)
+    return get_data(hass, DOMAIN_DATA)
 
 
 @pytest.fixture(name="config")
@@ -173,8 +173,17 @@ def fixture_create_areas(hass: HomeAssistant, text: str) -> dict:
 
 @given(parsers.parse("sleep mode is {state} in the area '{area_name}'"))
 @when(parsers.parse("sleep mode is {state} in the area '{area_name}'"))
-def fixture_disable_sleep_mode(hass: HomeAssistant, state: str, area_name: str) -> dict:
-    hass.states.async_set(f"{ENTITY_NAME_AREA_SLEEP_MODE}{area_name}", state)
+def fixture_set_sleep_mode(hass: HomeAssistant, state: str, area_name: str) -> dict:
+    hass.states.async_set(f"{ENTITY_NAME_AREA_SLEEP_MODE}{slugify(area_name)}", state)
+    return
+
+
+@given(parsers.parse("presence lock is {state} in area '{area_name}'"))
+@when(parsers.parse("presence lock is {state} in area '{area_name}'"))
+def fixture_set_presence_lock(hass: HomeAssistant, state: str, area_name: str) -> dict:
+    hass.states.async_set(
+        f"{ENTITY_NAME_AREA_PRESENCE_LOCK}{slugify(area_name)}", state
+    )
     return
 
 
@@ -250,14 +259,20 @@ def fixture_set_motion_sensor_state(hass: HomeAssistant, motion_sensors, index, 
     hass.states.async_set(sensor.entity_id, state)
 
 
-@then(parsers.parse("presence is detected in area '{area}'"))
-def expect_presence(hass: HomeAssistant, auto_areas, area):
-    assert hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}{area}").state is STATE_ON
+@then(parsers.parse("presence is detected in area '{area_name}'"))
+def expect_presence(hass: HomeAssistant, auto_areas, area_name):
+    assert (
+        hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}{slugify(area_name)}").state
+        is STATE_ON
+    )
 
 
-@then(parsers.parse("no presence is detected in area '{area}'"))
-def expect_no_presence(hass: HomeAssistant, auto_areas, area):
-    assert hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}{area}").state is STATE_OFF
+@then(parsers.parse("no presence is detected in area '{area_name}'"))
+def expect_no_presence(hass: HomeAssistant, auto_areas, area_name):
+    assert (
+        hass.states.get(f"{ENTITY_NAME_AREA_PRESENCE}{slugify(area_name)}").state
+        is STATE_OFF
+    )
 
 
 @then(parsers.parse("lights are {expected_state} in area '{area}'"))

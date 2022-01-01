@@ -13,10 +13,12 @@ from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
 from homeassistant.helpers.event import async_track_state_change
+from homeassistant.util import slugify
 
 from custom_components.auto_areas.const import (
+    ENTITY_NAME_AREA_PRESENCE_LOCK,
     PRESENCE_BINARY_SENSOR_DEVICE_CLASSES,
-    PRESENCE_BINARY_SENSOR_STATES,
+    PRESENCE_ON_STATES,
     ENTITY_FRIENDLY_NAME_AREA_PRESENCE,
 )
 from custom_components.auto_areas.ha_helpers import all_states_are_off
@@ -31,36 +33,37 @@ class PresenceBinarySensor(BinarySensorEntity):
         self.hass = hass
         self.all_entities = all_entities
         self.area = area
-        self.area_name = area.name
+        self.area_name = slugify(area.name)
         self.presence: bool = None
 
         _LOGGER.info("AutoPresence '%s'", self.area_name)
 
-        self.presence_indicating_entities = [
-            entity
+        self.presence_lock_entity_id = (
+            f"{ENTITY_NAME_AREA_PRESENCE_LOCK}{self.area_name}"
+        )
+        self.presence_indicating_entity_ids = [
+            entity.entity_id
             for entity in self.all_entities
             if entity.device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
             or entity.original_device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
-        ]
-
-        # self.initialize()
+        ] + [self.presence_lock_entity_id]
 
     async def async_added_to_hass(self):
         self.initialize()
         return
 
     def initialize(self) -> None:
-        if not self.presence_indicating_entities:
+
+        if len(self.presence_indicating_entity_ids) == 1:
             _LOGGER.info(
                 "No supported sensors for presence detection found (%s)",
                 self.area_name,
             )
-            return
 
         _LOGGER.info(
-            "Using these sensors for presence detection (%s): %s",
+            "Using these entities for presence detection (%s): %s",
             self.area_name,
-            [entity.entity_id for entity in self.presence_indicating_entities],
+            self.presence_indicating_entity_ids,
         )
 
         # Set initial presence
@@ -68,8 +71,8 @@ class PresenceBinarySensor(BinarySensorEntity):
             False
             if all_states_are_off(
                 self.hass,
-                self.presence_indicating_entities,
-                PRESENCE_BINARY_SENSOR_STATES,
+                self.presence_indicating_entity_ids,
+                PRESENCE_ON_STATES,
             )
             else True
         )
@@ -80,7 +83,7 @@ class PresenceBinarySensor(BinarySensorEntity):
         # Subscribe to state changes
         async_track_state_change(
             self.hass,
-            [entity.entity_id for entity in self.presence_indicating_entities],
+            self.presence_indicating_entity_ids,
             self.handle_presence_state_change,
         )
 
@@ -90,7 +93,7 @@ class PresenceBinarySensor(BinarySensorEntity):
 
     @property
     def name(self):
-        return f"{ENTITY_FRIENDLY_NAME_AREA_PRESENCE}{self.area_name}"
+        return f"{ENTITY_FRIENDLY_NAME_AREA_PRESENCE}{self.area.name}"
 
     @property
     def should_poll(self) -> bool:
@@ -116,7 +119,7 @@ class PresenceBinarySensor(BinarySensorEntity):
             current_state,
         )
 
-        if current_state in PRESENCE_BINARY_SENSOR_STATES:
+        if current_state in PRESENCE_ON_STATES:
             if not self.presence:
                 _LOGGER.info("Presence detected (%s)", self.area_name)
                 self.presence = True
@@ -124,8 +127,8 @@ class PresenceBinarySensor(BinarySensorEntity):
         else:
             if all_states_are_off(
                 self.hass,
-                self.presence_indicating_entities,
-                PRESENCE_BINARY_SENSOR_STATES,
+                self.presence_indicating_entity_ids,
+                PRESENCE_ON_STATES,
             ):
                 if self.presence:
                     _LOGGER.info("Presence cleared (%s)", self.area_name)

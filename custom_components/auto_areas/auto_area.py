@@ -12,7 +12,7 @@ from homeassistant.helpers.device_registry import DeviceRegistry
 from homeassistant.helpers.entity_registry import EntityRegistry, RegistryEntry
 
 from custom_components.auto_areas.auto_lights import AutoLights
-from custom_components.auto_areas.const import RELEVANT_DOMAINS
+from custom_components.auto_areas.const import AUTO_AREAS_RELEVANT_DOMAINS
 from custom_components.auto_areas.ha_helpers import get_all_entities
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class AutoArea(object):
 
         # Collect entities for this area
         entities = get_all_entities(
-            entity_registry, device_registry, self.area_id, RELEVANT_DOMAINS
+            entity_registry, device_registry, self.area_id, AUTO_AREAS_RELEVANT_DOMAINS
         )
         self.entities = [entity for entity in entities if self.is_valid_entity(entity)]
 
