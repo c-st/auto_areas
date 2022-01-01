@@ -14,13 +14,13 @@ Feature: Presence lock
 
     Scenario: Presence lock turns on lights
         Given The state of all motion sensors is 'off'
-        When Presence lock is 'on' in area 'living room'
+        When Presence lock is on in area 'living room'
         Then Presence is detected in area 'living room'
         And Lights are on in area 'living room'
 
     Scenario: Lights stay on with presence lock
         Given The state of all motion sensors is 'on'
-        When Presence lock is 'on' in area 'living room'
+        When Presence lock is on in area 'living room'
         And State of motion sensor 1 is set to 'off'
         Then Presence is detected in area 'living room'
         And Lights are on in area 'living room'

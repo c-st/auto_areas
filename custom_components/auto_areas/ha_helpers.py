@@ -51,11 +51,11 @@ def get_area_id(
 
 def all_states_are_off(
     hass: HomeAssistant,
-    presence_indicating_entities: List[RegistryEntry],
+    presence_indicating_entity_ids: List[str],
     on_states: List[str],
 ) -> bool:
     all_states = [
-        hass.states.get(entity.entity_id) for entity in presence_indicating_entities
+        hass.states.get(entity_id) for entity_id in presence_indicating_entity_ids
     ]
     return all(state.state not in on_states for state in filter(None, all_states))
 

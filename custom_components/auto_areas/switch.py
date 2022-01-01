@@ -11,6 +11,7 @@ from custom_components.auto_areas.const import (
     DOMAIN_DATA,
 )
 from custom_components.auto_areas.ha_helpers import get_data
+from custom_components.auto_areas.presence_lock_switch import PresenceLockSwitch
 from custom_components.auto_areas.sleep_mode_switch import SleepModeSwitch
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,9 +26,12 @@ async def async_setup_platform(
     """Set up all switches"""
     _LOGGER.info("Setup switch platform %s", config)
 
-    entities: List[Entity] = []
     auto_areas: Dict[AutoArea] = get_data(hass, DOMAIN_DATA)
+
+    entities: List[Entity] = []
+
     for area in auto_areas.values():
+        entities.append(PresenceLockSwitch(hass, area))
         if area.config.get(CONFIG_SLEEPING_AREA) is True:
             entities.append(SleepModeSwitch(hass, area))
 

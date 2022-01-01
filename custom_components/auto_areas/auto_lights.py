@@ -38,17 +38,13 @@ class AutoLights(object):
     ) -> None:
         self.hass = hass
         self.area = area
-        self.area_name = area.name
+        self.area_name = slugify(area.name)
         self.area_config = area_config
         self.is_sleeping_area = self.area_config.get(CONFIG_SLEEPING_AREA, False)
         self.sleep_mode_enabled = None
 
-        self.sleep_mode_entity_id = (
-            f"{ENTITY_NAME_AREA_SLEEP_MODE}{slugify(self.area_name)}"
-        )
-        self.presence_entity_id = (
-            f"{ENTITY_NAME_AREA_PRESENCE}{slugify(self.area_name)}"
-        )
+        self.sleep_mode_entity_id = f"{ENTITY_NAME_AREA_SLEEP_MODE}{self.area_name}"
+        self.presence_entity_id = f"{ENTITY_NAME_AREA_PRESENCE}{self.area_name}"
 
         self.light_entities = [
             entity for entity in all_entities if entity.domain in LIGHT_DOMAIN
