@@ -98,11 +98,14 @@ class AutoLights(object):
         # set lights initially based on presence
         initial_state = self.hass.states.get(self.presence_entity_id)
         _LOGGER.info(
-            "AutoLights '%s'. Initial presence: %s, %s Managed lights: %s",
+            "AutoLights '%s'. Initial presence: %s, %s Managed lights: %s (Scenes: presence=%s, goodbye=%s, sleeping=%s)",
             self.area_name,
             initial_state,
             self.presence_entity_id,
             self.light_entity_ids,
+            self.presence_scene_entity_id,
+            self.goodbye_scene_entity_id,
+            self.sleeping_scene_entity_id
         )
 
         if initial_state == STATE_ON:
