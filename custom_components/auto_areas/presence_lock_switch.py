@@ -7,6 +7,8 @@ from homeassistant.util import slugify
 
 from custom_components.auto_areas.const import (
     ENTITY_FRIENDLY_NAME_AREA_PRESENCE_LOCK,
+    ATTR_ATTRIBUTION,
+    ATTRIBUTION
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -45,3 +47,7 @@ class PresenceLockSwitch(SwitchEntity):
     @property
     def unique_id(self):
         return f"auto_areas_presence_lock_switch_{self.area_name}"
+
+    @property
+    def extra_state_attributes(self):
+        return { ATTR_ATTRIBUTION: ATTRIBUTION }
