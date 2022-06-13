@@ -19,17 +19,20 @@ from .const import CONFIG_SLEEPING_AREA, CONFIG_PRESENCE_SCENE, CONFIG_GOODBYE_S
 
 _LOGGER = logging.getLogger(__name__)
 
-area_config_schema = vol.Schema({
-    CONFIG_SLEEPING_AREA: bool,
-    CONFIG_PRESENCE_SCENE: str,
-    CONFIG_GOODBYE_SCENE: str,
-    CONFIG_SLEEPING_SCENE: str}, extra=PREVENT_EXTRA)
+area_config_schema = vol.Schema(
+    {
+        vol.Optional(CONFIG_SLEEPING_AREA): bool,
+        vol.Optional(CONFIG_PRESENCE_SCENE): str,
+        vol.Optional(CONFIG_GOODBYE_SCENE): str,
+        vol.Optional(CONFIG_SLEEPING_SCENE): str
+    }, extra=PREVENT_EXTRA)
+
 config_schema = vol.Schema(
     {str: {
-        CONFIG_SLEEPING_AREA: bool,
-        CONFIG_PRESENCE_SCENE: str,
-        CONFIG_GOODBYE_SCENE: str,
-        CONFIG_SLEEPING_SCENE: str
+        vol.Optional(CONFIG_SLEEPING_AREA): bool,
+        vol.Optional(CONFIG_PRESENCE_SCENE): str,
+        vol.Optional(CONFIG_GOODBYE_SCENE): str,
+        vol.Optional(CONFIG_SLEEPING_SCENE): str
     }})
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

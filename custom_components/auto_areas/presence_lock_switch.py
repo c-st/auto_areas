@@ -41,3 +41,7 @@ class PresenceLockSwitch(SwitchEntity):
         _LOGGER.info("Presence lock (%s) turned off", self.area_name)
         self._is_on = False
         self.schedule_update_ha_state()
+
+    @property
+    def unique_id(self):
+        return f"auto_areas_presence_lock_switch_{self.area_name}"

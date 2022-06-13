@@ -137,3 +137,7 @@ class PresenceBinarySensor(BinarySensorEntity):
 
     async def async_will_remove_from_hass(self):
         return
+
+    @property
+    def unique_id(self):
+        return f"auto_areas_presence_sensor_{self.area_name}"

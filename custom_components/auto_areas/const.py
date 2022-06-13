@@ -17,6 +17,9 @@ NAME = "Auto Areas"
 DOMAIN = "auto_areas"
 DOMAIN_DATA = f"{DOMAIN}_data"
 
+ATTR_ATTRIBUTION = 'attribution'
+ATTRIBUTION = f"Powered by {NAME}"
+
 # Prefixes for created entities (area name is appended: f"{ENTITY_NAME_FOO{area.name}")
 ENTITY_FRIENDLY_NAME_AREA_PRESENCE = "Area Presence "
 ENTITY_NAME_AREA_PRESENCE = "binary_sensor.area_presence_"

@@ -39,3 +39,7 @@ class SleepModeSwitch(SwitchEntity):
         _LOGGER.info("Sleep mode (%s) turned off", self.area_name)
         self._is_on = False
         self.schedule_update_ha_state()
+
+    @property
+    def unique_id(self):
+        return f"auto_areas_sleep_switch_{self.area_name}"
