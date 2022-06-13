@@ -29,6 +29,9 @@ ENTITY_NAME_AREA_SLEEP_MODE = "switch.area_sleep_mode_"
 
 # Area Config options
 CONFIG_SLEEPING_AREA = "is_sleeping_area"
+CONFIG_PRESENCE_SCENE = "presence_scene"
+CONFIG_GOODBYE_SCENE = "goodbye_scene"
+CONFIG_SLEEPING_SCENE = "sleeping_scene"
 
 # Entity gathering configuration
 AUTO_AREAS_RELEVANT_DOMAINS = [

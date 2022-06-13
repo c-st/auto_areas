@@ -88,6 +88,18 @@ For information on how to configure this feature refer to the [configuration sec
 
 [Scenarios (Gherkin)](tests/features/sleep_mode.feature)
 
+#### Scenes
+
+Besides turning all lights on at 100% within an area during presence, this alternatively supports specifying a scene `entity_id` that should be used for presence, goodbye, and sleeping modes. The sleeping mode scene is for when motion is detected during sleeping what should occur (for instance turning on very low level path lights). One or more scenes can be configured, which overrides the default behavior of turning on/off all lights.
+
+```yaml
+auto_areas:
+  bedroom:
+    presence_scene: scene.second_bed_presence
+    goodbye_scene: scene.second_bed_goodbye
+    sleeping_scene: scene.second_bed_sleeping
+```
+
 ## Installation
 
 Install as custom_component for HomeAssistant.
