@@ -41,10 +41,10 @@ class AutoArea(object):
         _LOGGER.info("AutoArea '%s' (config %s)", self.area_name, self.config)
 
         entity_registry: EntityRegistry = (
-            await self.hass.helpers.entity_registry.async_get()
+            await self.hass.helpers.entity_registry.async_get(hass)
         )
         device_registry: DeviceRegistry = (
-            await self.hass.helpers.device_registry.async_get()
+            await self.hass.helpers.device_registry.async_get(hass)
         )
 
         # Collect entities for this area
