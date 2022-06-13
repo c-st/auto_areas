@@ -24,12 +24,12 @@ async def async_setup_platform(
     discovery_info=None,
 ):
     """Set up all binary_sensors"""
-    area_registry: AreaRegistry = await hass.helpers.area_registry.async_get_registry()
+    area_registry: AreaRegistry = await hass.helpers.area_registry.async_get()
     entity_registry: EntityRegistry = (
-        await hass.helpers.entity_registry.async_get_registry()
+        await hass.helpers.entity_registry.async_get()
     )
     device_registry: DeviceRegistry = (
-        await hass.helpers.device_registry.async_get_registry()
+        await hass.helpers.device_registry.async_get()
     )
 
     binary_sensor_entities = []
