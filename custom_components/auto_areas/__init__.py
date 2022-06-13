@@ -57,7 +57,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     _LOGGER.debug("Found config %s", auto_areas_config)
 
-    area_registry: AreaRegistry = await hass.helpers.area_registry.async_get(hass)
+    area_registry: AreaRegistry = hass.helpers.area_registry.async_get(hass)
 
     auto_areas: MutableMapping[str, AutoArea] = {}
 
