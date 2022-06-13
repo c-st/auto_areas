@@ -95,9 +95,9 @@ Besides turning all lights on at 100% within an area during presence, this alter
 ```yaml
 auto_areas:
   bedroom:
-    presence_scene: scene.second_bed_presence
-    goodbye_scene: scene.second_bed_goodbye
-    sleeping_scene: scene.second_bed_sleeping
+    presence_scene: scene.bedroom_presence
+    goodbye_scene: scene.bedroom_goodbye
+    sleeping_scene: scene.bedroom_sleeping
 ```
 
 ## Installation
