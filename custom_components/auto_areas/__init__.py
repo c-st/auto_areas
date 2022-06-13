@@ -17,6 +17,9 @@ from custom_components.auto_areas.ha_helpers import set_data
 
 from .const import CONFIG_SLEEPING_AREA, CONFIG_PRESENCE_SCENE, CONFIG_GOODBYE_SCENE, CONFIG_SLEEPING_SCENE, DOMAIN, DOMAIN_DATA
 
+# SUGGESTIONS:
+#  - add binary_sensor.any_area_occupied that determines if ANY of the areas occupancy switches are on (device_class: presence)
+
 _LOGGER = logging.getLogger(__name__)
 
 area_config_schema = vol.Schema(
