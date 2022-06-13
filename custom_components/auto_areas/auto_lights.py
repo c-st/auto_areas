@@ -6,6 +6,7 @@ import logging
 from typing import Set
 
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
+from homeassistant.components.scene import DOMAIN as SCENE_DOMAIN
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     EVENT_HOMEASSISTANT_STARTED,
@@ -27,6 +28,7 @@ from custom_components.auto_areas.const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+AUTO_SCENE_NAMES = [ 'Presence', 'Sleep Mode', 'Goodbye' ]
 
 class AutoLights(object):
     def __init__(
@@ -40,6 +42,7 @@ class AutoLights(object):
         self.area = area
         self.area_name = slugify(area.name)
         self.area_config = area_config
+
         self.is_sleeping_area = self.area_config.get(CONFIG_SLEEPING_AREA, False)
         self.sleep_mode_enabled = None
 
@@ -51,6 +54,16 @@ class AutoLights(object):
         ]
         self.light_entity_ids = [entity.entity_id for entity in self.light_entities]
 
+        self.presence_scene_entity_id = None
+        self.goodbye_scene_entity_id = None
+#        self.presence_scene_entity_id = f"scene.{self.area_name}_presence"
+#        self.goodbye_scene_entity_id = f"scene.{self.area_name}_goodbye"
+#        for entity in all_entities:
+#            if not entity.domain in SCENE_DOMAIN:
+#               y continue
+#            if 'Presence' in entity.name:
+#                self.presence_scene_entity_id = ''
+
         if self.hass.is_running:
             self.hass.async_create_task(self.initialize())
         else:
@@ -61,7 +74,7 @@ class AutoLights(object):
     async def initialize(self) -> None:
         if self.is_sleeping_area:
             _LOGGER.info(
-                "Sleeping area bedroom '%s' (entity: %s)",
+                "Sleeping area '%s' (entity: %s)",
                 self.area_name,
                 self.sleep_mode_entity_id,
             )
@@ -87,15 +100,11 @@ class AutoLights(object):
             self.presence_entity_id,
             self.light_entity_ids,
         )
-        if initial_state and self.light_entity_ids:
-            action = (
-                SERVICE_TURN_ON if initial_state.state == STATE_ON else SERVICE_TURN_OFF
-            )
-            await self.hass.services.async_call(
-                LIGHT_DOMAIN,
-                action,
-                {ATTR_ENTITY_ID: self.light_entity_ids},
-            )
+
+        if initial_state == STATE_ON:
+            await self.handle_presence_state_on()
+        elif initial_state == STATE_OFF:
+            await self.handle_presence_state_off()
 
         # start tracking presence state
         async_track_state_change(
@@ -103,6 +112,60 @@ class AutoLights(object):
             self.presence_entity_id,
             self.handle_presence_state_change,
         )
+
+    async def handle_presence_state_on(self):
+        if self.sleep_mode_enabled:
+            _LOGGER.info(
+                "Sleep mode is on (%s). Not turning on lights", self.area_name
+            )
+            return
+
+        # if a scene is configured, it takes precedence over the default lights on
+        if self.presence_scene_entity_id:
+            _LOGGER.info(
+                "Activating scene (%s) %s", self.area_name, self.presence_scene_entity_id
+            )
+            await self.hass.services.async_call(
+                SCENE_DOMAIN,
+                SERVICE_TURN_ON,
+                { ATTR_ENTITY_ID: self.presence_scene_entity_id },
+            )
+            return
+
+        # if any lights, turn them on
+        if self.light_entity_ids:
+            _LOGGER.info(
+                "Turning lights on (%s) %s", self.area_name, self.light_entity_ids
+            )
+            await self.hass.services.async_call(
+                LIGHT_DOMAIN,
+                SERVICE_TURN_ON,
+                { ATTR_ENTITY_ID: self.light_entity_ids },
+            )
+
+    async def handle_presence_state_off(self):
+        # if a scene is configured, it takes precedence over the default lights off
+        if self.goodbye_scene_entity_id:
+            _LOGGER.info(
+                "Activating scene (%s) %s", self.area_name, self.goodbye_scene_entity_id
+            )            
+            await self.hass.services.async_call(
+                SCENE_DOMAIN,
+                SERVICE_TURN_ON,
+                { ATTR_ENTITY_ID: self.goodbye_scene_entity_id },
+            )
+            return
+
+        # if any lights, turn them off
+        if self.light_entity_ids:
+            _LOGGER.info(
+                "Turning lights off (%s) %s", self.area_name, self.light_entity_ids
+            )            
+            await self.hass.services.async_call(
+                LIGHT_DOMAIN,
+                SERVICE_TURN_OFF,
+                { ATTR_ENTITY_ID: self.light_entity_ids },
+            )
 
     async def handle_presence_state_change(
         self, entity_id, from_state: State, to_state: State
@@ -121,35 +184,9 @@ class AutoLights(object):
         )
 
         if current_state == STATE_ON:
-            if self.sleep_mode_enabled:
-                _LOGGER.info(
-                    "Sleep mode is on (%s). Not turning on lights", self.area_name
-                )
-                return
-
-            # turn lights on
-            _LOGGER.info(
-                "Turning lights on (%s) %s", self.area_name, self.light_entity_ids
-            )
-            await self.hass.services.async_call(
-                LIGHT_DOMAIN,
-                SERVICE_TURN_ON,
-                {ATTR_ENTITY_ID: self.light_entity_ids},
-            )
-            return
+            await self.handle_presence_state_on()
         else:
-            if not self.sleep_mode_enabled:
-                _LOGGER.info(
-                    "Turning lights off (%s) %s", self.area_name, self.light_entity_ids
-                )
-
-            # turn lights off
-            await self.hass.services.async_call(
-                LIGHT_DOMAIN,
-                SERVICE_TURN_OFF,
-                {ATTR_ENTITY_ID: self.light_entity_ids},
-            )
-            return
+            await self.handle_presence_state_off()
 
     async def handle_sleep_mode_state_change(
         self, entity_id, from_state: State, to_state: State
@@ -174,11 +211,8 @@ class AutoLights(object):
                 self.light_entity_ids,
             )
             self.sleep_mode_enabled = True
-            await self.hass.services.async_call(
-                LIGHT_DOMAIN,
-                SERVICE_TURN_OFF,
-                {ATTR_ENTITY_ID: self.light_entity_ids},
-            )
+            await self.handle_presence_state_off()
+            
         else:
             _LOGGER.info("Sleep mode disabled (%s)", self.area_name)
             self.sleep_mode_enabled = False
@@ -191,8 +225,4 @@ class AutoLights(object):
                     self.area_name,
                     self.light_entity_ids,
                 )
-                await self.hass.services.async_call(
-                    LIGHT_DOMAIN,
-                    SERVICE_TURN_ON,
-                    {ATTR_ENTITY_ID: self.light_entity_ids},
-                )
+                await self.handle_presence_state_on()

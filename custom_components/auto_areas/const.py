@@ -2,7 +2,7 @@
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_MOTION,
     DEVICE_CLASS_OCCUPANCY,
-    DEVICE_CLASS_PRESENCE,
+    DEVICE_CLASS_PRESENCE
 )
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
@@ -10,6 +10,7 @@ from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 # from homeassistant.components.media_player import DOMAIN as MEDIA_PLAYER_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
+from homeassistant.components.scene import DOMAIN as SCENE_DOMAIN
 from homeassistant.const import STATE_HOME, STATE_ON, STATE_PLAYING
 
 NAME = "Auto Areas"
@@ -35,6 +36,7 @@ AUTO_AREAS_RELEVANT_DOMAINS = [
     SENSOR_DOMAIN,
     SWITCH_DOMAIN,
     LIGHT_DOMAIN,
+    SCENE_DOMAIN,
 ]
 
 # Presence entities

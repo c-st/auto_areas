@@ -55,7 +55,7 @@ class AutoArea(object):
 
         # Setup AutoLights
         self.auto_lights = AutoLights(self.hass, self.entities, self.area, self.config)
-
+        
         for entity in self.entities:
             _LOGGER.info(
                 "- Entity %s (device_class: %s)",
