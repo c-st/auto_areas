@@ -131,6 +131,9 @@ auto_areas:
 | Area option        | Description                                                                                         | Default value      |
 | ------------------ | :-------------------------------------------------------------------------------------------------- | ------------------ |
 | `is_sleeping_area` | Mark area as sleeping area. A switch for controlling sleep mode is created. [See more](#sleep-mode) | `false` (disabled) |
+| `presence_scene` | Scene to activate when presence is detected (when not sleeping) | None |
+| `goodbye_scene` | Scene to activate when presence is no longer detected | None |
+| `sleeping_scene` | Scene to activate when presence is detected and sleeping mode is on | None |
 
 Created entities:
 
