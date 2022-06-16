@@ -90,7 +90,9 @@ For information on how to configure this feature refer to the [configuration sec
 
 #### Scenes
 
-Besides turning all lights on at 100% within an area during presence, this alternatively supports specifying a scene `entity_id` that should be used for presence, goodbye, and sleeping modes. The sleeping mode scene is for when motion is detected during sleeping what should occur (for instance turning on very low level path lights). One or more scenes can be configured, which overrides the default behavior of turning on/off all lights.
+By default, Auto Areas turns all lights on at 100% brightness. Additionally, this now supports user defined scenes by specifying a scene `entity_id` used for presence, goodbye, and/or sleeping modes. The sleeping mode scene is for when motion is detected during sleeping what should occur (for instance turning on very low level path lights).
+
+One or more scenes can be configured, which overrides the default behavior of turning on/off all lights.
 
 ```yaml
 auto_areas:
