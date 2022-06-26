@@ -5,7 +5,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.util import slugify
 
-from custom_components.auto_areas.const import ENTITY_FRIENDLY_NAME_AREA_SLEEP_MODE, ATTR_ATTRIBUTION, ATTRIBUTION
+from custom_components.auto_areas.const import (
+    ENTITY_FRIENDLY_NAME_AREA_SLEEP_MODE,
+    ATTR_ATTRIBUTION,
+    ATTRIBUTION,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,4 +50,4 @@ class SleepModeSwitch(SwitchEntity):
 
     @property
     def extra_state_attributes(self):
-        return { ATTR_ATTRIBUTION: ATTRIBUTION }
+        return {ATTR_ATTRIBUTION: ATTRIBUTION}

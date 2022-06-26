@@ -73,20 +73,11 @@ A new switch with ID `switch.area_presence_lock_{area_name}` is created for each
 
 ### Control lights automatically
 
-Lights are automatically turned on and off based on presence in an area.
+Lights are automatically turned on and off based on presence in an area. By default a `lights.turn_on` command is issued for all lights as soon as presence is detected. Similarly `lights.turn_off` is ran as soon as presence is cleared in an area.
+
+Note: this behaviour plays well together with extensions like for example [Adaptive Lighting](https://github.com/basnijholt/adaptive-lighting). If you wish to instead utilize scenes you may want to have a look at the following section.
 
 [Scenarios (Gherkin)](tests/features/auto_lights.feature)
-
-#### Sleep mode
-
-For areas marked as "sleeping area", automatic light control can be temporarily turned off. Lights are never turned on even if presence is detected.
-
-A switch with ID `switch.auto_sleep_mode_{area_name}` is created for each sleeping area.
-If the switch is turned `on`, automatic light control will be disabled and lights will stay off.
-
-For information on how to configure this feature refer to the [configuration section](#configuration).
-
-[Scenarios (Gherkin)](tests/features/sleep_mode.feature)
 
 #### Scenes
 
@@ -101,6 +92,17 @@ auto_areas:
     goodbye_scene: scene.bedroom_goodbye
     sleeping_scene: scene.bedroom_sleeping
 ```
+
+#### Sleep mode
+
+For areas marked as "sleeping area", automatic light control can be temporarily turned off. Lights are never turned on even if presence is detected.
+
+A switch with ID `switch.auto_sleep_mode_{area_name}` is created for each sleeping area.
+If the switch is turned `on`, automatic light control will be disabled and lights will stay off.
+
+For information on how to configure this feature refer to the [configuration section](#configuration).
+
+[Scenarios (Gherkin)](tests/features/sleep_mode.feature)
 
 ## Installation
 
@@ -133,9 +135,9 @@ auto_areas:
 | Area option        | Description                                                                                         | Default value      |
 | ------------------ | :-------------------------------------------------------------------------------------------------- | ------------------ |
 | `is_sleeping_area` | Mark area as sleeping area. A switch for controlling sleep mode is created. [See more](#sleep-mode) | `false` (disabled) |
-| `presence_scene` | Scene to activate when presence is detected (when not sleeping) | None |
-| `goodbye_scene` | Scene to activate when presence is no longer detected | None |
-| `sleeping_scene` | Scene to activate when presence is detected and sleeping mode is on | None |
+| `presence_scene`   | Scene to activate when presence is detected (when not sleeping)                                     | `None`             |
+| `goodbye_scene`    | Scene to activate when presence is no longer detected                                               | `None`             |
+| `sleeping_scene`   | Scene to activate when presence is detected and sleeping mode is on                                 | `None`             |
 
 Created entities:
 

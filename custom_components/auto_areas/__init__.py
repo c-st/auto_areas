@@ -15,7 +15,14 @@ from voluptuous.schema_builder import PREVENT_EXTRA
 from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.ha_helpers import set_data
 
-from .const import CONFIG_SLEEPING_AREA, CONFIG_PRESENCE_SCENE, CONFIG_GOODBYE_SCENE, CONFIG_SLEEPING_SCENE, DOMAIN, DOMAIN_DATA
+from .const import (
+    CONFIG_SLEEPING_AREA,
+    CONFIG_PRESENCE_SCENE,
+    CONFIG_GOODBYE_SCENE,
+    CONFIG_SLEEPING_SCENE,
+    DOMAIN,
+    DOMAIN_DATA,
+)
 
 # SUGGESTIONS:
 #  - add binary_sensor.any_area_occupied that determines if ANY of the areas occupancy switches are on (device_class: presence)
@@ -29,16 +36,22 @@ area_config_schema = vol.Schema(
         vol.Optional(CONFIG_SLEEPING_AREA): bool,
         vol.Optional(CONFIG_PRESENCE_SCENE): str,
         vol.Optional(CONFIG_GOODBYE_SCENE): str,
-        vol.Optional(CONFIG_SLEEPING_SCENE): str
-    }, extra=PREVENT_EXTRA)
+        vol.Optional(CONFIG_SLEEPING_SCENE): str,
+    },
+    extra=PREVENT_EXTRA,
+)
 
 config_schema = vol.Schema(
-    {str: {
-        vol.Optional(CONFIG_SLEEPING_AREA): bool,
-        vol.Optional(CONFIG_PRESENCE_SCENE): str,
-        vol.Optional(CONFIG_GOODBYE_SCENE): str,
-        vol.Optional(CONFIG_SLEEPING_SCENE): str
-    }})
+    {
+        str: {
+            vol.Optional(CONFIG_SLEEPING_AREA): bool,
+            vol.Optional(CONFIG_PRESENCE_SCENE): str,
+            vol.Optional(CONFIG_GOODBYE_SCENE): str,
+            vol.Optional(CONFIG_SLEEPING_SCENE): str,
+        }
+    }
+)
+
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Setup integration (YAML-based)"""

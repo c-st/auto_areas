@@ -40,11 +40,11 @@ class AutoArea(object):
         """Register relevant entities for this area"""
         _LOGGER.info("AutoArea '%s' (config %s)", self.area_name, self.config)
 
-        entity_registry: EntityRegistry = (
-            self.hass.helpers.entity_registry.async_get(self.hass)
+        entity_registry: EntityRegistry = self.hass.helpers.entity_registry.async_get(
+            self.hass
         )
-        device_registry: DeviceRegistry = (
-            self.hass.helpers.device_registry.async_get(self.hass)
+        device_registry: DeviceRegistry = self.hass.helpers.device_registry.async_get(
+            self.hass
         )
 
         # Collect entities for this area
@@ -55,7 +55,7 @@ class AutoArea(object):
 
         # Setup AutoLights
         self.auto_lights = AutoLights(self.hass, self.entities, self.area, self.config)
-        
+
         for entity in self.entities:
             _LOGGER.info(
                 "- Entity %s (device_class: %s)",

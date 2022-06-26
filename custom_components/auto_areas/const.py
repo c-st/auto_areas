@@ -2,7 +2,7 @@
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_MOTION,
     DEVICE_CLASS_OCCUPANCY,
-    DEVICE_CLASS_PRESENCE
+    DEVICE_CLASS_PRESENCE,
 )
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
@@ -17,7 +17,7 @@ NAME = "Auto Areas"
 DOMAIN = "auto_areas"
 DOMAIN_DATA = f"{DOMAIN}_data"
 
-ATTR_ATTRIBUTION = 'attribution'
+ATTR_ATTRIBUTION = "attribution"
 ATTRIBUTION = f"Powered by {NAME}"
 
 # Prefixes for created entities (area name is appended: f"{ENTITY_NAME_FOO{area.name}")

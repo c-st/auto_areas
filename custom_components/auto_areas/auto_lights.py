@@ -13,6 +13,7 @@ from homeassistant.const import (
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
     STATE_ON,
+    STATE_OFF,
 )
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.area_registry import AreaEntry
@@ -30,6 +31,7 @@ from custom_components.auto_areas.const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class AutoLights(object):
     def __init__(
@@ -59,14 +61,14 @@ class AutoLights(object):
         self.goodbye_scene_entity_id = self.area_config.get(CONFIG_GOODBYE_SCENE)
         self.sleeping_scene_entity_id = self.area_config.get(CONFIG_SLEEPING_SCENE)
 
-# Auto discovery of scenes ... decided EXPLICIT scene setting is better for V1
-#        self.presence_scene_entity_id = f"scene.{self.area_name}_presence"
-#        self.goodbye_scene_entity_id = f"scene.{self.area_name}_goodbye"
-#        for entity in all_entities:
-#            if not entity.domain in SCENE_DOMAIN:
-#                continue
-#            if 'Presence' in entity.name:
-#                self.presence_scene_entity_id = ''
+        # Auto discovery of scenes ... decided EXPLICIT scene setting is better for V1
+        #        self.presence_scene_entity_id = f"scene.{self.area_name}_presence"
+        #        self.goodbye_scene_entity_id = f"scene.{self.area_name}_goodbye"
+        #        for entity in all_entities:
+        #            if not entity.domain in SCENE_DOMAIN:
+        #                continue
+        #            if 'Presence' in entity.name:
+        #                self.presence_scene_entity_id = ''
 
         if self.hass.is_running:
             self.hass.async_create_task(self.initialize())
@@ -105,7 +107,7 @@ class AutoLights(object):
             self.light_entity_ids,
             self.presence_scene_entity_id,
             self.goodbye_scene_entity_id,
-            self.sleeping_scene_entity_id
+            self.sleeping_scene_entity_id,
         )
 
         if initial_state == STATE_ON:
@@ -123,28 +125,33 @@ class AutoLights(object):
     async def handle_presence_state_on(self):
         if self.sleep_mode_enabled:
             _LOGGER.info(
-                "Presence detected, but sleep mode is on (%s). Not turning on lights", self.area_name
+                "Presence detected, but sleep mode is on (%s). Not turning on lights",
+                self.area_name,
             )
             if self.sleeping_scene_entity_id:
                 _LOGGER.info(
-                    "Activating sleep scene (%s) %s", self.area_name, self.sleeping_scene_entity_id
+                    "Activating sleep scene (%s) %s",
+                    self.area_name,
+                    self.sleeping_scene_entity_id,
                 )
                 await self.hass.services.async_call(
                     SCENE_DOMAIN,
                     SERVICE_TURN_ON,
-                    { ATTR_ENTITY_ID: self.sleeping_scene_entity_id },
+                    {ATTR_ENTITY_ID: self.sleeping_scene_entity_id},
                 )
             return
 
         # if a scene is configured, it takes precedence over the default lights on
         if self.presence_scene_entity_id:
             _LOGGER.info(
-                "Activating presence scene (%s) %s", self.area_name, self.presence_scene_entity_id
+                "Activating presence scene (%s) %s",
+                self.area_name,
+                self.presence_scene_entity_id,
             )
             await self.hass.services.async_call(
                 SCENE_DOMAIN,
                 SERVICE_TURN_ON,
-                { ATTR_ENTITY_ID: self.presence_scene_entity_id },
+                {ATTR_ENTITY_ID: self.presence_scene_entity_id},
             )
             return
 
@@ -156,19 +163,21 @@ class AutoLights(object):
             await self.hass.services.async_call(
                 LIGHT_DOMAIN,
                 SERVICE_TURN_ON,
-                { ATTR_ENTITY_ID: self.light_entity_ids },
+                {ATTR_ENTITY_ID: self.light_entity_ids},
             )
 
     async def handle_presence_state_off(self):
         # if a scene is configured, it takes precedence over the default lights off
         if self.goodbye_scene_entity_id:
             _LOGGER.info(
-                "Activating goodbye scene (%s) %s", self.area_name, self.goodbye_scene_entity_id
-            )            
+                "Activating goodbye scene (%s) %s",
+                self.area_name,
+                self.goodbye_scene_entity_id,
+            )
             await self.hass.services.async_call(
                 SCENE_DOMAIN,
                 SERVICE_TURN_ON,
-                { ATTR_ENTITY_ID: self.goodbye_scene_entity_id },
+                {ATTR_ENTITY_ID: self.goodbye_scene_entity_id},
             )
             return
 
@@ -176,11 +185,11 @@ class AutoLights(object):
         if self.light_entity_ids:
             _LOGGER.info(
                 "Turning lights off (%s) %s", self.area_name, self.light_entity_ids
-            )            
+            )
             await self.hass.services.async_call(
                 LIGHT_DOMAIN,
                 SERVICE_TURN_OFF,
-                { ATTR_ENTITY_ID: self.light_entity_ids },
+                {ATTR_ENTITY_ID: self.light_entity_ids},
             )
 
     async def handle_presence_state_change(
@@ -228,7 +237,7 @@ class AutoLights(object):
             )
             self.sleep_mode_enabled = True
             await self.handle_presence_state_off()
-            
+
         else:
             _LOGGER.info("Sleep mode disabled (%s)", self.area_name)
             self.sleep_mode_enabled = False

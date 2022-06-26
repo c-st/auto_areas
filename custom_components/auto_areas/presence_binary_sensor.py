@@ -21,7 +21,7 @@ from custom_components.auto_areas.const import (
     PRESENCE_ON_STATES,
     ENTITY_FRIENDLY_NAME_AREA_PRESENCE,
     ATTR_ATTRIBUTION,
-    ATTRIBUTION
+    ATTRIBUTION,
 )
 from custom_components.auto_areas.ha_helpers import all_states_are_off
 
@@ -146,4 +146,4 @@ class PresenceBinarySensor(BinarySensorEntity):
 
     @property
     def extra_state_attributes(self):
-        return { ATTR_ATTRIBUTION: ATTRIBUTION }
+        return {ATTR_ATTRIBUTION: ATTRIBUTION}
