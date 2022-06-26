@@ -88,6 +88,20 @@ For information on how to configure this feature refer to the [configuration sec
 
 [Scenarios (Gherkin)](tests/features/sleep_mode.feature)
 
+#### Scenes
+
+By default, Auto Areas turns all lights on at 100% brightness. Additionally, this now supports user defined scenes by specifying a scene `entity_id` used for presence, goodbye, and/or sleeping modes. The sleeping mode scene is for when motion is detected during sleeping what should occur (for instance turning on very low level path lights).
+
+One or more scenes can be configured, which overrides the default behavior of turning on/off all lights.
+
+```yaml
+auto_areas:
+  bedroom:
+    presence_scene: scene.bedroom_presence
+    goodbye_scene: scene.bedroom_goodbye
+    sleeping_scene: scene.bedroom_sleeping
+```
+
 ## Installation
 
 Install as custom_component for HomeAssistant.
@@ -119,6 +133,9 @@ auto_areas:
 | Area option        | Description                                                                                         | Default value      |
 | ------------------ | :-------------------------------------------------------------------------------------------------- | ------------------ |
 | `is_sleeping_area` | Mark area as sleeping area. A switch for controlling sleep mode is created. [See more](#sleep-mode) | `false` (disabled) |
+| `presence_scene` | Scene to activate when presence is detected (when not sleeping) | None |
+| `goodbye_scene` | Scene to activate when presence is no longer detected | None |
+| `sleeping_scene` | Scene to activate when presence is detected and sleeping mode is on | None |
 
 Created entities:
 

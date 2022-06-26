@@ -15,13 +15,30 @@ from voluptuous.schema_builder import PREVENT_EXTRA
 from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.ha_helpers import set_data
 
-from .const import CONFIG_SLEEPING_AREA, DOMAIN, DOMAIN_DATA
+from .const import CONFIG_SLEEPING_AREA, CONFIG_PRESENCE_SCENE, CONFIG_GOODBYE_SCENE, CONFIG_SLEEPING_SCENE, DOMAIN, DOMAIN_DATA
+
+# SUGGESTIONS:
+#  - add binary_sensor.any_area_occupied that determines if ANY of the areas occupancy switches are on (device_class: presence)
+#  - utilize some same entity names as MagicAreas to make transition back and forth easier (e.g. area_presence_hold_XXXX)
+#  - utilize device to have all the auto_areas entities "related" together in the Home Assistant UI
 
 _LOGGER = logging.getLogger(__name__)
 
-area_config_schema = vol.Schema({CONFIG_SLEEPING_AREA: bool}, extra=PREVENT_EXTRA)
-config_schema = vol.Schema({str: {CONFIG_SLEEPING_AREA: bool}})
+area_config_schema = vol.Schema(
+    {
+        vol.Optional(CONFIG_SLEEPING_AREA): bool,
+        vol.Optional(CONFIG_PRESENCE_SCENE): str,
+        vol.Optional(CONFIG_GOODBYE_SCENE): str,
+        vol.Optional(CONFIG_SLEEPING_SCENE): str
+    }, extra=PREVENT_EXTRA)
 
+config_schema = vol.Schema(
+    {str: {
+        vol.Optional(CONFIG_SLEEPING_AREA): bool,
+        vol.Optional(CONFIG_PRESENCE_SCENE): str,
+        vol.Optional(CONFIG_GOODBYE_SCENE): str,
+        vol.Optional(CONFIG_SLEEPING_SCENE): str
+    }})
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Setup integration (YAML-based)"""
@@ -40,7 +57,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     _LOGGER.debug("Found config %s", auto_areas_config)
 
-    area_registry: AreaRegistry = await hass.helpers.area_registry.async_get_registry()
+    area_registry: AreaRegistry = hass.helpers.area_registry.async_get(hass)
 
     auto_areas: MutableMapping[str, AutoArea] = {}
 

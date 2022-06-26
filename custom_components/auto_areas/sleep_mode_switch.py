@@ -5,7 +5,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.util import slugify
 
-from custom_components.auto_areas.const import ENTITY_FRIENDLY_NAME_AREA_SLEEP_MODE
+from custom_components.auto_areas.const import ENTITY_FRIENDLY_NAME_AREA_SLEEP_MODE, ATTR_ATTRIBUTION, ATTRIBUTION
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,3 +39,11 @@ class SleepModeSwitch(SwitchEntity):
         _LOGGER.info("Sleep mode (%s) turned off", self.area_name)
         self._is_on = False
         self.schedule_update_ha_state()
+
+    @property
+    def unique_id(self):
+        return f"auto_areas_sleep_switch_{self.area_name}"
+
+    @property
+    def extra_state_attributes(self):
+        return { ATTR_ATTRIBUTION: ATTRIBUTION }

@@ -2,7 +2,7 @@
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_MOTION,
     DEVICE_CLASS_OCCUPANCY,
-    DEVICE_CLASS_PRESENCE,
+    DEVICE_CLASS_PRESENCE
 )
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
@@ -10,11 +10,15 @@ from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 # from homeassistant.components.media_player import DOMAIN as MEDIA_PLAYER_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
+from homeassistant.components.scene import DOMAIN as SCENE_DOMAIN
 from homeassistant.const import STATE_HOME, STATE_ON, STATE_PLAYING
 
 NAME = "Auto Areas"
 DOMAIN = "auto_areas"
 DOMAIN_DATA = f"{DOMAIN}_data"
+
+ATTR_ATTRIBUTION = 'attribution'
+ATTRIBUTION = f"Powered by {NAME}"
 
 # Prefixes for created entities (area name is appended: f"{ENTITY_NAME_FOO{area.name}")
 ENTITY_FRIENDLY_NAME_AREA_PRESENCE = "Area Presence "
@@ -28,6 +32,9 @@ ENTITY_NAME_AREA_SLEEP_MODE = "switch.area_sleep_mode_"
 
 # Area Config options
 CONFIG_SLEEPING_AREA = "is_sleeping_area"
+CONFIG_PRESENCE_SCENE = "presence_scene"
+CONFIG_GOODBYE_SCENE = "goodbye_scene"
+CONFIG_SLEEPING_SCENE = "sleeping_scene"
 
 # Entity gathering configuration
 AUTO_AREAS_RELEVANT_DOMAINS = [
@@ -35,6 +42,7 @@ AUTO_AREAS_RELEVANT_DOMAINS = [
     SENSOR_DOMAIN,
     SWITCH_DOMAIN,
     LIGHT_DOMAIN,
+    SCENE_DOMAIN,
 ]
 
 # Presence entities
