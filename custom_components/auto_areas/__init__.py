@@ -24,22 +24,7 @@ from .const import (
     DOMAIN_DATA,
 )
 
-# SUGGESTIONS:
-#  - add binary_sensor.any_area_occupied that determines if ANY of the areas occupancy switches are on (device_class: presence)
-#  - utilize some same entity names as MagicAreas to make transition back and forth easier (e.g. area_presence_hold_XXXX)
-#  - utilize device to have all the auto_areas entities "related" together in the Home Assistant UI
-
 _LOGGER = logging.getLogger(__name__)
-
-area_config_schema = vol.Schema(
-    {
-        vol.Optional(CONFIG_SLEEPING_AREA): bool,
-        vol.Optional(CONFIG_PRESENCE_SCENE): str,
-        vol.Optional(CONFIG_GOODBYE_SCENE): str,
-        vol.Optional(CONFIG_SLEEPING_SCENE): str,
-    },
-    extra=PREVENT_EXTRA,
-)
 
 config_schema = vol.Schema(
     {
@@ -48,7 +33,7 @@ config_schema = vol.Schema(
             vol.Optional(CONFIG_PRESENCE_SCENE): str,
             vol.Optional(CONFIG_GOODBYE_SCENE): str,
             vol.Optional(CONFIG_SLEEPING_SCENE): str,
-        }
+        },
     }
 )
 

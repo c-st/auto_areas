@@ -61,15 +61,6 @@ class AutoLights(object):
         self.goodbye_scene_entity_id = self.area_config.get(CONFIG_GOODBYE_SCENE)
         self.sleeping_scene_entity_id = self.area_config.get(CONFIG_SLEEPING_SCENE)
 
-        # Auto discovery of scenes ... decided EXPLICIT scene setting is better for V1
-        #        self.presence_scene_entity_id = f"scene.{self.area_name}_presence"
-        #        self.goodbye_scene_entity_id = f"scene.{self.area_name}_goodbye"
-        #        for entity in all_entities:
-        #            if not entity.domain in SCENE_DOMAIN:
-        #                continue
-        #            if 'Presence' in entity.name:
-        #                self.presence_scene_entity_id = ''
-
         if self.hass.is_running:
             self.hass.async_create_task(self.initialize())
         else:
