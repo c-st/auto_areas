@@ -3,6 +3,8 @@ from collections import OrderedDict
 from uuid import uuid4
 
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
+from homeassistant.components.scene import DOMAIN as SCENE_DOMAIN
+from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     SERVICE_TURN_OFF,
@@ -92,7 +94,6 @@ def fixture_default_entities(default_areas, entity_registry) -> None:
 
 @pytest.fixture(name="light_service_fakes", autouse=True)
 def fixture_light_service_fakes(hass: HomeAssistant):
-    # @ha.callback
     def mock_service_behaviour(call: ServiceCall):
         """Mock service call."""
         entity_ids = call.data.get(ATTR_ENTITY_ID)
@@ -109,6 +110,18 @@ def fixture_light_service_fakes(hass: HomeAssistant):
     )
     hass.services.async_register(
         LIGHT_DOMAIN, SERVICE_TURN_OFF, mock_service_behaviour, schema=None
+    )
+
+
+@pytest.fixture(name="scene_service_fakes", autouse=True)
+def fixture_scene_service_fakes(hass: HomeAssistant, activated_scenes):
+    def mock_service_behaviour(call: ServiceCall):
+        entity_id = call.data.get(ATTR_ENTITY_ID)
+        if call.service == SERVICE_TURN_ON:
+            activated_scenes.append(entity_id)
+
+    hass.services.async_register(
+        SCENE_DOMAIN, SERVICE_TURN_ON, mock_service_behaviour, schema=None
     )
 
 
@@ -148,7 +161,12 @@ async def fixture_auto_areas(hass: HomeAssistant, config):
 
 @pytest.fixture(name="config")
 async def fixture_config(hass):
-    return {}
+    return {"auto_areas": {}}
+
+
+@pytest.fixture(name="activated_scenes")
+async def fixture_activated_scenes(hass):
+    return []
 
 
 @given(
@@ -157,6 +175,19 @@ async def fixture_config(hass):
 )
 def fixture_config_sleeping_area(hass: HomeAssistant, config, area_name) -> dict:
     return {"auto_areas": {area_name: {"is_sleeping_area": True}}}
+
+
+@given(
+    parsers.parse(
+        "The area '{area_name}' has a '{type}' scene '{scene_name}' configured"
+    ),
+    target_fixture="config",
+)
+def fixture_config_scene(
+    hass: HomeAssistant, config, area_name, type, scene_name
+) -> dict:
+    ## type: presence | goodbye | sleeping
+    return {"auto_areas": {area_name: {f"{type}_scene": scene_name}}}
 
 
 @given(parsers.parse("There are the following areas:\n{text}"), target_fixture="areas")
@@ -169,6 +200,21 @@ def fixture_create_areas(hass: HomeAssistant, text: str) -> dict:
         areas[slugify(area)] = created_area
 
     return areas
+
+
+@given(
+    parsers.parse("There are the following scenes:\n{text}"),
+    target_fixture="scenes",
+)
+def fixture_create_scenes(entity_registry, text: str) -> dict:
+    scenes = []
+    for scene_name in text.split("\n"):
+        entity = create_entity(
+            entity_registry, domain=SCENE_DOMAIN, unique_id=scene_name, area_id=""
+        )
+        scenes.append(entity)
+
+    return scenes
 
 
 @given(parsers.parse("sleep mode is {state} in the area '{area_name}'"))
@@ -197,7 +243,7 @@ def fixture_create_motion_sensors(entity_registry, areas, text: str) -> dict:
         area = slugify(area)
         entity = create_entity(
             entity_registry,
-            domain="binary_sensor",
+            domain=BINARY_SENSOR_DOMAIN,
             device_class="motion",
             area_id=areas[area].id,
         )
@@ -284,3 +330,13 @@ def expect_lights(hass: HomeAssistant, auto_areas, expected_state: str, area: st
     ]
     assert len(light_states) > 0
     assert all(state == expected_state for state in light_states)
+
+
+@then(parsers.parse("The scene '{scene_name}' has been activated"))
+def expect_activated_scene(hass: HomeAssistant, activated_scenes, scene_name):
+    assert scene_name in activated_scenes
+
+
+@then(parsers.parse("The scene '{scene_name}' has not been activated"))
+def expect_not_activated_scene(hass: HomeAssistant, activated_scenes, scene_name):
+    assert scene_name not in activated_scenes

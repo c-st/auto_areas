@@ -12,6 +12,7 @@
     "group",
     "binary_sensor",
     "sensor",
+    "scene",
     "light",
     "media_player",
     "device_tracker",
