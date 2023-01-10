@@ -6,8 +6,8 @@ import logging
 from typing import Set
 
 from homeassistant.components.binary_sensor import (
-    DEVICE_CLASS_OCCUPANCY,
-    BinarySensorEntity,
+    BinarySensorDeviceClass,
+    BinarySensorEntity
 )
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.area_registry import AreaEntry
@@ -89,7 +89,7 @@ class PresenceBinarySensor(BinarySensorEntity):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_OCCUPANCY
+        return BinarySensorDeviceClass.OCCUPANCY
 
     @property
     def name(self):
