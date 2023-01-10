@@ -1,6 +1,6 @@
 import logging
 
-from homeassistant.components.switch import DEVICE_CLASS_SWITCH, SwitchEntity
+from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.util import slugify
@@ -26,7 +26,7 @@ class PresenceLockSwitch(SwitchEntity):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_SWITCH
+        return SwitchDeviceClass.SWITCH
 
     @property
     def is_on(self):

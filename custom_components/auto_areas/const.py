@@ -1,10 +1,5 @@
-"""Constants"""
-from homeassistant.components.binary_sensor import (
-    DEVICE_CLASS_MOTION,
-    DEVICE_CLASS_OCCUPANCY,
-    DEVICE_CLASS_PRESENCE,
-)
-from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
+
+from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN, BinarySensorDeviceClass
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 
 # from homeassistant.components.media_player import DOMAIN as MEDIA_PLAYER_DOMAIN
@@ -39,9 +34,9 @@ AUTO_AREAS_RELEVANT_DOMAINS = [
 
 # Presence entities
 PRESENCE_BINARY_SENSOR_DEVICE_CLASSES = (
-    DEVICE_CLASS_MOTION,
-    DEVICE_CLASS_OCCUPANCY,
-    DEVICE_CLASS_PRESENCE,
+    BinarySensorDeviceClass.MOTION,
+    BinarySensorDeviceClass.OCCUPANCY,
+    BinarySensorDeviceClass.PRESENCE
 )
 
 PRESENCE_ON_STATES = [
