@@ -30,21 +30,21 @@ class AutoArea(object):
         self.entities: Set[RegistryEntry] = set()
 
         if self.hass.is_running:
-            self.hass.async_create_task(self.initialize())
+            self.hass.async_create_task(self.initialize(hass))
         else:
             self.hass.bus.async_listen_once(
-                EVENT_HOMEASSISTANT_STARTED, self.initialize()
+                EVENT_HOMEASSISTANT_STARTED, self.initialize(hass)
             )
 
-    async def initialize(self) -> None:
+    async def initialize(self, hass) -> None:
         """Register relevant entities for this area"""
         _LOGGER.info("AutoArea '%s' (config %s)", self.area_name, self.config)
 
         entity_registry: EntityRegistry = (
-            await self.hass.helpers.entity_registry.async_get_registry()
+            self.hass.helpers.entity_registry.async_get(hass)
         )
         device_registry: DeviceRegistry = (
-            await self.hass.helpers.device_registry.async_get_registry()
+            self.hass.helpers.device_registry.async_get(hass)
         )
 
         # Collect entities for this area
