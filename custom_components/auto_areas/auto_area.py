@@ -22,7 +22,7 @@ class AutoArea(object):
     """An area managed by AutoAreas"""
 
     def __init__(self, hass: HomeAssistant, area: AreaEntry, config: dict) -> None:
-        self.hass: HomeAssistant = hass
+        self.hass = hass
         self.area = area
         self.area_name = area.name
         self.area_id = area.id
@@ -30,21 +30,21 @@ class AutoArea(object):
         self.entities: Set[RegistryEntry] = set()
 
         if self.hass.is_running:
-            self.hass.async_create_task(self.initialize(hass))
+            self.hass.async_create_task(self.initialize())
         else:
             self.hass.bus.async_listen_once(
-                EVENT_HOMEASSISTANT_STARTED, self.initialize(hass)
+                EVENT_HOMEASSISTANT_STARTED, self.initialize()
             )
 
-    async def initialize(self, hass) -> None:
+    async def initialize(self) -> None:
         """Register relevant entities for this area"""
         _LOGGER.info("AutoArea '%s' (config %s)", self.area_name, self.config)
 
         entity_registry: EntityRegistry = (
-            self.hass.helpers.entity_registry.async_get(hass)
+            self.hass.helpers.entity_registry.async_get(self.hass)
         )
         device_registry: DeviceRegistry = (
-            self.hass.helpers.device_registry.async_get(hass)
+            self.hass.helpers.device_registry.async_get(self.hass)
         )
 
         # Collect entities for this area
