@@ -7,7 +7,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 
-from .const import DOMAIN
 from .auto_area import AutoArea
 from .entity import IntegrationBlueprintEntity
 

@@ -70,7 +70,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     def validate_area(self, area_id: str):
-        """Validates a new area to be added"""
+        """Validate a new area to be added."""
         area_registry: AreaRegistry = helpers.area_registry.async_get(self.hass)
         area = area_registry.async_get_area(area_id)
         existing_configs: dict[str, AutoArea] = self.hass.data[DOMAIN]
@@ -91,7 +91,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Show configuration"""
+    """Show configuration."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""

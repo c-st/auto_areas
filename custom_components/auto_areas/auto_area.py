@@ -1,4 +1,4 @@
-"""Core entity functionality"""
+"""Core entity functionality."""
 from __future__ import annotations
 
 from homeassistant.core import HomeAssistant
@@ -42,7 +42,7 @@ class AutoArea:
             )
 
     async def initialize(self):
-        """Collect all entities for this area"""
+        """Collect all entities for this area."""
         entities = get_all_entities(
             self.entity_registry,
             self.device_registry,
@@ -60,7 +60,7 @@ class AutoArea:
             )
 
     def is_valid_entity(self, entity: RegistryEntry) -> bool:
-        """Checks whether an entity should be included"""
+        """Check whether an entity should be included."""
         if entity.disabled:
             return False
 

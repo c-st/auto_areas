@@ -1,14 +1,9 @@
-"""
-🤖 Auto Areas.
-A custom component for Home Assistant which automates your areas.
-"""
+"""🤖 Auto Areas. A custom component for Home Assistant which automates your areas."""
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant import helpers
-from homeassistant.helpers.area_registry import AreaRegistry
 
 from .auto_area import (
     AutoArea,

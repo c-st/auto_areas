@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 
-from .const import DOMAIN
 from .auto_area import AutoArea
 from .entity import IntegrationBlueprintEntity
 

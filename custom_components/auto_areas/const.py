@@ -1,4 +1,4 @@
-"""Constants for Auto Areas"""
+"""Constants for Auto Areas."""
 from logging import Logger, getLogger
 
 from homeassistant.components.binary_sensor import (

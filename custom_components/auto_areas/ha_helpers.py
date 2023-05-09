@@ -1,5 +1,5 @@
-"""Collection of utility methods for dealing with HomeAssistant"""
-from typing import List, Optional
+"""Collection of utility methods for dealing with HomeAssistant."""
+from typing import Optional
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceRegistry
@@ -10,13 +10,13 @@ def get_all_entities(
     entity_registry: EntityRegistry,
     device_registry: DeviceRegistry,
     area_id: str,
-    domains: List[str] = None,
-) -> List:
-    """Returns all entities from an area"""
+    domains: list[str] = None,
+) -> list:
+    """Return all entities from an area."""
     entities = []
 
     for _entity_id, entity in entity_registry.entities.items():
-        if not get_area_id(entity, device_registry) == area_id:
+        if get_area_id(entity, device_registry) != area_id:
             continue
 
         if entity.domain not in domains:
@@ -30,7 +30,7 @@ def get_all_entities(
 def get_area_id(
     entity: RegistryEntry, device_registry: DeviceRegistry
 ) -> Optional[str]:
-    """Determines area_id from a registry entry"""
+    """Get area_id from a registry entry."""
 
     # Defined directly at entity
     if entity.area_id is not None:
@@ -47,10 +47,10 @@ def get_area_id(
 
 def all_states_are_off(
     hass: HomeAssistant,
-    presence_indicating_entity_ids: List[str],
-    on_states: List[str],
+    presence_indicating_entity_ids: list[str],
+    on_states: list[str],
 ) -> bool:
-    """Make sure that none of the entities is in any on state"""
+    """Make sure that none of the entities is in any on state."""
     all_states = [
         hass.states.get(entity_id) for entity_id in presence_indicating_entity_ids
     ]
