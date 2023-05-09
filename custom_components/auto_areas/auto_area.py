@@ -6,6 +6,7 @@ from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, STATE_UNAVAILABLE
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.entity_registry import RegistryEntry
+from homeassistant.helpers.area_registry import AreaEntry
 from .ha_helpers import get_all_entities
 
 from .const import LOGGER, RELEVANT_DOMAINS
@@ -29,8 +30,8 @@ class AutoArea:
         self.device_registry = self.hass.helpers.device_registry.async_get(self.hass)
         self.entity_registry = self.hass.helpers.entity_registry.async_get(self.hass)
 
-        self.area_id = entry.data.get("area")
-        self.area = self.area_registry.async_get_area(self.area_id)
+        self.area_id: str = entry.data.get("area")
+        self.area: AreaEntry = self.area_registry.async_get_area(self.area_id)
 
         LOGGER.info('🤖 Auto Area "%s" (%s)', entry.title, entry.options)
 

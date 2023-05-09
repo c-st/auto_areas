@@ -19,9 +19,20 @@ DOMAIN = "auto_areas"
 VERSION = "2.0.0"
 ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 
+#
 # Constants
+#
+PRESENCE_LOCK_SWITCH_PREFIX = "Area Presence Lock"
+
+#
+# Config constants
+#
 CONFIG_AREA = "area"
 CONFIG_IS_SLEEPING_AREA = "is_sleeping_area"
+
+#
+# Config
+#
 
 # Fetch entities from these domains
 RELEVANT_DOMAINS = [

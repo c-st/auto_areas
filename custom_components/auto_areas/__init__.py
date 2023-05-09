@@ -12,9 +12,9 @@ from .auto_area import (
 from .const import DOMAIN
 
 PLATFORMS: list[Platform] = [
-    Platform.SENSOR,
-    Platform.BINARY_SENSOR,
     Platform.SWITCH,
+    # Platform.SENSOR,
+    # Platform.BINARY_SENSOR,
 ]
 
 
