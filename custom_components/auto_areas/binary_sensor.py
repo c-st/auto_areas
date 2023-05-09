@@ -1,42 +1,50 @@
-import logging
-from typing import List
+"""Binary sensor platform for integration_blueprint."""
+from __future__ import annotations
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.area_registry import AreaRegistry
-from homeassistant.helpers.device_registry import DeviceRegistry
-from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_registry import EntityRegistry
-
-from custom_components.auto_areas.presence_binary_sensor import (
-    PresenceBinarySensor,
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+    BinarySensorEntityDescription,
 )
-from custom_components.auto_areas.const import AUTO_AREAS_RELEVANT_DOMAINS
-from custom_components.auto_areas.ha_helpers import get_all_entities
 
-_LOGGER = logging.getLogger(__name__)
+from .const import DOMAIN
+from .auto_area import AutoArea
+from .entity import IntegrationBlueprintEntity
+
+ENTITY_DESCRIPTIONS = (
+    BinarySensorEntityDescription(
+        key="integration_blueprint",
+        name="Integration Blueprint Binary Sensor",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+    ),
+)
 
 
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info=None,
-):
-    """Set up all binary_sensors"""
-    area_registry: AreaRegistry = hass.helpers.area_registry.async_get(hass)
-    entity_registry: EntityRegistry = (
-        hass.helpers.entity_registry.async_get(hass)
-    )
-    device_registry: DeviceRegistry = (
-        hass.helpers.device_registry.async_get(hass)
-    )
+async def async_setup_entry(hass, entry, async_add_devices):
+    """Set up the binary_sensor platform."""
+    # auto_area: AutoArea = hass.data[DOMAIN][entry.entry_id]
+    # async_add_devices(
+    #     IntegrationBlueprintBinarySensor(
+    #         coordinator=coordinator,
+    #         entity_description=entity_description,
+    #     )
+    #     for entity_description in ENTITY_DESCRIPTIONS
+    # )
 
-    binary_sensor_entities = []
-    for area in area_registry.async_list_areas():
-        area_entities: List[Entity] = get_all_entities(
-            entity_registry, device_registry, area.id, AUTO_AREAS_RELEVANT_DOMAINS
-        )
-        binary_sensor_entities.append(PresenceBinarySensor(hass, area_entities, area))
 
-    async_add_entities(binary_sensor_entities)
+class IntegrationBlueprintBinarySensor(IntegrationBlueprintEntity, BinarySensorEntity):
+    """integration_blueprint binary_sensor class."""
+
+    def __init__(
+        self,
+        auto_area: AutoArea,
+        entity_description: BinarySensorEntityDescription,
+    ) -> None:
+        """Initialize the binary_sensor class."""
+        super().__init__(auto_area)
+        self.entity_description = entity_description
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if the binary_sensor is on."""
+        return self.coordinator.data.get("title", "") == "foo"

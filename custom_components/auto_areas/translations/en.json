@@ -1,0 +1,27 @@
+{
+    "config": {
+        "step": {
+            "init": {
+                "title": "🤖 Auto Area",
+                "data": {
+                    "area": "Area to manage",
+                    "is_sleeping_area": "Set as sleeping area"
+                }
+            }
+        },
+        "error": {
+            "area_already_managed": "This area is already managed by Auto Areas. Please adjust the existing configuration."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "🤖 Auto Area",
+                "description": "Customize the behavior of this area.",
+                "data": {
+                    "is_sleeping_area": "Set as sleeping area"
+                }
+            }
+        }
+    }
+}

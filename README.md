@@ -104,18 +104,6 @@ Entities are auto-discovered based on the areas they're assigned to. To customiz
 
 ## Configuration
 
-The behaviour of areas can be customised by adding additional configuration in YAML.
-
-Using the (normalised) name of the area as key, additional options can be enabled. In the following example the area with name `bedroom` is marked as sleeping area:
-
-```yaml
-# configuration.yaml
-
-auto_areas:
-  bedroom:
-    is_sleeping_area: true
-```
-
 | Area option        | Description                                                                                         | Default value      |
 | ------------------ | :-------------------------------------------------------------------------------------------------- | ------------------ |
 | `is_sleeping_area` | Mark area as sleeping area. A switch for controlling sleep mode is created. [See more](#sleep-mode) | `false` (disabled) |
@@ -130,14 +118,4 @@ Created entities:
 
 ## Development
 
-Install dependencies:
-`pip install --disable-pip-version-check -r requirements_test.txt`
-
-Run tests:
-`pytest`
-
 Using [DevContainer](https://code.visualstudio.com/docs/remote/containers) is recommended (see config in `.devcontainer`).
-
-## Acknowledgements
-
-Auto Areas is inspired by [Magic Areas](https://github.com/jseidl/hass-magic_areas). I created this component to have something more tailored to my use-cases.

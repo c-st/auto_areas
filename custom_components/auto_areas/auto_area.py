@@ -1,33 +1,38 @@
-"""
-AutoArea
-Has a set of managed entities assigned to the same area.
-"""
-import logging
-from typing import Set
+"""Core entity functionality"""
+from __future__ import annotations
 
-from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.area_registry import AreaEntry
-from homeassistant.helpers.device_registry import DeviceRegistry
-from homeassistant.helpers.entity_registry import EntityRegistry, RegistryEntry
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, STATE_UNAVAILABLE
+from homeassistant.config_entries import ConfigEntry
 
-from custom_components.auto_areas.auto_lights import AutoLights
-from custom_components.auto_areas.const import AUTO_AREAS_RELEVANT_DOMAINS
-from custom_components.auto_areas.ha_helpers import get_all_entities
+from homeassistant.helpers.entity_registry import RegistryEntry
+from .ha_helpers import get_all_entities
 
-_LOGGER = logging.getLogger(__name__)
+from .const import LOGGER, RELEVANT_DOMAINS
 
 
-class AutoArea(object):
-    """An area managed by AutoAreas"""
+class AutoAreasError(Exception):
+    """Exception to indicate a general API error."""
 
-    def __init__(self, hass: HomeAssistant, area: AreaEntry, config: dict) -> None:
+
+class AutoArea:
+    """Class to manage fetching data from the API."""
+
+    config_entry: ConfigEntry
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        """Initialize."""
         self.hass = hass
-        self.area = area
-        self.area_name = area.name
-        self.area_id = area.id
-        self.config = config.get(area.normalized_name, {})
-        self.entities: Set[RegistryEntry] = set()
+        self.config_entry = entry
+
+        self.area_registry = hass.helpers.area_registry.async_get(self.hass)
+        self.device_registry = self.hass.helpers.device_registry.async_get(self.hass)
+        self.entity_registry = self.hass.helpers.entity_registry.async_get(self.hass)
+
+        self.area_id = entry.data.get("area")
+        self.area = self.area_registry.async_get_area(self.area_id)
+
+        LOGGER.info('🤖 Auto Area "%s" (%s)', entry.title, entry.options)
 
         if self.hass.is_running:
             self.hass.async_create_task(self.initialize())
@@ -36,29 +41,20 @@ class AutoArea(object):
                 EVENT_HOMEASSISTANT_STARTED, self.initialize()
             )
 
-    async def initialize(self) -> None:
-        """Register relevant entities for this area"""
-        _LOGGER.info("AutoArea '%s' (config %s)", self.area_name, self.config)
-
-        entity_registry: EntityRegistry = (
-            self.hass.helpers.entity_registry.async_get(self.hass)
-        )
-        device_registry: DeviceRegistry = (
-            self.hass.helpers.device_registry.async_get(self.hass)
-        )
-
-        # Collect entities for this area
+    async def initialize(self):
+        """Collect all entities for this area"""
         entities = get_all_entities(
-            entity_registry, device_registry, self.area_id, AUTO_AREAS_RELEVANT_DOMAINS
+            self.entity_registry,
+            self.device_registry,
+            self.area_id,
+            RELEVANT_DOMAINS,
         )
         self.entities = [entity for entity in entities if self.is_valid_entity(entity)]
-
-        # Setup AutoLights
-        self.auto_lights = AutoLights(self.hass, self.entities, self.area, self.config)
-
+        LOGGER.info("%s Found %i relevant entities", self.area_id, len(self.entities))
         for entity in self.entities:
-            _LOGGER.info(
-                "- Entity %s (device_class: %s)",
+            LOGGER.info(
+                "- %s %s (device_class: %s)",
+                self.area_id,
                 entity.entity_id,
                 entity.device_class or entity.original_device_class,
             )

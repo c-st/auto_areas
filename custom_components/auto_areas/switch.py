@@ -1,38 +1,55 @@
-import logging
-from typing import Dict, List
+"""Switch platform for integration_blueprint."""
+from __future__ import annotations
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import Entity
+from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 
-from custom_components.auto_areas.auto_area import AutoArea
-from custom_components.auto_areas.const import (
-    CONFIG_SLEEPING_AREA,
-    DOMAIN_DATA,
+from .auto_area import AutoArea
+from .entity import IntegrationBlueprintEntity
+
+ENTITY_DESCRIPTIONS = (
+    SwitchEntityDescription(
+        key="integration_blueprint",
+        name="Integration Switch",
+        icon="mdi:format-quote-close",
+    ),
 )
-from custom_components.auto_areas.ha_helpers import get_data
-from custom_components.auto_areas.presence_lock_switch import PresenceLockSwitch
-from custom_components.auto_areas.sleep_mode_switch import SleepModeSwitch
-
-_LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info=None,
-):
-    """Set up all switches"""
-    _LOGGER.info("Setup switch platform %s", config)
+async def async_setup_entry(hass, entry, async_add_devices):
+    """Set up the switch platform."""
+    # auto_area: AutoArea = hass.data[DOMAIN][entry.entry_id]
+    # async_add_devices(
+    #     IntegrationBlueprintSwitch(
+    #         coordinator=coordinator,
+    #         entity_description=entity_description,
+    #     )
+    #     for entity_description in ENTITY_DESCRIPTIONS
+    # )
 
-    auto_areas: Dict[str, AutoArea] = get_data(hass, DOMAIN_DATA)
 
-    entities: List[Entity] = []
+class IntegrationBlueprintSwitch(IntegrationBlueprintEntity, SwitchEntity):
+    """integration_blueprint switch class."""
 
-    for auto_area in auto_areas.values():
-        entities.append(PresenceLockSwitch(hass, auto_area.area))
-        if auto_area.config.get(CONFIG_SLEEPING_AREA) is True:
-            entities.append(SleepModeSwitch(hass, auto_area.area))
+    def __init__(
+        self,
+        coordinator: AutoArea,
+        entity_description: SwitchEntityDescription,
+    ) -> None:
+        """Initialize the switch class."""
+        super().__init__(coordinator)
+        self.entity_description = entity_description
 
-    async_add_entities(entities)
+    @property
+    def is_on(self) -> bool:
+        """Return true if the switch is on."""
+        return self.coordinator.data.get("title", "") == "foo"
+
+    async def async_turn_on(self, **_: any) -> None:
+        """Turn on the switch."""
+        await self.coordinator.api.async_set_title("bar")
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_off(self, **_: any) -> None:
+        """Turn off the switch."""
+        await self.coordinator.api.async_set_title("foo")
+        await self.coordinator.async_request_refresh()
