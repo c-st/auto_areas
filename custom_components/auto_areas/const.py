@@ -22,7 +22,8 @@ ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 #
 # Constants
 #
-PRESENCE_LOCK_SWITCH_PREFIX = "Area Presence Lock"
+PRESENCE_LOCK_SWITCH_PREFIX = "Area Presence Lock "
+SLEEP_MODE_SWITCH_PREFIX = "Area Sleep Mode "
 
 #
 # Config constants
