@@ -10,7 +10,7 @@
             }
         },
         "error": {
-            "area_already_managed": "This area is already managed by Auto Areas. Please adjust the existing configuration."
+            "area_already_managed": "This area is already managed by Auto Areas. Please adjust the existing configuration instead."
         }
     },
     "options": {
