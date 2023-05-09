@@ -23,5 +23,11 @@
                 }
             }
         }
+    },
+    "issues": {
+        "issue_yaml_detected": {
+            "title": "YAML configuration is no longer supported",
+            "description": "🤖 Auto Areas is now added and configured through the Home Assistant interface:<br/>Navigate to `Settings`/`Devices & Service` and add an `Auto Areas` integration for all of the areas you want to manage automatically.<br/>You can then configure each of them individually with the UI 🙌.<br/><br/>The existing configuration in `configuration.yaml` is ignored. This repair will automatically disappear as soon as the YAML configuration is removed."
+        }
     }
 }
