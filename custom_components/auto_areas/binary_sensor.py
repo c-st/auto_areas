@@ -43,7 +43,7 @@ class PresenceBinarySensor(BinarySensorEntity):
         self.auto_area = auto_area
         self.presence: bool = None
 
-        self.presence_entities = self.get_presence_entities
+        self.presence_entities: list[str] = self.get_presence_entities()
 
         LOGGER.info("%s: Initialized presence binary sensor", self.auto_area.area.name)
 
@@ -84,10 +84,11 @@ class PresenceBinarySensor(BinarySensorEntity):
 
         # include relevant presence entities, but not this sensor:
         for entity in self.auto_area.get_valid_entities():
+            LOGGER.info("Eval %s", entity)
             if (
                 entity.device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
                 or entity.original_device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
-            ) and entity.domain != DOMAIN:
+            ) and entity.platform != DOMAIN:
                 entity_ids.append(entity.entity_id)
 
         return entity_ids
