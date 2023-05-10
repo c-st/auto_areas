@@ -2,6 +2,7 @@
 from typing import Optional
 
 from homeassistant.core import HomeAssistant
+from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.helpers.device_registry import DeviceRegistry
 from homeassistant.helpers.entity_registry import EntityRegistry, RegistryEntry
 
@@ -55,6 +56,17 @@ def all_states_are_off(
         hass.states.get(entity_id) for entity_id in presence_indicating_entity_ids
     ]
     return all(state.state not in on_states for state in filter(None, all_states))
+
+
+def is_valid_entity(hass: HomeAssistant, entity: RegistryEntry) -> bool:
+    """Check whether an entity should be included."""
+    if entity.disabled:
+        return False
+    entity_state = hass.states.get(entity.entity_id)
+    if entity_state and entity_state.state == STATE_UNAVAILABLE:
+        return False
+
+    return True
 
 
 # def set_data(hass: HomeAssistant, entry_type: str, value: dict):

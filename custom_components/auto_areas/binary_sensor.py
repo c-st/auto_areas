@@ -4,46 +4,158 @@ from __future__ import annotations
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
-    BinarySensorEntityDescription,
+)
+from homeassistant.core import State
+from homeassistant.helpers.event import async_track_state_change
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.util import slugify
+
+from .ha_helpers import all_states_are_off
+
+
+from .const import (
+    DOMAIN,
+    NAME,
+    VERSION,
+    LOGGER,
+    PRESENCE_BINARY_SENSOR_PREFIX,
+    PRESENCE_BINARY_SENSOR_DEVICE_CLASSES,
+    PRESENCE_ON_STATES,
 )
 
 from .auto_area import AutoArea
-from .entity import IntegrationBlueprintEntity
-
-ENTITY_DESCRIPTIONS = (
-    BinarySensorEntityDescription(
-        key="integration_blueprint",
-        name="Integration Blueprint Binary Sensor",
-        device_class=BinarySensorDeviceClass.CONNECTIVITY,
-    ),
-)
 
 
-async def async_setup_entry(hass, entry, async_add_devices):
+async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback):
     """Set up the binary_sensor platform."""
-    # auto_area: AutoArea = hass.data[DOMAIN][entry.entry_id]
-    # async_add_devices(
-    #     IntegrationBlueprintBinarySensor(
-    #         coordinator=coordinator,
-    #         entity_description=entity_description,
-    #     )
-    #     for entity_description in ENTITY_DESCRIPTIONS
-    # )
+    auto_area: AutoArea = hass.data[DOMAIN][entry.entry_id]
+    async_add_entities([PresenceBinarySensor(auto_area)])
 
 
-class IntegrationBlueprintBinarySensor(IntegrationBlueprintEntity, BinarySensorEntity):
-    """integration_blueprint binary_sensor class."""
+class PresenceBinarySensor(BinarySensorEntity):
+    """Set up aggregated presence binary sensor."""
 
-    def __init__(
-        self,
-        auto_area: AutoArea,
-        entity_description: BinarySensorEntityDescription,
-    ) -> None:
-        """Initialize the binary_sensor class."""
-        super().__init__(auto_area)
-        self.entity_description = entity_description
+    should_poll = False
+
+    def __init__(self, auto_area: AutoArea) -> None:
+        """Initialize presence lock switch."""
+        self.auto_area = auto_area
+        self.presence: bool = None
+        presence_lock_entity_id = f"switch.area_presence_lock_{slugify(self.auto_area.area.name)}"  # livingroom vs living_room
+        entities = self.auto_area.get_valid_entities()
+
+        # this binary sensor should be excluded!
+        # presence lock entity should be included (check order of initialization, retrieve entity id)
+        self.presence_indicating_entity_ids = [
+            entity.entity_id
+            for entity in entities
+            if entity.device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
+            or entity.original_device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
+        ] + [presence_lock_entity_id]
+
+        LOGGER.info("%s: Initialized presence binary sensor", self.auto_area.area.name)
+
+    @property
+    def name(self):
+        """Name."""
+        return f"{PRESENCE_BINARY_SENSOR_PREFIX}{self.auto_area.area.name}"
+
+    @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
+        return f"{self.auto_area.config_entry.entry_id}_aggregated_presence"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Information about this device."""
+        return {
+            "identifiers": {(DOMAIN, self.auto_area.config_entry.entry_id)},
+            "name": NAME,
+            "model": VERSION,
+            "manufacturer": NAME,
+            "suggested_area": self.auto_area.area.name,
+        }
+
+    @property
+    def device_class(self):
+        """Return device class."""
+        return BinarySensorDeviceClass.OCCUPANCY
 
     @property
     def is_on(self) -> bool:
-        """Return true if the binary_sensor is on."""
-        return self.coordinator.data.get("title", "") == "foo"
+        """Return the presence state."""
+        return self.presence
+
+    async def async_added_to_hass(self):
+        """Start tracking sensors."""
+        LOGGER.info(
+            "%s starting to track",
+            self.auto_area.area.name,
+        )
+
+        # if len(self.presence_indicating_entity_ids) == 1:
+        #     LOGGER.info(
+        #         "%s: No supported sensors for presence detection found",
+        #         self.auto_area.area.name,
+        #     )
+
+        LOGGER.info(
+            "%s: Using these entities for presence detection: %s",
+            self.auto_area.area.name,
+            self.presence_indicating_entity_ids,
+        )
+
+        # Set initial presence
+        self.presence = (
+            False
+            if all_states_are_off(
+                self.hass,
+                self.presence_indicating_entity_ids,
+                PRESENCE_ON_STATES,
+            )
+            else True
+        )
+        self.schedule_update_ha_state()
+
+        LOGGER.info("%s: Initial presence %s ", self.auto_area.area.name, self.presence)
+
+        # Subscribe to state changes
+        async_track_state_change(
+            self.hass,
+            self.presence_indicating_entity_ids,
+            self.handle_presence_state_change,
+        )
+
+    def handle_presence_state_change(
+        self, entity_id, from_state: State, to_state: State
+    ):
+        """Handle state change of any tracked presence sensors."""
+        previous_state = from_state.state if from_state else ""
+        current_state = to_state.state if to_state else ""
+
+        if previous_state == current_state:
+            return
+
+        LOGGER.info(
+            "State change %s: %s -> %s",
+            entity_id,
+            previous_state,
+            current_state,
+        )
+
+        if current_state in PRESENCE_ON_STATES:
+            if not self.presence:
+                LOGGER.info("Presence detected (%s)", self.auto_area.area.name)
+                self.presence = True
+                self.schedule_update_ha_state()
+        else:
+            if all_states_are_off(
+                self.hass,
+                self.presence_indicating_entity_ids,
+                PRESENCE_ON_STATES,
+            ):
+                if self.presence:
+                    LOGGER.info("Presence cleared (%s)", self.auto_area.area.name)
+                    self.presence = False
+                    self.schedule_update_ha_state()

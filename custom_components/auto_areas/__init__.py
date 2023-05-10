@@ -14,8 +14,8 @@ from .const import DOMAIN, LOGGER, ISSUE_TYPE_YAML_DETECTED
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,
+    Platform.BINARY_SENSOR,
     # Platform.SENSOR,
-    # Platform.BINARY_SENSOR,
 ]
 
 

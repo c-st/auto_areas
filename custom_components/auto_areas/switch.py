@@ -4,7 +4,6 @@ from __future__ import annotations
 from homeassistant.components.switch import (
     SwitchEntity,
     SwitchDeviceClass,
-    SwitchEntityDescription,
 )
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -22,15 +21,6 @@ from .const import (
 )
 
 
-ENTITY_DESCRIPTIONS = (
-    SwitchEntityDescription(
-        key="auto_areas",
-        name="Integration Switch",
-        icon="mdi:format-quote-close",
-    ),
-)
-
-
 async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback):
     """Set up the switch platform."""
     LOGGER.info("Setting up switch platform")
@@ -40,8 +30,6 @@ async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback
 
     if auto_area.config_entry.options.get(CONFIG_IS_SLEEPING_AREA):
         switch_entities.append(SleepModeSwitch(auto_area))
-
-    # remove "restored" entity if sleep_mode is disabled
 
     async_add_entities(switch_entities)
 

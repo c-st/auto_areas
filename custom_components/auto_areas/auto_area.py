@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 from homeassistant.core import HomeAssistant
-from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, STATE_UNAVAILABLE
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.config_entries import ConfigEntry
 
-from homeassistant.helpers.entity_registry import RegistryEntry
 from homeassistant.helpers.area_registry import AreaEntry
-from .ha_helpers import get_all_entities
+from .ha_helpers import get_all_entities, is_valid_entity
 
 from .const import LOGGER, RELEVANT_DOMAINS
 
@@ -44,13 +43,7 @@ class AutoArea:
 
     async def initialize(self):
         """Collect all entities for this area."""
-        entities = get_all_entities(
-            self.entity_registry,
-            self.device_registry,
-            self.area_id,
-            RELEVANT_DOMAINS,
-        )
-        self.entities = [entity for entity in entities if self.is_valid_entity(entity)]
+        self.entities = self.get_valid_entities()
         LOGGER.info("%s Found %i relevant entities", self.area_id, len(self.entities))
         for entity in self.entities:
             LOGGER.info(
@@ -60,13 +53,16 @@ class AutoArea:
                 entity.device_class or entity.original_device_class,
             )
 
-    def is_valid_entity(self, entity: RegistryEntry) -> bool:
-        """Check whether an entity should be included."""
-        if entity.disabled:
-            return False
-
-        entity_state = self.hass.states.get(entity.entity_id)
-        if entity_state and entity_state.state == STATE_UNAVAILABLE:
-            return False
-
-        return True
+    def get_valid_entities(self):
+        """Return all valid and relevant entities for this area."""
+        entities = [
+            entity
+            for entity in get_all_entities(
+                self.entity_registry,
+                self.device_registry,
+                self.area_id,
+                RELEVANT_DOMAINS,
+            )
+            if is_valid_entity(self.hass, entity)
+        ]
+        return entities
