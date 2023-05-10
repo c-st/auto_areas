@@ -42,17 +42,8 @@ class PresenceBinarySensor(BinarySensorEntity):
         """Initialize presence lock switch."""
         self.auto_area = auto_area
         self.presence: bool = None
-        presence_lock_entity_id = f"switch.area_presence_lock_{slugify(self.auto_area.area.name)}"  # livingroom vs living_room
-        entities = self.auto_area.get_valid_entities()
 
-        # this binary sensor should be excluded!
-        # presence lock entity should be included (check order of initialization, retrieve entity id)
-        self.presence_indicating_entity_ids = [
-            entity.entity_id
-            for entity in entities
-            if entity.device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
-            or entity.original_device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
-        ] + [presence_lock_entity_id]
+        self.presence_entities = self.get_presence_entities
 
         LOGGER.info("%s: Initialized presence binary sensor", self.auto_area.area.name)
 
@@ -87,6 +78,20 @@ class PresenceBinarySensor(BinarySensorEntity):
         """Return the presence state."""
         return self.presence
 
+    def get_presence_entities(self) -> list(str):
+        """Collect entities to be used for determining presence."""
+        entity_ids = [f"switch.area_presence_lock_{slugify(self.auto_area.area.name)}"]
+
+        # include relevant presence entities, but not this sensor:
+        for entity in self.auto_area.get_valid_entities():
+            if (
+                entity.device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
+                or entity.original_device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
+            ) and entity.domain != DOMAIN:
+                entity_ids.append(entity.entity_id)
+
+        return entity_ids
+
     async def async_added_to_hass(self):
         """Start tracking sensors."""
         LOGGER.info(
@@ -103,18 +108,14 @@ class PresenceBinarySensor(BinarySensorEntity):
         LOGGER.info(
             "%s: Using these entities for presence detection: %s",
             self.auto_area.area.name,
-            self.presence_indicating_entity_ids,
+            self.presence_entities,
         )
 
         # Set initial presence
-        self.presence = (
-            False
-            if all_states_are_off(
-                self.hass,
-                self.presence_indicating_entity_ids,
-                PRESENCE_ON_STATES,
-            )
-            else True
+        self.presence = not all_states_are_off(
+            self.hass,
+            self.presence_entities,
+            PRESENCE_ON_STATES,
         )
         self.schedule_update_ha_state()
 
@@ -123,7 +124,7 @@ class PresenceBinarySensor(BinarySensorEntity):
         # Subscribe to state changes
         async_track_state_change(
             self.hass,
-            self.presence_indicating_entity_ids,
+            self.presence_entities,
             self.handle_presence_state_change,
         )
 
@@ -152,7 +153,7 @@ class PresenceBinarySensor(BinarySensorEntity):
         else:
             if all_states_are_off(
                 self.hass,
-                self.presence_indicating_entity_ids,
+                self.presence_entities,
                 PRESENCE_ON_STATES,
             ):
                 if self.presence:

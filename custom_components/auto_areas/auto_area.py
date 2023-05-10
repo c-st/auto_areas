@@ -6,6 +6,7 @@ from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.area_registry import AreaEntry
+from homeassistant.helpers.entity_registry import RegistryEntry
 from .ha_helpers import get_all_entities, is_valid_entity
 
 from .const import LOGGER, RELEVANT_DOMAINS
@@ -53,7 +54,7 @@ class AutoArea:
                 entity.device_class or entity.original_device_class,
             )
 
-    def get_valid_entities(self):
+    def get_valid_entities(self) -> list[RegistryEntry]:
         """Return all valid and relevant entities for this area."""
         entities = [
             entity

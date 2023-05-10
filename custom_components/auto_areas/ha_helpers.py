@@ -12,9 +12,9 @@ def get_all_entities(
     device_registry: DeviceRegistry,
     area_id: str,
     domains: list[str] = None,
-) -> list:
+) -> list[RegistryEntry]:
     """Return all entities from an area."""
-    entities = []
+    entities: list[RegistryEntry] = []
 
     for _entity_id, entity in entity_registry.entities.items():
         if get_area_id(entity, device_registry) != area_id:

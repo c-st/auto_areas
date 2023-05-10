@@ -3,17 +3,16 @@ name: "Validate"
 on:
   workflow_dispatch:
   push:
-  pull_request:
     branches:
-      - "main"
+      - main
+  pull_request:
 
 jobs:
   hassfest: # https://developers.home-assistant.io/blog/2020/04/16/hassfest
     name: "Hassfest Validation"
     runs-on: "ubuntu-latest"
     steps:
-        - name: "Checkout the repository"
-          uses: "actions/checkout@v3.5.2"
+        - uses: "actions/checkout@v3.5.2"
 
         - name: "Run hassfest validation"
           uses: "home-assistant/actions/hassfest@master"
@@ -22,12 +21,27 @@ jobs:
     name: "HACS Validation"
     runs-on: "ubuntu-latest"
     steps:
-        - name: "Checkout the repository"
-          uses: "actions/checkout@v3.5.2"
+        - uses: "actions/checkout@v3.5.2"
 
         - name: "Run HACS validation"
           uses: "hacs/action@main"
           with:
             category: "integration"
-            # Remove this 'ignore' key when you have added brand images for your integration to https://github.com/home-assistant/brands
-            # ignore: "brands"
+
+  test:
+    name: "Unit tests"
+    runs-on: "ubuntu-latest"
+    steps:
+        - uses: "actions/checkout@v3.5.2"
+
+        - name: "Set up Python"
+          uses: actions/setup-python@v4.6.0
+          with:
+            python-version: "3.10"
+            cache: "pip"
+
+        - name: "Install requirements"
+          run: python3 -m pip install -r requirements-test.txt
+
+        - name: Run tests
+          run: pytest
