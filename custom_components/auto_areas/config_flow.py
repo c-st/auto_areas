@@ -73,7 +73,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Validate a new area to be added."""
         area_registry: AreaRegistry = helpers.area_registry.async_get(self.hass)
         area = area_registry.async_get_area(area_id)
-        existing_configs: dict[str, AutoArea] = self.hass.data[DOMAIN]
+        existing_configs: dict[str, AutoArea] = self.hass.data.get(DOMAIN) or {}
         for auto_area in existing_configs.values():
             existing_area_id = auto_area.config_entry.data.get("area")
             if existing_area_id == area_id:
