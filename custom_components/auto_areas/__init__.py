@@ -15,7 +15,6 @@ from .const import DOMAIN, LOGGER, ISSUE_TYPE_YAML_DETECTED
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,
     Platform.BINARY_SENSOR,
-    # Platform.SENSOR,
 ]
 
 
@@ -34,8 +33,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
-    if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+    # unsubscribe from changes:
+    hass.data[DOMAIN][entry.entry_id].cleanup()
+
+    # unload platforms:
+    unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unloaded:
         hass.data[DOMAIN].pop(entry.entry_id)
+        LOGGER.warning("Unloaded successfully %s", entry.entry_id)
+    else:
+        LOGGER.error("Couldn't unload config entry %s", entry.entry_id)
 
     return unloaded
 

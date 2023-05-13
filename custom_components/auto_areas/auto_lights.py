@@ -28,6 +28,10 @@ class AutoLights:
         """Initialize entities."""
         self.auto_area = auto_area
         self.hass = auto_area.hass
+
+        self.is_sleeping_area = self.auto_area.config_entry.options.get(
+            CONFIG_IS_SLEEPING_AREA
+        )
         self.sleep_mode_enabled = None
 
         self.sleep_mode_entity_id = (
@@ -47,10 +51,14 @@ class AutoLights:
             )
         ]
 
-        LOGGER.info("Tracking these entity ids %s", self.light_entity_ids)
+        LOGGER.debug(
+            "%s: Managing light entities: %s",
+            self.auto_area.area.name,
+            self.light_entity_ids,
+        )
         if len(self.light_entity_ids) == 0:
             LOGGER.warning(
-                "%s: no light entities found to control", self.auto_area.area.name
+                "%s: No light entities found to manage", self.auto_area.area.name
             )
             return
 
@@ -61,16 +69,22 @@ class AutoLights:
                 EVENT_HOMEASSISTANT_STARTED, self.initialize()
             )
 
+    def cleanup(self):
+        """Deinitialize this area"""
+        if self.is_sleeping_area:
+            self.unsubscribe_sleep_mode()
+        self.unsubscribe_presence()
+
     async def initialize(self):
         """Start subscribing to state changes."""
-        if self.auto_area.config_entry.options.get(CONFIG_IS_SLEEPING_AREA):
+        if self.is_sleeping_area:
             # set initial state
             sleep_mode_state = self.hass.states.get(self.sleep_mode_entity_id)
             if sleep_mode_state:
                 self.sleep_mode_enabled = sleep_mode_state.state == STATE_ON
 
             # start tracking state changes
-            async_track_state_change(
+            self.unsubscribe_sleep_mode = async_track_state_change(
                 self.hass,
                 self.sleep_mode_entity_id,
                 self.handle_sleep_mode_state_change,
@@ -91,7 +105,7 @@ class AutoLights:
             )
 
         # start tracking presence state
-        async_track_state_change(
+        self.unsubscribe_presence = async_track_state_change(
             self.auto_area.hass,
             self.presence_entity_id,
             self.handle_presence_state_change,
@@ -107,8 +121,8 @@ class AutoLights:
         if previous_state == current_state:
             return
 
-        LOGGER.info(
-            "State change: presence entity (%s) %s -> %s",
+        LOGGER.debug(
+            "%s: State change: presence entity %s -> %s",
             entity_id,
             previous_state,
             current_state,
@@ -117,14 +131,14 @@ class AutoLights:
         if current_state == STATE_ON:
             if self.sleep_mode_enabled:
                 LOGGER.info(
-                    "Sleep mode is on (%s). Not turning on lights",
+                    "%s: Sleep mode is on. Not turning on lights",
                     self.auto_area.area.name,
                 )
                 return
 
             # turn lights on
             LOGGER.info(
-                "Turning lights on (%s) %s",
+                "%s: Turning lights on %s",
                 self.auto_area.area.name,
                 self.light_entity_ids,
             )
@@ -137,11 +151,10 @@ class AutoLights:
         else:
             if not self.sleep_mode_enabled:
                 LOGGER.info(
-                    "Turning lights off (%s) %s",
+                    "%s: Turning lights off %s",
                     self.auto_area.area.name,
                     self.light_entity_ids,
                 )
-            # turn lights off
             await self.hass.services.async_call(
                 LIGHT_DOMAIN,
                 SERVICE_TURN_OFF,
@@ -155,8 +168,8 @@ class AutoLights:
         previous_state = from_state.state if from_state else ""
         current_state = to_state.state if to_state else ""
 
-        LOGGER.info(
-            "State change: sleep mode (%s) %s -> %s",
+        LOGGER.debug(
+            "%s: State change: sleep mode %s -> %s",
             entity_id,
             previous_state,
             current_state,
@@ -167,7 +180,7 @@ class AutoLights:
 
         if current_state == STATE_ON:
             LOGGER.info(
-                "Sleep mode enabled - turning lights off (%s) %s",
+                "%s: Sleep mode enabled - turning lights off %s",
                 self.auto_area.area.name,
                 self.light_entity_ids,
             )
@@ -178,14 +191,14 @@ class AutoLights:
                 {ATTR_ENTITY_ID: self.light_entity_ids},
             )
         else:
-            LOGGER.info("Sleep mode disabled (%s)", self.auto_area.area.name)
+            LOGGER.info("%s: Sleep mode disabled", self.auto_area.area.name)
             self.sleep_mode_enabled = False
             has_presence = (
                 self.hass.states.get(self.presence_entity_id).state == STATE_ON
             )
             if has_presence:
                 LOGGER.info(
-                    "Turning lights on due to presence (%s) %s",
+                    "%s: Turning lights on due to presence %s",
                     self.auto_area.area.name,
                     self.light_entity_ids,
                 )
