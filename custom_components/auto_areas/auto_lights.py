@@ -1,55 +1,66 @@
-"""
-AutoLights
-Toggle lights in an area based on presence.
-"""
-import logging
-from typing import Set
-
+"""Auto lights."""
+from homeassistant.core import State
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
-from homeassistant.const import (
-    ATTR_ENTITY_ID,
-    EVENT_HOMEASSISTANT_STARTED,
-    SERVICE_TURN_OFF,
-    SERVICE_TURN_ON,
-    STATE_ON,
-)
-from homeassistant.core import HomeAssistant, State
-from homeassistant.helpers.area_registry import AreaEntry
-from homeassistant.helpers.entity_registry import RegistryEntry
 from homeassistant.helpers.event import async_track_state_change
+from homeassistant.const import (
+    EVENT_HOMEASSISTANT_STARTED,
+    STATE_ON,
+    SERVICE_TURN_ON,
+    SERVICE_TURN_OFF,
+    ATTR_ENTITY_ID,
+)
 from homeassistant.util import slugify
 
-from custom_components.auto_areas.const import (
-    CONFIG_SLEEPING_AREA,
-    ENTITY_NAME_AREA_PRESENCE,
-    ENTITY_NAME_AREA_SLEEP_MODE,
+from .ha_helpers import get_all_entities
+
+from .const import (
+    CONFIG_IS_SLEEPING_AREA,
+    LOGGER,
+    PRESENCE_BINARY_SENSOR_ENTITY_PREFIX,
+    SLEEP_MODE_SWITCH_ENTITY_PREFIX,
 )
 
-_LOGGER = logging.getLogger(__name__)
 
+class AutoLights:
+    """Automatic light control."""
 
-class AutoLights(object):
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        all_entities: Set[RegistryEntry],
-        area: AreaEntry,
-        area_config: dict,
-    ) -> None:
-        self.hass = hass
-        self.area = area
-        self.area_name = slugify(area.name)
-        self.area_config = area_config
-        self.is_sleeping_area = self.area_config.get(CONFIG_SLEEPING_AREA, False)
+    def __init__(self, auto_area) -> None:
+        """Initialize entities."""
+        self.auto_area = auto_area
+        self.hass = auto_area.hass
+
+        self.is_sleeping_area = (
+            self.auto_area.config_entry.options.get(CONFIG_IS_SLEEPING_AREA) or False
+        )
         self.sleep_mode_enabled = None
 
-        self.sleep_mode_entity_id = f"{ENTITY_NAME_AREA_SLEEP_MODE}{self.area_name}"
-        self.presence_entity_id = f"{ENTITY_NAME_AREA_PRESENCE}{self.area_name}"
+        self.sleep_mode_entity_id = (
+            f"{SLEEP_MODE_SWITCH_ENTITY_PREFIX}{slugify(self.auto_area.area.name)}"
+        )
+        self.presence_entity_id = (
+            f"{PRESENCE_BINARY_SENSOR_ENTITY_PREFIX}{slugify(self.auto_area.area.name)}"
+        )
 
-        self.light_entities = [
-            entity for entity in all_entities if entity.domain in LIGHT_DOMAIN
+        self.light_entity_ids = [
+            entity.entity_id
+            for entity in get_all_entities(
+                self.auto_area.entity_registry,
+                self.auto_area.device_registry,
+                self.auto_area.area_id,
+                [LIGHT_DOMAIN],
+            )
         ]
-        self.light_entity_ids = [entity.entity_id for entity in self.light_entities]
+
+        LOGGER.debug(
+            "%s: Managing light entities: %s",
+            self.auto_area.area.name,
+            self.light_entity_ids,
+        )
+        if len(self.light_entity_ids) == 0:
+            LOGGER.warning(
+                "%s: No light entities found to manage", self.auto_area.area.name
+            )
+            return
 
         if self.hass.is_running:
             self.hass.async_create_task(self.initialize())
@@ -58,48 +69,45 @@ class AutoLights(object):
                 EVENT_HOMEASSISTANT_STARTED, self.initialize()
             )
 
-    async def initialize(self) -> None:
+    def cleanup(self):
+        """Deinitialize this area."""
+        LOGGER.debug("%s: Disabling light control", self.auto_area.area.name)
         if self.is_sleeping_area:
-            _LOGGER.info(
-                "Sleeping area bedroom '%s' (entity: %s)",
-                self.area_name,
-                self.sleep_mode_entity_id,
-            )
+            self.unsubscribe_sleep_mode()
+        self.unsubscribe_presence()
 
+    async def initialize(self):
+        """Start subscribing to state changes."""
+        if self.is_sleeping_area:
             # set initial state
             sleep_mode_state = self.hass.states.get(self.sleep_mode_entity_id)
             if sleep_mode_state:
                 self.sleep_mode_enabled = sleep_mode_state.state == STATE_ON
 
-            # start tracking state changes
-            async_track_state_change(
+            LOGGER.debug("%s: Tracking sleep mode changes", self.auto_area.area.name)
+            self.unsubscribe_sleep_mode = async_track_state_change(
                 self.hass,
                 self.sleep_mode_entity_id,
                 self.handle_sleep_mode_state_change,
             )
 
         # set lights initially based on presence
-        initial_state = self.hass.states.get(self.presence_entity_id)
-        _LOGGER.info(
-            "AutoLights '%s'. Initial presence: %s, %s Managed lights: %s",
-            self.area_name,
-            initial_state,
-            self.presence_entity_id,
-            self.light_entity_ids,
-        )
-        if initial_state and self.light_entity_ids:
+        initial_presence_state = self.hass.states.get(self.presence_entity_id)
+        if initial_presence_state and self.light_entity_ids:
             action = (
-                SERVICE_TURN_ON if initial_state.state == STATE_ON else SERVICE_TURN_OFF
+                SERVICE_TURN_ON
+                if initial_presence_state.state == STATE_ON
+                else SERVICE_TURN_OFF
             )
-            await self.hass.services.async_call(
+            await self.auto_area.hass.services.async_call(
                 LIGHT_DOMAIN,
                 action,
                 {ATTR_ENTITY_ID: self.light_entity_ids},
             )
 
-        # start tracking presence state
-        async_track_state_change(
-            self.hass,
+        LOGGER.debug("%s: Tracking presence state changes", self.auto_area.area.name)
+        self.unsubscribe_presence = async_track_state_change(
+            self.auto_area.hass,
             self.presence_entity_id,
             self.handle_presence_state_change,
         )
@@ -107,29 +115,33 @@ class AutoLights(object):
     async def handle_presence_state_change(
         self, entity_id, from_state: State, to_state: State
     ):
+        """Handle changes in presence."""
         previous_state = from_state.state if from_state else ""
         current_state = to_state.state
 
-        if previous_state == current_state:
-            return
-
-        _LOGGER.info(
-            "State change: presence entity (%s) %s -> %s",
+        LOGGER.debug(
+            "%s: State change of presence entity %s -> %s",
             entity_id,
             previous_state,
             current_state,
         )
 
+        if previous_state == current_state:
+            return
+
         if current_state == STATE_ON:
             if self.sleep_mode_enabled:
-                _LOGGER.info(
-                    "Sleep mode is on (%s). Not turning on lights", self.area_name
+                LOGGER.info(
+                    "%s: Sleep mode is on. Not turning on lights",
+                    self.auto_area.area.name,
                 )
                 return
 
             # turn lights on
-            _LOGGER.info(
-                "Turning lights on (%s) %s", self.area_name, self.light_entity_ids
+            LOGGER.info(
+                "%s: Turning lights on %s",
+                self.auto_area.area.name,
+                self.light_entity_ids,
             )
             await self.hass.services.async_call(
                 LIGHT_DOMAIN,
@@ -139,26 +151,26 @@ class AutoLights(object):
             return
         else:
             if not self.sleep_mode_enabled:
-                _LOGGER.info(
-                    "Turning lights off (%s) %s", self.area_name, self.light_entity_ids
+                LOGGER.info(
+                    "%s: Turning lights off %s",
+                    self.auto_area.area.name,
+                    self.light_entity_ids,
                 )
-
-            # turn lights off
             await self.hass.services.async_call(
                 LIGHT_DOMAIN,
                 SERVICE_TURN_OFF,
                 {ATTR_ENTITY_ID: self.light_entity_ids},
             )
-            return
 
     async def handle_sleep_mode_state_change(
         self, entity_id, from_state: State, to_state: State
     ):
+        """Handle changes in sleep mode."""
         previous_state = from_state.state if from_state else ""
         current_state = to_state.state if to_state else ""
 
-        _LOGGER.info(
-            "State change: sleep mode (%s) %s -> %s",
+        LOGGER.debug(
+            "%s: State change of sleep mode %s -> %s",
             entity_id,
             previous_state,
             current_state,
@@ -168,9 +180,9 @@ class AutoLights(object):
             return
 
         if current_state == STATE_ON:
-            _LOGGER.info(
-                "Sleep mode enabled - turning lights off (%s) %s",
-                self.area_name,
+            LOGGER.info(
+                "%s: Sleep mode enabled - turning lights off %s",
+                self.auto_area.area.name,
                 self.light_entity_ids,
             )
             self.sleep_mode_enabled = True
@@ -180,15 +192,15 @@ class AutoLights(object):
                 {ATTR_ENTITY_ID: self.light_entity_ids},
             )
         else:
-            _LOGGER.info("Sleep mode disabled (%s)", self.area_name)
+            LOGGER.info("%s: Sleep mode disabled", self.auto_area.area.name)
             self.sleep_mode_enabled = False
             has_presence = (
                 self.hass.states.get(self.presence_entity_id).state == STATE_ON
             )
             if has_presence:
-                _LOGGER.info(
-                    "Turning lights on due to presence (%s) %s",
-                    self.area_name,
+                LOGGER.info(
+                    "%s: Turning lights on due to presence %s",
+                    self.auto_area.area.name,
                     self.light_entity_ids,
                 )
                 await self.hass.services.async_call(

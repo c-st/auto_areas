@@ -1,31 +1,49 @@
+"""Constants for Auto Areas."""
+from logging import Logger, getLogger
 
-from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN, BinarySensorDeviceClass
+from homeassistant.components.binary_sensor import (
+    DOMAIN as BINARY_SENSOR_DOMAIN,
+    BinarySensorDeviceClass,
+)
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 
-# from homeassistant.components.media_player import DOMAIN as MEDIA_PLAYER_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import STATE_HOME, STATE_ON, STATE_PLAYING
 
+
+LOGGER: Logger = getLogger(__package__)
+
 NAME = "Auto Areas"
 DOMAIN = "auto_areas"
-DOMAIN_DATA = f"{DOMAIN}_data"
+VERSION = "2.0.0"
+ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 
-# Prefixes for created entities (area name is appended: f"{ENTITY_NAME_FOO{area.name}")
-ENTITY_FRIENDLY_NAME_AREA_PRESENCE = "Area Presence "
-ENTITY_NAME_AREA_PRESENCE = "binary_sensor.area_presence_"
+#
+# Constants
+#
+ISSUE_TYPE_YAML_DETECTED = "issue_yaml_detected"
+#
+PRESENCE_LOCK_SWITCH_PREFIX = "Area Presence Lock "
+PRESENCE_LOCK_SWITCH_ENTITY_PREFIX = "switch.area_presence_lock_"
 
-ENTITY_FRIENDLY_NAME_AREA_PRESENCE_LOCK = "Area Presence Lock "
-ENTITY_NAME_AREA_PRESENCE_LOCK = "switch.area_presence_lock_"
+SLEEP_MODE_SWITCH_PREFIX = "Area Sleep Mode "
+SLEEP_MODE_SWITCH_ENTITY_PREFIX = "switch.area_sleep_mode_"
 
-ENTITY_FRIENDLY_NAME_AREA_SLEEP_MODE = "Area Sleep Mode "
-ENTITY_NAME_AREA_SLEEP_MODE = "switch.area_sleep_mode_"
+PRESENCE_BINARY_SENSOR_PREFIX = "Area Presence "
+PRESENCE_BINARY_SENSOR_ENTITY_PREFIX = "binary_sensor.area_presence_"
+#
+# Config constants
+#
+CONFIG_AREA = "area"
+CONFIG_IS_SLEEPING_AREA = "is_sleeping_area"
 
-# Area Config options
-CONFIG_SLEEPING_AREA = "is_sleeping_area"
+#
+# Config
+#
 
-# Entity gathering configuration
-AUTO_AREAS_RELEVANT_DOMAINS = [
+# Fetch entities from these domains
+RELEVANT_DOMAINS = [
     BINARY_SENSOR_DOMAIN,
     SENSOR_DOMAIN,
     SWITCH_DOMAIN,
@@ -36,9 +54,10 @@ AUTO_AREAS_RELEVANT_DOMAINS = [
 PRESENCE_BINARY_SENSOR_DEVICE_CLASSES = (
     BinarySensorDeviceClass.MOTION,
     BinarySensorDeviceClass.OCCUPANCY,
-    BinarySensorDeviceClass.PRESENCE
+    BinarySensorDeviceClass.PRESENCE,
 )
 
+# Presence states
 PRESENCE_ON_STATES = [
     STATE_ON,
     STATE_HOME,

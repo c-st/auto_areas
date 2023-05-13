@@ -1,38 +1,144 @@
-import logging
-from typing import Dict, List
+"""Switch platform for integration_blueprint."""
+from __future__ import annotations
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import Entity
-
-from custom_components.auto_areas.auto_area import AutoArea
-from custom_components.auto_areas.const import (
-    CONFIG_SLEEPING_AREA,
-    DOMAIN_DATA,
+from homeassistant.components.switch import (
+    SwitchEntity,
+    SwitchDeviceClass,
 )
-from custom_components.auto_areas.ha_helpers import get_data
-from custom_components.auto_areas.presence_lock_switch import PresenceLockSwitch
-from custom_components.auto_areas.sleep_mode_switch import SleepModeSwitch
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-_LOGGER = logging.getLogger(__name__)
+from .auto_area import AutoArea
+
+from .const import (
+    LOGGER,
+    DOMAIN,
+    NAME,
+    VERSION,
+    CONFIG_IS_SLEEPING_AREA,
+    PRESENCE_LOCK_SWITCH_PREFIX,
+    SLEEP_MODE_SWITCH_PREFIX,
+)
 
 
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info=None,
-):
-    """Set up all switches"""
-    _LOGGER.info("Setup switch platform %s", config)
+async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback):
+    """Set up the switch platform."""
+    LOGGER.info("Setting up switch platform")
+    auto_area: AutoArea = hass.data[DOMAIN][entry.entry_id]
 
-    auto_areas: Dict[str, AutoArea] = get_data(hass, DOMAIN_DATA)
+    switch_entities = [PresenceLockSwitch(auto_area)]
 
-    entities: List[Entity] = []
+    if auto_area.config_entry.options.get(CONFIG_IS_SLEEPING_AREA):
+        switch_entities.append(SleepModeSwitch(auto_area))
 
-    for auto_area in auto_areas.values():
-        entities.append(PresenceLockSwitch(hass, auto_area.area))
-        if auto_area.config.get(CONFIG_SLEEPING_AREA) is True:
-            entities.append(SleepModeSwitch(hass, auto_area.area))
+    async_add_entities(switch_entities)
 
-    async_add_entities(entities)
+
+class PresenceLockSwitch(SwitchEntity):
+    """Set up a presence lock switch."""
+
+    should_poll = False
+
+    def __init__(self, auto_area: AutoArea) -> None:
+        """Initialize presence lock switch."""
+        self.auto_area = auto_area
+        self._is_on: bool = False
+        LOGGER.info("%s: Initialized presence lock switch", self.auto_area.area.name)
+
+    @property
+    def name(self):
+        """Name."""
+        return f"{PRESENCE_LOCK_SWITCH_PREFIX}{self.auto_area.area.name}"
+
+    @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
+        return f"{self.auto_area.config_entry.entry_id}_presence_lock"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Information about this device."""
+        return {
+            "identifiers": {(DOMAIN, self.auto_area.config_entry.entry_id)},
+            "name": NAME,
+            "model": VERSION,
+            "manufacturer": NAME,
+            "suggested_area": self.auto_area.area.name,
+        }
+
+    @property
+    def device_class(self):
+        """Return device class."""
+        return SwitchDeviceClass.SWITCH
+
+    @property
+    def is_on(self):
+        """Return the state of the switch."""
+        return self._is_on
+
+    def turn_on(self, **kwargs) -> None:
+        """Turn on switch."""
+        LOGGER.info("%s: Presence lock turned on", self.auto_area.area.name)
+        self._is_on = True
+        self.schedule_update_ha_state()
+
+    def turn_off(self, **kwargs):
+        """Turn off switch."""
+        LOGGER.info("%s: Presence lock turned off", self.auto_area.area.name)
+        self._is_on = False
+        self.schedule_update_ha_state()
+
+
+class SleepModeSwitch(SwitchEntity):
+    """Set up a sleep mode switch."""
+
+    should_poll = False
+
+    def __init__(self, auto_area: AutoArea) -> None:
+        """Initialize sleep mode switch."""
+        self.auto_area = auto_area
+        self._is_on: bool = False
+        LOGGER.info("%s: Initialized sleep mode switch", self.auto_area.area.name)
+
+    @property
+    def name(self):
+        """Name."""
+        return f"{SLEEP_MODE_SWITCH_PREFIX}{self.auto_area.area.name}"
+
+    @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
+        return f"{self.auto_area.config_entry.entry_id}_sleep_mode"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Information about this device."""
+        return {
+            "identifiers": {(DOMAIN, self.auto_area.config_entry.entry_id)},
+            "name": NAME,
+            "model": VERSION,
+            "manufacturer": NAME,
+            "suggested_area": self.auto_area.area.name,
+        }
+
+    @property
+    def device_class(self):
+        """Return device class."""
+        return SwitchDeviceClass.SWITCH
+
+    @property
+    def is_on(self):
+        """Return the state of the switch."""
+        return self._is_on
+
+    def turn_on(self, **kwargs) -> None:
+        """Turn on switch."""
+        LOGGER.info("%s: Sleep mode turned on", self.auto_area.area.name)
+        self._is_on = True
+        self.schedule_update_ha_state()
+
+    def turn_off(self, **kwargs):
+        """Turn off switch."""
+        LOGGER.info("%s: Sleep mode turned off", self.auto_area.area.name)
+        self._is_on = False
+        self.schedule_update_ha_state()
