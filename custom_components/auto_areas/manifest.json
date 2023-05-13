@@ -2,10 +2,6 @@
   "domain": "auto_areas",
   "name": "Auto Areas",
   "after_dependencies": [
-    "group",
-    "binary_sensor",
-    "sensor",
-    "light",
     "media_player",
     "device_tracker",
     "camera"
@@ -14,7 +10,12 @@
     "@c-st"
   ],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": [
+    "light",
+    "group",
+    "binary_sensor",
+    "sensor"
+  ],
   "documentation": "https://github.com/c-st/auto_areas",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/c-st/auto_areas/issues",

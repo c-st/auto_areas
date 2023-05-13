@@ -17,6 +17,7 @@ from .ha_helpers import all_states_are_off
 from .const import (
     DOMAIN,
     NAME,
+    PRESENCE_LOCK_SWITCH_ENTITY_PREFIX,
     VERSION,
     LOGGER,
     PRESENCE_BINARY_SENSOR_PREFIX,
@@ -42,9 +43,7 @@ class PresenceBinarySensor(BinarySensorEntity):
         """Initialize presence lock switch."""
         self.auto_area = auto_area
         self.presence: bool = None
-
         self.presence_entities: list[str] = self.get_presence_entities()
-
         LOGGER.info("%s: Initialized presence binary sensor", self.auto_area.area.name)
 
     @property
@@ -80,11 +79,12 @@ class PresenceBinarySensor(BinarySensorEntity):
 
     def get_presence_entities(self) -> list(str):
         """Collect entities to be used for determining presence."""
-        entity_ids = [f"switch.area_presence_lock_{slugify(self.auto_area.area.name)}"]
+        entity_ids = [
+            f"{PRESENCE_LOCK_SWITCH_ENTITY_PREFIX}{slugify(self.auto_area.area.name)}"
+        ]
 
         # include relevant presence entities, but not this sensor:
         for entity in self.auto_area.get_valid_entities():
-            LOGGER.info("Eval %s", entity)
             if (
                 entity.device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
                 or entity.original_device_class in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES
@@ -99,12 +99,6 @@ class PresenceBinarySensor(BinarySensorEntity):
             "%s starting to track",
             self.auto_area.area.name,
         )
-
-        # if len(self.presence_indicating_entity_ids) == 1:
-        #     LOGGER.info(
-        #         "%s: No supported sensors for presence detection found",
-        #         self.auto_area.area.name,
-        #     )
 
         LOGGER.info(
             "%s: Using these entities for presence detection: %s",

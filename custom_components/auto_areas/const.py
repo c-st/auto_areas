@@ -23,10 +23,15 @@ ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 # Constants
 #
 ISSUE_TYPE_YAML_DETECTED = "issue_yaml_detected"
+#
 PRESENCE_LOCK_SWITCH_PREFIX = "Area Presence Lock "
-SLEEP_MODE_SWITCH_PREFIX = "Area Sleep Mode "
-PRESENCE_BINARY_SENSOR_PREFIX = "Area Presence "
+PRESENCE_LOCK_SWITCH_ENTITY_PREFIX = "switch.area_presence_lock_"
 
+SLEEP_MODE_SWITCH_PREFIX = "Area Sleep Mode "
+SLEEP_MODE_SWITCH_ENTITY_PREFIX = "switch.area_sleep_mode_"
+
+PRESENCE_BINARY_SENSOR_PREFIX = "Area Presence "
+PRESENCE_BINARY_SENSOR_ENTITY_PREFIX = "binary_sensor.area_presence_"
 #
 # Config constants
 #

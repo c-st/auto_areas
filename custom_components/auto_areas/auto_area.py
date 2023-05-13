@@ -7,6 +7,9 @@ from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
+
+from .auto_lights import AutoLights
+
 from .ha_helpers import get_all_entities, is_valid_entity
 
 from .const import LOGGER, RELEVANT_DOMAINS
@@ -32,8 +35,9 @@ class AutoArea:
 
         self.area_id: str = entry.data.get("area")
         self.area: AreaEntry = self.area_registry.async_get_area(self.area_id)
-
         LOGGER.info('🤖 Auto Area "%s" (%s)', entry.title, entry.options)
+
+        # todo: subscribe to area changes and re-initialize
 
         if self.hass.is_running:
             self.hass.async_create_task(self.initialize())
@@ -44,15 +48,17 @@ class AutoArea:
 
     async def initialize(self):
         """Collect all entities for this area."""
-        self.entities = self.get_valid_entities()
-        LOGGER.info("%s Found %i relevant entities", self.area_id, len(self.entities))
-        for entity in self.entities:
-            LOGGER.info(
-                "- %s %s (device_class: %s)",
-                self.area_id,
-                entity.entity_id,
-                entity.device_class or entity.original_device_class,
-            )
+        # self.entities = self.get_valid_entities()
+        # LOGGER.info("%s Found %i relevant entities", self.area_id, len(self.entities))
+        # for entity in self.entities:
+        #     LOGGER.info(
+        #         "- %s %s (device_class: %s)",
+        #         self.area_id,
+        #         entity.entity_id,
+        #         entity.device_class or entity.original_device_class,
+        #     )
+        # LOGGER.info("Setting up auto lights...")
+        self.auto_lights = AutoLights(self)
 
     def get_valid_entities(self) -> list[RegistryEntry]:
         """Return all valid and relevant entities for this area."""
