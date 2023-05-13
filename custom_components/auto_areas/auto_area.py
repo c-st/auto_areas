@@ -52,7 +52,7 @@ class AutoArea:
             )
 
     async def initialize(self):
-        """Subscribe to area changes and reload if necessary"""
+        """Subscribe to area changes and reload if necessary."""
         entity_ids = [
             entity_id
             for entity_id, entity in self.entity_registry.entities.items()
@@ -66,13 +66,13 @@ class AutoArea:
         self.auto_lights = AutoLights(self)
 
     def cleanup(self):
-        """Deinitialize this area"""
+        """Deinitialize this area."""
         LOGGER.debug("%s: Disabling area control", self.area.name)
         self.unsubscribe()
         self.auto_lights.cleanup()
 
     async def handle_entity_update(self, entity_id):
-        """Handle removed or added entity"""
+        """Handle removed or added entity."""
         LOGGER.info(
             "%s: Reloading config entry due to changed entity (entity %s)",
             self.area.name,

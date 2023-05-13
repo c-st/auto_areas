@@ -120,7 +120,7 @@ class PresenceBinarySensor(BinarySensorEntity):
         )
 
     async def async_will_remove_from_hass(self) -> None:
-        """Clean up event listeners"""
+        """Clean up event listeners."""
         if self.unsubscribe:
             self.unsubscribe()
 
