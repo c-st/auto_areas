@@ -35,7 +35,7 @@ class AutoArea:
         self.hass = hass
         self.config_entry = entry
 
-        self.area_registry = hass.helpers.area_registry.async_get(self.hass)
+        self.area_registry = self.hass.helpers.area_registry.async_get(self.hass)
         self.device_registry = self.hass.helpers.device_registry.async_get(self.hass)
         self.entity_registry = self.hass.helpers.entity_registry.async_get(self.hass)
 

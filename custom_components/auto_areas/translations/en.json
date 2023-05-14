@@ -19,7 +19,8 @@
                 "title": "🤖 Auto Area",
                 "description": "Customize the behavior of this area.",
                 "data": {
-                    "is_sleeping_area": "Set as sleeping area"
+                    "is_sleeping_area": "Set as sleeping area",
+                    "excluded_light_entities": "Excluded light entities"
                 }
             }
         }

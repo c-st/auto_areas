@@ -14,8 +14,9 @@ from homeassistant.util import slugify
 from .ha_helpers import get_all_entities
 
 from .const import (
-    CONFIG_IS_SLEEPING_AREA,
     LOGGER,
+    CONFIG_IS_SLEEPING_AREA,
+    CONFIG_EXCLUDED_LIGHT_ENTITIES,
     PRESENCE_BINARY_SENSOR_ENTITY_PREFIX,
     SLEEP_MODE_SWITCH_ENTITY_PREFIX,
 )
@@ -34,6 +35,11 @@ class AutoLights:
         )
         self.sleep_mode_enabled = None
 
+        self.excluded_light_entities = (
+            self.auto_area.config_entry.options.get(CONFIG_EXCLUDED_LIGHT_ENTITIES)
+            or []
+        )
+
         self.sleep_mode_entity_id = (
             f"{SLEEP_MODE_SWITCH_ENTITY_PREFIX}{slugify(self.auto_area.area.name)}"
         )
@@ -49,6 +55,7 @@ class AutoLights:
                 self.auto_area.area_id,
                 [LIGHT_DOMAIN],
             )
+            if entity.entity_id not in self.excluded_light_entities
         ]
 
         LOGGER.debug(
@@ -72,12 +79,15 @@ class AutoLights:
     def cleanup(self):
         """Deinitialize this area."""
         LOGGER.debug("%s: Disabling light control", self.auto_area.area.name)
-        if self.is_sleeping_area:
+        if self.unsubscribe_sleep_mode is not None:
             self.unsubscribe_sleep_mode()
+
         self.unsubscribe_presence()
 
     async def initialize(self):
         """Start subscribing to state changes."""
+
+        self.unsubscribe_sleep_mode = None
         if self.is_sleeping_area:
             # set initial state
             sleep_mode_state = self.hass.states.get(self.sleep_mode_entity_id)

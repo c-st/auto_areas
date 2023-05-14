@@ -6,15 +6,24 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant import helpers
+from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.helpers.area_registry import AreaRegistry
 
 import homeassistant.helpers.selector as selector
 
 from homeassistant.data_entry_flow import FlowResult
 
+from .ha_helpers import get_all_entities
+
 from .auto_area import AutoAreasError, AutoArea
 
-from .const import CONFIG_AREA, CONFIG_IS_SLEEPING_AREA, DOMAIN, LOGGER
+from .const import (
+    CONFIG_AREA,
+    CONFIG_IS_SLEEPING_AREA,
+    CONFIG_EXCLUDED_LIGHT_ENTITIES,
+    DOMAIN,
+    LOGGER,
+)
 
 
 # get all areas:
@@ -95,7 +104,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
+        self.config_entry: config_entries.ConfigEntry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -115,10 +124,34 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         )
                         or False,
                     ): bool,
-                    #  vol.Required(
-                    #     "enable_auto_lights",
-                    #     default=self.config_entry.options.get("enable_auto_lights"),
-                    # ): bool,
+                    vol.Optional(
+                        CONFIG_EXCLUDED_LIGHT_ENTITIES,
+                        default=(self.config_entry.options or {}).get(
+                            CONFIG_EXCLUDED_LIGHT_ENTITIES
+                        ),
+                    ): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            include_entities=self.get_light_entities(),
+                            exclude_entities=[],
+                            multiple=True,
+                        )
+                    ),
                 }
             ),
         )
+
+    def get_light_entities(self) -> list[str]:
+        """Return a list of selectable light entities."""
+        device_registry = helpers.device_registry.async_get(self.hass)
+        entity_registry = helpers.entity_registry.async_get(self.hass)
+
+        entities = [
+            entity.entity_id
+            for entity in get_all_entities(
+                entity_registry,
+                device_registry,
+                self.config_entry.data.get(CONFIG_AREA),
+                [LIGHT_DOMAIN],
+            )
+        ]
+        return entities
