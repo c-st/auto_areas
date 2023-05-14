@@ -61,6 +61,7 @@ A new switch with ID `switch.area_presence_lock_{area_name}` is created for each
 ### Control lights automatically
 
 Lights are automatically turned on and off based on presence in an area.
+By default all light entities of an area are managed. A list of entities to be ignored can be defined in the configuration options.
 
 #### Sleep mode
 
@@ -82,9 +83,10 @@ Alternatively [download a release](https://github.com/c-st/auto_areas/releases) 
 
 Navigate to "Settings"/"Devices & Services"/"Auto Areas" and select the area for which you want to change the options for. Select "Configure" and change the behaviour with the following options:
 
-| Area option        | Description                                                                                         | Default value      |
-| ------------------ | :-------------------------------------------------------------------------------------------------- | ------------------ |
-| Set as sleeping area | Mark area as sleeping area. A switch for controlling sleep mode is created. [See more](#sleep-mode) | `false` (disabled) |
+| Area option             | Description                                                                                         | Default value      |
+| ----------------------- | :-------------------------------------------------------------------------------------------------- | ------------------ |
+| Set as sleeping area    | Mark area as sleeping area. A switch for controlling sleep mode is created. [See more](#sleep-mode) | `false` (disabled) |
+| Excluded light entities | Entities to exclude from automatic light control. These lights are never turned on or off.          | `[]` (none)        |
 
 ## Development
 

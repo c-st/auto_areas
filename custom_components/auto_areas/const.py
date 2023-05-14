@@ -37,7 +37,7 @@ PRESENCE_BINARY_SENSOR_ENTITY_PREFIX = "binary_sensor.area_presence_"
 #
 CONFIG_AREA = "area"
 CONFIG_IS_SLEEPING_AREA = "is_sleeping_area"
-
+CONFIG_EXCLUDED_LIGHT_ENTITIES = "excluded_light_entities"
 #
 # Config
 #
