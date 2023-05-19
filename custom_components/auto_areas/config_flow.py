@@ -26,11 +26,6 @@ from .const import (
 )
 
 
-# get all areas:
-# area_registry: AreaRegistry = helpers.area_registry.async_get(self.hass)
-# all_areas = {a.id: a.name for a in area_registry.async_list_areas()}
-
-
 class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Blueprint."""
 
@@ -42,7 +37,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         return await self.async_step_init(user_input)
 
-    # this has to be named according to async_step_<step>
     async def async_step_init(
         self,
         user_input: dict | None = None,
@@ -128,7 +122,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         CONFIG_EXCLUDED_LIGHT_ENTITIES,
                         default=(self.config_entry.options or {}).get(
                             CONFIG_EXCLUDED_LIGHT_ENTITIES
-                        ),
+                        )
+                        or [],
                     ): selector.EntitySelector(
                         selector.EntitySelectorConfig(
                             include_entities=self.get_light_entities(),
