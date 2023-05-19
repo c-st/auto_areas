@@ -30,6 +30,9 @@ class AutoLights:
         self.auto_area = auto_area
         self.hass = auto_area.hass
 
+        self.unsubscribe_sleep_mode = None
+        self.unsubscribe_presence = None
+
         self.is_sleeping_area = (
             self.auto_area.config_entry.options.get(CONFIG_IS_SLEEPING_AREA) or False
         )
@@ -82,12 +85,12 @@ class AutoLights:
         if self.unsubscribe_sleep_mode is not None:
             self.unsubscribe_sleep_mode()
 
-        self.unsubscribe_presence()
+        if self.unsubscribe_presence is not None:
+            self.unsubscribe_presence()
 
     async def initialize(self):
         """Start subscribing to state changes."""
 
-        self.unsubscribe_sleep_mode = None
         if self.is_sleeping_area:
             # set initial state
             sleep_mode_state = self.hass.states.get(self.sleep_mode_entity_id)
