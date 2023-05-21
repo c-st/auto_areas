@@ -55,16 +55,16 @@ Currently `binary_sensor` entities with device class: `motion`, `occupancy`, `pr
 
 The presence state is published to a single `binary_sensor` which will be named according to the area: `binary_sensor.area_presence_{area_name}`.
 
-### Aggregated illuminance
-
-Tracks all illuminance measuring sensors in an area. The last known illuminance of all sensors is used.
-This illuminance is published in a `sensor` with the ID `sensor.area_illuminance_{area_name}`.
-
 #### Presence lock
 
 If only relying on motion sensors, presence could be cleared if there is only little or no movement. Presence lock can be used to treat an area as "occupied" regardless of sensor state.
 
 A new switch with ID `switch.area_presence_lock_{area_name}` is created for each area. If the switch is `on`, lights will not be turned off.
+
+### Aggregated illuminance
+
+Tracks all illuminance measuring sensors in an area. The last known illuminance of all sensors is used.
+This illuminance is published in a `sensor` with the ID `sensor.area_illuminance_{area_name}`.
 
 ### Control lights automatically
 
