@@ -4,8 +4,7 @@
             "init": {
                 "title": "🤖 Auto Area",
                 "data": {
-                    "area": "Area to manage",
-                    "is_sleeping_area": "Set as sleeping area"
+                    "area": "Area to manage"
                 }
             }
         },
@@ -19,8 +18,9 @@
                 "title": "🤖 Auto Area",
                 "description": "Customize the behavior of this area.",
                 "data": {
-                    "is_sleeping_area": "Set as sleeping area",
-                    "excluded_light_entities": "Excluded light entities"
+                    "is_sleeping_area": "Sleeping area",
+                    "excluded_light_entities": "Excluded light entities:",
+                    "auto_lights_illuminance_threshold": "Only turn on lights if area illuminance is below:"
                 }
             }
         }

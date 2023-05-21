@@ -14,6 +14,8 @@ from homeassistant.util import slugify
 from .ha_helpers import get_all_entities
 
 from .const import (
+    CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
+    ILLUMINANCE_SENSOR_ENTITY_PREFIX,
     LOGGER,
     CONFIG_IS_SLEEPING_AREA,
     CONFIG_EXCLUDED_LIGHT_ENTITIES,
@@ -30,6 +32,14 @@ class AutoLights:
         self.auto_area = auto_area
         self.hass = auto_area.hass
 
+        self.unsubscribe_sleep_mode = None
+        self.unsubscribe_presence = None
+        self.unsubscribe_illuminance = None
+
+        self.illuminance_threshold = (
+            self.auto_area.config_entry.options.get(CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE)
+            or 0
+        )
         self.is_sleeping_area = (
             self.auto_area.config_entry.options.get(CONFIG_IS_SLEEPING_AREA) or False
         )
@@ -45,6 +55,9 @@ class AutoLights:
         )
         self.presence_entity_id = (
             f"{PRESENCE_BINARY_SENSOR_ENTITY_PREFIX}{slugify(self.auto_area.area.name)}"
+        )
+        self.illuminance_entity_id = (
+            f"{ILLUMINANCE_SENSOR_ENTITY_PREFIX}{slugify(self.auto_area.area.name)}"
         )
 
         self.light_entity_ids = [
@@ -82,19 +95,20 @@ class AutoLights:
         if self.unsubscribe_sleep_mode is not None:
             self.unsubscribe_sleep_mode()
 
-        self.unsubscribe_presence()
+        if self.unsubscribe_presence is not None:
+            self.unsubscribe_presence()
+
+        if self.unsubscribe_illuminance is not None:
+            self.unsubscribe_illuminance()
 
     async def initialize(self):
         """Start subscribing to state changes."""
 
-        self.unsubscribe_sleep_mode = None
         if self.is_sleeping_area:
             # set initial state
             sleep_mode_state = self.hass.states.get(self.sleep_mode_entity_id)
             if sleep_mode_state:
                 self.sleep_mode_enabled = sleep_mode_state.state == STATE_ON
-
-            LOGGER.debug("%s: Tracking sleep mode changes", self.auto_area.area.name)
             self.unsubscribe_sleep_mode = async_track_state_change(
                 self.hass,
                 self.sleep_mode_entity_id,
@@ -115,11 +129,16 @@ class AutoLights:
                 {ATTR_ENTITY_ID: self.light_entity_ids},
             )
 
-        LOGGER.debug("%s: Tracking presence state changes", self.auto_area.area.name)
         self.unsubscribe_presence = async_track_state_change(
             self.auto_area.hass,
             self.presence_entity_id,
             self.handle_presence_state_change,
+        )
+
+        self.unsubscribe_illuminance = async_track_state_change(
+            self.auto_area.hass,
+            self.illuminance_entity_id,
+            self.handle_illuminance_change,
         )
 
     async def handle_presence_state_change(
@@ -146,6 +165,21 @@ class AutoLights:
                     self.auto_area.area.name,
                 )
                 return
+
+            if self.illuminance_threshold > 0:
+                current_illuminance = self.get_current_illuminance()
+
+                if (
+                    current_illuminance is not None
+                    and current_illuminance > self.illuminance_threshold
+                ):
+                    LOGGER.info(
+                        "%s: illuminance (%s lx) > threshold (%s lx). Not turning on lights",
+                        self.auto_area.area.name,
+                        current_illuminance,
+                        self.illuminance_threshold,
+                    )
+                    return
 
             # turn lights on
             LOGGER.info(
@@ -218,3 +252,49 @@ class AutoLights:
                     SERVICE_TURN_ON,
                     {ATTR_ENTITY_ID: self.light_entity_ids},
                 )
+
+    async def handle_illuminance_change(
+        self, _entity_id, _from_state: State, _to_state: State
+    ):
+        """Handle changes in illuminance."""
+
+        # Check for presence
+        if self.hass.states.get(self.presence_entity_id).state != STATE_ON:
+            return
+
+        # Check for sleep mode
+        if self.sleep_mode_enabled:
+            return
+
+        current_illuminance = self.get_current_illuminance()
+        if self.illuminance_threshold > 0 and current_illuminance is not None:
+            if current_illuminance > self.illuminance_threshold:
+                LOGGER.debug(
+                    "%s: illuminance (%s lx) > threshold (%s lx). Not turning on lights",
+                    self.auto_area.area.name,
+                    current_illuminance,
+                    self.illuminance_threshold,
+                )
+                return
+
+        LOGGER.info(
+            "%s: Turning lights on due to illuminance %s",
+            self.auto_area.area.name,
+            self.light_entity_ids,
+        )
+        await self.hass.services.async_call(
+            LIGHT_DOMAIN,
+            SERVICE_TURN_ON,
+            {ATTR_ENTITY_ID: self.light_entity_ids},
+        )
+
+    def get_current_illuminance(self) -> float | None:
+        """Return current area illuminance."""
+        try:
+            current_illuminance = float(
+                self.hass.states.get(self.illuminance_entity_id).state
+            )
+        except ValueError:
+            current_illuminance = None
+
+        return current_illuminance

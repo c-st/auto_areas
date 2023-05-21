@@ -67,14 +67,3 @@ def is_valid_entity(hass: HomeAssistant, entity: RegistryEntry) -> bool:
         return False
 
     return True
-
-
-# def set_data(hass: HomeAssistant, entry_type: str, value: dict):
-#     data = hass.data.get(DOMAIN, {})
-#     data[entry_type] = value
-#     hass.data[DOMAIN] = data
-
-
-# def get_data(hass: HomeAssistant, entry_type: str) -> dict:
-#     data = hass.data.get(DOMAIN, {})
-#     return data.get(entry_type, {})

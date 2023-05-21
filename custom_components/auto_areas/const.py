@@ -32,12 +32,16 @@ SLEEP_MODE_SWITCH_ENTITY_PREFIX = "switch.area_sleep_mode_"
 
 PRESENCE_BINARY_SENSOR_PREFIX = "Area Presence "
 PRESENCE_BINARY_SENSOR_ENTITY_PREFIX = "binary_sensor.area_presence_"
+
+ILLUMINANCE_SENSOR_PREFIX = "Area Illuminance "
+ILLUMINANCE_SENSOR_ENTITY_PREFIX = "sensor.area_illuminance_"
 #
 # Config constants
 #
 CONFIG_AREA = "area"
 CONFIG_IS_SLEEPING_AREA = "is_sleeping_area"
 CONFIG_EXCLUDED_LIGHT_ENTITIES = "excluded_light_entities"
+CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE = "auto_lights_illuminance_threshold"
 #
 # Config
 #

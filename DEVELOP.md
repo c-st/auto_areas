@@ -20,10 +20,19 @@ https://developers.home-assistant.io/docs/internationalization/core/#config--opt
 pytest
 
 ```
-## Examples
 
-https://github.com/home-assistant/example-custom-config/tree/master/custom_components/
-https://aarongodfrey.dev/home%20automation/building_a_home_assistant_custom_component_part_2/
-https://github.com/custom-components
+## configuration.yaml
 
-Core components: https://github.com/home-assistant/core/tree/dev/homeassistant/components
+```yaml
+logger:
+  default: info
+  logs:
+    custom_components.auto_areas: debug
+
+# https://www.home-assistant.io/integrations/demo/
+light:
+  - platform: demo
+
+binary_sensor:
+  - platform: demo
+```

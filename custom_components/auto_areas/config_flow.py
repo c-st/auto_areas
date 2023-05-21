@@ -21,14 +21,10 @@ from .const import (
     CONFIG_AREA,
     CONFIG_IS_SLEEPING_AREA,
     CONFIG_EXCLUDED_LIGHT_ENTITIES,
+    CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
     DOMAIN,
     LOGGER,
 )
-
-
-# get all areas:
-# area_registry: AreaRegistry = helpers.area_registry.async_get(self.hass)
-# all_areas = {a.id: a.name for a in area_registry.async_list_areas()}
 
 
 class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -42,7 +38,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         return await self.async_step_init(user_input)
 
-    # this has to be named according to async_step_<step>
     async def async_step_init(
         self,
         user_input: dict | None = None,
@@ -128,12 +123,27 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         CONFIG_EXCLUDED_LIGHT_ENTITIES,
                         default=(self.config_entry.options or {}).get(
                             CONFIG_EXCLUDED_LIGHT_ENTITIES
-                        ),
+                        )
+                        or [],
                     ): selector.EntitySelector(
                         selector.EntitySelectorConfig(
                             include_entities=self.get_light_entities(),
                             exclude_entities=[],
                             multiple=True,
+                        )
+                    ),
+                    vol.Optional(
+                        CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
+                        default=(self.config_entry.options or {}).get(
+                            CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE
+                        )
+                        or 0,
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0,
+                            max=1000,
+                            unit_of_measurement="lx",
+                            mode=selector.NumberSelectorMode.BOX,
                         )
                     ),
                 }
