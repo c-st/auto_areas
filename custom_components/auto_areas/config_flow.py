@@ -21,6 +21,7 @@ from .const import (
     CONFIG_AREA,
     CONFIG_IS_SLEEPING_AREA,
     CONFIG_EXCLUDED_LIGHT_ENTITIES,
+    CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
     DOMAIN,
     LOGGER,
 )
@@ -129,6 +130,20 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                             include_entities=self.get_light_entities(),
                             exclude_entities=[],
                             multiple=True,
+                        )
+                    ),
+                    vol.Optional(
+                        CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
+                        default=(self.config_entry.options or {}).get(
+                            CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE
+                        )
+                        or 0,
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0,
+                            max=300,
+                            unit_of_measurement="lx",
+                            mode=selector.NumberSelectorMode.SLIDER,
                         )
                     ),
                 }
