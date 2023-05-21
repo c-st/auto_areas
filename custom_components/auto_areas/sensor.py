@@ -71,11 +71,6 @@ class IlluminanceSensor(SensorEntity):
         entity_ids = []
         # include relevant entities, but not this sensor:
         for entity in self.auto_area.get_valid_entities():
-            LOGGER.debug(
-                "Evaluating entity candidate for illuminance %s %s",
-                entity.entity_id,
-                entity,
-            )
             if (
                 SensorDeviceClass.ILLUMINANCE
                 in [entity.device_class, entity.original_device_class]

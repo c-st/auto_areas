@@ -7,19 +7,21 @@ An **area** in Home Assistant can represent a room or any other part of your hom
 Example setup of areas and entities:
 
 ```md
-- Area: Living room
+- Living room (Area)
   - Motion sensor
   - Motion sensor 2
+  - Illuminance sensor
   - Light
   - Light 2
   - Light 3
-- Area: Bedroom
+- Bedroom (Area)
+  - Motion sensor
+  - Illuminance sensor
+  - Light
+- Office (Area)
   - Motion sensor
   - Light
-- Area: Office
-  - Motion sensor
-  - Light
-- Area: Kitchen
+- Kitchen (Area)
   - Motion sensor
   - Light
 ```
@@ -28,6 +30,7 @@ Desired behaviour:
 
 - if there is one or more motion sensors assigned to a room, all of them are used to determine if the room is currently occupied
 - the lights in this room should be turned on if presence is detected
+- additionally the lights should only be turned on if the illuminance is below a threshold
 - once no presence is detected anymore, the lights should turn off again
 
 To achieve this, without this component, it would be necessary to set up [automations](https://www.home-assistant.io/docs/automation/) for all sensors and lights for each of the areas.
@@ -52,6 +55,11 @@ Currently `binary_sensor` entities with device class: `motion`, `occupancy`, `pr
 
 The presence state is published to a single `binary_sensor` which will be named according to the area: `binary_sensor.area_presence_{area_name}`.
 
+### Aggregated illuminance
+
+Tracks all illuminance measuring sensors in an area. The last known illuminance of all sensors is used.
+This illuminance is published in a `sensor` with the ID `sensor.area_illuminance_{area_name}`.
+
 #### Presence lock
 
 If only relying on motion sensors, presence could be cleared if there is only little or no movement. Presence lock can be used to treat an area as "occupied" regardless of sensor state.
@@ -61,7 +69,10 @@ A new switch with ID `switch.area_presence_lock_{area_name}` is created for each
 ### Control lights automatically
 
 Lights are automatically turned on and off based on presence in an area.
+
 By default all light entities of an area are managed. A list of entities to be ignored can be defined in the configuration options.
+
+To not turn on lights during daytime an illuminance threshold can be configured. Only if an illuminance below this threshold is measured, the lights are turned on. Illuminance is constantly monitored: if an area is constantly occupied, lights would turn on once it's sufficiently dark in the area.
 
 #### Sleep mode
 
@@ -87,6 +98,7 @@ Navigate to "Settings"/"Devices & Services"/"Auto Areas" and select the area for
 | ----------------------- | :-------------------------------------------------------------------------------------------------- | ------------------ |
 | Set as sleeping area    | Mark area as sleeping area. A switch for controlling sleep mode is created. [See more](#sleep-mode) | `false` (disabled) |
 | Excluded light entities | Entities to exclude from automatic light control. These lights are never turned on or off.          | `[]` (none)        |
+| Illuminance threshold   | Only if area illuminance is lower than this threshold, lights are turned on.                        | `0`                |
 
 ## Development
 
