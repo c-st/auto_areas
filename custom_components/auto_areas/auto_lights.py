@@ -36,6 +36,7 @@ class AutoLights:
         self.unsubscribe_presence = None
         self.unsubscribe_illuminance = None
 
+        # Config
         self.illuminance_threshold = (
             self.auto_area.config_entry.options.get(CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE)
             or 0
@@ -43,8 +44,6 @@ class AutoLights:
         self.is_sleeping_area = (
             self.auto_area.config_entry.options.get(CONFIG_IS_SLEEPING_AREA) or False
         )
-        self.sleep_mode_enabled = None
-
         self.excluded_light_entities = (
             self.auto_area.config_entry.options.get(CONFIG_EXCLUDED_LIGHT_ENTITIES)
             or []
@@ -70,6 +69,9 @@ class AutoLights:
             )
             if entity.entity_id not in self.excluded_light_entities
         ]
+
+        self.sleep_mode_enabled = None
+        self.lights_turned_on = None
 
         LOGGER.debug(
             "%s: Managing light entities: %s",
@@ -118,16 +120,20 @@ class AutoLights:
         # set lights initially based on presence
         initial_presence_state = self.hass.states.get(self.presence_entity_id)
         if initial_presence_state and self.light_entity_ids:
-            action = (
-                SERVICE_TURN_ON
-                if initial_presence_state.state == STATE_ON
-                else SERVICE_TURN_OFF
-            )
-            await self.auto_area.hass.services.async_call(
-                LIGHT_DOMAIN,
-                action,
-                {ATTR_ENTITY_ID: self.light_entity_ids},
-            )
+            if initial_presence_state.state == STATE_ON:
+                await self.auto_area.hass.services.async_call(
+                    LIGHT_DOMAIN,
+                    SERVICE_TURN_ON,
+                    {ATTR_ENTITY_ID: self.light_entity_ids},
+                )
+                self.lights_turned_on = True
+            else:
+                await self.auto_area.hass.services.async_call(
+                    LIGHT_DOMAIN,
+                    SERVICE_TURN_OFF,
+                    {ATTR_ENTITY_ID: self.light_entity_ids},
+                )
+                self.lights_turned_on = False
 
         self.unsubscribe_presence = async_track_state_change(
             self.auto_area.hass,
@@ -168,7 +174,6 @@ class AutoLights:
 
             if self.illuminance_threshold > 0:
                 current_illuminance = self.get_current_illuminance()
-
                 if (
                     current_illuminance is not None
                     and current_illuminance > self.illuminance_threshold
@@ -192,8 +197,10 @@ class AutoLights:
                 SERVICE_TURN_ON,
                 {ATTR_ENTITY_ID: self.light_entity_ids},
             )
+            self.lights_turned_on = True
             return
         else:
+            # turn lights off
             if not self.sleep_mode_enabled:
                 LOGGER.info(
                     "%s: Turning lights off %s",
@@ -205,6 +212,7 @@ class AutoLights:
                 SERVICE_TURN_OFF,
                 {ATTR_ENTITY_ID: self.light_entity_ids},
             )
+            self.lights_turned_on = False
 
     async def handle_sleep_mode_state_change(
         self, entity_id, from_state: State, to_state: State
@@ -235,6 +243,7 @@ class AutoLights:
                 SERVICE_TURN_OFF,
                 {ATTR_ENTITY_ID: self.light_entity_ids},
             )
+            self.lights_turned_on = False
         else:
             LOGGER.info("%s: Sleep mode disabled", self.auto_area.area.name)
             self.sleep_mode_enabled = False
@@ -252,6 +261,7 @@ class AutoLights:
                     SERVICE_TURN_ON,
                     {ATTR_ENTITY_ID: self.light_entity_ids},
                 )
+                self.lights_turned_on = True
 
     async def handle_illuminance_change(
         self, _entity_id, _from_state: State, _to_state: State
@@ -264,6 +274,14 @@ class AutoLights:
 
         # Check for sleep mode
         if self.sleep_mode_enabled:
+            return
+
+        # Check if lights were already turned on before
+        if self.lights_turned_on:
+            LOGGER.debug(
+                "%s: Lights were already turned on. Not turning on lights",
+                self.auto_area.area.name,
+            )
             return
 
         current_illuminance = self.get_current_illuminance()
