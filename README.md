@@ -30,7 +30,7 @@ Desired behaviour:
 
 - if there is one or more motion sensors assigned to a room, all of them are used to determine if the room is currently occupied
 - the lights in this room should be turned on if presence is detected
-- additionally the lights should only be turned on if the illuminance is below a threshold
+- additionally the lights should only be turned on if it's sufficiently dark in the area
 - once no presence is detected anymore, the lights should turn off again
 
 To achieve this, without this component, it would be necessary to set up [automations](https://www.home-assistant.io/docs/automation/) for all sensors and lights for each of the areas.

@@ -302,7 +302,7 @@ class AutoLights:
         )
 
     def is_below_illuminance_threshold(self) -> bool:
-        """Evaluate if current illuminance is below threshold"""
+        """Evaluate if current illuminance is below threshold."""
         current_illuminance = self.get_current_illuminance()
         if self.illuminance_threshold > 0 and current_illuminance is not None:
             if current_illuminance > self.illuminance_threshold:
