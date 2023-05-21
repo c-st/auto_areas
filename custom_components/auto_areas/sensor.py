@@ -95,7 +95,10 @@ class IlluminanceSensor(SensorEntity):
         # # set initial illuminance
         for entity_id in self.illuminance_entities:
             state = self.hass.states.get(entity_id)
-            if state.state not in ["unknown", "unavailable"]:
+            if state is not None and state.state not in [
+                "unknown",
+                "unavailable",
+            ]:
                 self.value = state.state
 
         if self.value is not None:
@@ -119,5 +122,9 @@ class IlluminanceSensor(SensorEntity):
         self, _entity_id, _from_state: State, to_state: State
     ):
         """Handle state change of any tracked illuminance sensors."""
-        self.value = to_state.state
-        self.schedule_update_ha_state()
+        if to_state.state not in [
+            "unknown",
+            "unavailable",
+        ]:
+            self.value = to_state.state
+            self.schedule_update_ha_state()

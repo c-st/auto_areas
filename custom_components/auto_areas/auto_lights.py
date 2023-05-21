@@ -251,6 +251,8 @@ class AutoLights:
                 self.hass.states.get(self.presence_entity_id).state == STATE_ON
             )
             if has_presence:
+                if not self.is_below_illuminance_threshold():
+                    return
                 LOGGER.info(
                     "%s: Turning lights on due to presence %s",
                     self.auto_area.area.name,
@@ -284,16 +286,9 @@ class AutoLights:
             )
             return
 
-        current_illuminance = self.get_current_illuminance()
-        if self.illuminance_threshold > 0 and current_illuminance is not None:
-            if current_illuminance > self.illuminance_threshold:
-                LOGGER.debug(
-                    "%s: illuminance (%s lx) > threshold (%s lx). Not turning on lights",
-                    self.auto_area.area.name,
-                    current_illuminance,
-                    self.illuminance_threshold,
-                )
-                return
+        # Evaluate current illuminance
+        if not self.is_below_illuminance_threshold():
+            return
 
         LOGGER.info(
             "%s: Turning lights on due to illuminance %s",
@@ -305,6 +300,21 @@ class AutoLights:
             SERVICE_TURN_ON,
             {ATTR_ENTITY_ID: self.light_entity_ids},
         )
+
+    def is_below_illuminance_threshold(self) -> bool:
+        """Evaluate if current illuminance is below threshold"""
+        current_illuminance = self.get_current_illuminance()
+        if self.illuminance_threshold > 0 and current_illuminance is not None:
+            if current_illuminance > self.illuminance_threshold:
+                LOGGER.debug(
+                    "%s: illuminance (%s lx) > threshold (%s lx). Not turning on lights",
+                    self.auto_area.area.name,
+                    current_illuminance,
+                    self.illuminance_threshold,
+                )
+                return False
+
+        return True
 
     def get_current_illuminance(self) -> float | None:
         """Return current area illuminance."""
