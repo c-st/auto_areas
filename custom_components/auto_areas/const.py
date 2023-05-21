@@ -32,6 +32,9 @@ SLEEP_MODE_SWITCH_ENTITY_PREFIX = "switch.area_sleep_mode_"
 
 PRESENCE_BINARY_SENSOR_PREFIX = "Area Presence "
 PRESENCE_BINARY_SENSOR_ENTITY_PREFIX = "binary_sensor.area_presence_"
+
+ILLUMINANCE_SENSOR_PREFIX = "Area Illuminance "
+ILLUMINANCE_SENSOR_ENTITY_PREFIX = "sensor.area_illuminance_"
 #
 # Config constants
 #

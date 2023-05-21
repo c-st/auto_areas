@@ -1,4 +1,4 @@
-"""Binary sensor platform for integration_blueprint."""
+"""Binary sensor platform for auto_areas."""
 from __future__ import annotations
 
 from homeassistant.components.binary_sensor import (
@@ -36,8 +36,6 @@ async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback
 
 class PresenceBinarySensor(BinarySensorEntity):
     """Set up aggregated presence binary sensor."""
-
-    should_poll = False
 
     def __init__(self, auto_area: AutoArea) -> None:
         """Initialize presence lock switch."""
