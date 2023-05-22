@@ -72,6 +72,8 @@ Lights are automatically turned on and off based on presence in an area.
 
 By default all light entities of an area are managed. A list of entities to be ignored can be defined in the configuration options.
 
+#### Illuminance
+
 To not turn on lights during daytime an illuminance threshold can be configured. Only if an illuminance below this threshold is measured, the lights are turned on. Illuminance is constantly monitored: if an area is constantly occupied, lights would turn on once it's sufficiently dark in the area.
 
 #### Sleep mode
