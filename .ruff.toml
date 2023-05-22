@@ -35,14 +35,13 @@ ignore = [
     "D407",  # Section name underlining
     "D411",  # Missing blank line before section
     "E501",  # line too long
-    "E731",  # do not assign a lambda expression, use a def
+    "E731",  # do not assign a lambda expression, use a def,
+    "UP006",
+    "UP007",
 ]
 
 [flake8-pytest-style]
 fixture-parentheses = false
-
-[pyupgrade]
-keep-runtime-typing = true
 
 [mccabe]
 max-complexity = 25
