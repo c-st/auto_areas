@@ -10,7 +10,7 @@
 
 Open extension [in browser](http://localhost:8123/).
 
-## Translations
+##  Translations
 
 https://developers.home-assistant.io/docs/internationalization/core/#config--options
 

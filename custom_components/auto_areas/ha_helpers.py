@@ -39,10 +39,10 @@ def get_area_id(
 
     # Inherited from device
     if entity.device_id is not None:
-        device = device_registry.devices[entity.device_id]
+        device = device_registry.devices.get(entity.device_id)
         if device is not None:
             return device.area_id
-
+            
     return None
 
 
