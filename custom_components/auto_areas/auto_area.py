@@ -78,6 +78,7 @@ class AutoArea:
             self.area.name,
             entity_id,
         )
+        # todo: debounce if too many events
         await self.hass.services.async_call(
             HA_DOMAIN,
             SERVICE_RELOAD_CONFIG_ENTRY,
