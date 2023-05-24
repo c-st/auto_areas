@@ -42,7 +42,7 @@ def get_area_id(
         device = device_registry.devices.get(entity.device_id)
         if device is not None:
             return device.area_id
-            
+
     return None
 
 
