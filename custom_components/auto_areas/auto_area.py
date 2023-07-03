@@ -2,14 +2,8 @@
 from __future__ import annotations
 from homeassistant.core import HomeAssistant
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
-from homeassistant.components.homeassistant import (
-    DOMAIN as HA_DOMAIN,
-    SERVICE_RELOAD_CONFIG_ENTRY,
-    ATTR_ENTRY_ID,
-)
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.event import async_track_entity_registry_updated_event
 
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
@@ -53,37 +47,12 @@ class AutoArea:
 
     async def initialize(self):
         """Subscribe to area changes and reload if necessary."""
-        entity_ids = [
-            entity_id
-            for entity_id, entity in self.entity_registry.entities.items()
-            if entity.domain in RELEVANT_DOMAINS
-        ]
-        self.unsubscribe = async_track_entity_registry_updated_event(
-            self.hass,
-            entity_ids,
-            self.handle_entity_update,
-        )
         self.auto_lights = AutoLights(self)
 
     def cleanup(self):
         """Deinitialize this area."""
         LOGGER.debug("%s: Disabling area control", self.area.name)
-        self.unsubscribe()
         self.auto_lights.cleanup()
-
-    async def handle_entity_update(self, entity_id):
-        """Handle removed or added entity."""
-        LOGGER.info(
-            "%s: Reloading config entry due to changed entity (entity %s)",
-            self.area.name,
-            entity_id,
-        )
-        # todo: debounce if too many events
-        await self.hass.services.async_call(
-            HA_DOMAIN,
-            SERVICE_RELOAD_CONFIG_ENTRY,
-            {ATTR_ENTRY_ID: self.config_entry.entry_id},
-        )
 
     def get_valid_entities(self) -> list[RegistryEntry]:
         """Return all valid and relevant entities for this area."""
