@@ -1,0 +1,34 @@
+{
+    "config": {
+        "step": {
+            "init": {
+                "title": "🤖 Auto Area",
+                "data": {
+                    "area": "Oblasť na správu"
+                }
+            }
+        },
+        "error": {
+            "area_already_managed": "Túto oblasť už spravuje Auto Areas. Namiesto toho upravte existujúcu konfiguráciu."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "🤖 Auto Area",
+                "description": "Prispôsobte správanie tejto oblasti.",
+                "data": {
+                    "is_sleeping_area": "Priestor na spanie",
+                    "excluded_light_entities": "Vylúčené svetelné entity:",
+                    "auto_lights_illuminance_threshold": "Svetlá zapínajte iba vtedy, ak je osvetlenie oblasti nižšie:"
+                }
+            }
+        }
+    },
+    "issues": {
+        "issue_yaml_detected": {
+            "title": "Konfigurácia YAML už nie je podporovaná",
+            "description": "🤖 Auto Areas je teraz pridaný a nakonfigurovaný prostredníctvom rozhrania Home Assistant:\n\nPrejdite na `Settings`/`Devices & Service` a pridať `Auto Areas` integrácia pre všetky oblasti, ktoré chcete mať pod kontrolou Auto Areas.\nPotom môžete každú z nich individuálne nakonfigurovať v používateľskom rozhraní 🙌.\n\nExistujúca konfigurácia v `configuration.yaml` sa ignoruje. Táto oprava automaticky zmizne hneď po odstránení konfigurácie YAML."
+        }
+    }
+}
