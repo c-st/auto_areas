@@ -38,16 +38,13 @@ class AutoArea:
 
         LOGGER.info('🤖 Auto Area "%s" (%s)', entry.title, entry.options)
 
-        if self.hass.is_running:
-            self.hass.async_create_task(self.initialize())
-        else:
-            self.hass.bus.async_listen_once(
-                EVENT_HOMEASSISTANT_STARTED, self.initialize()
-            )
 
     async def initialize(self):
         """Subscribe to area changes and reload if necessary."""
+        LOGGER.info("%s: Initializing after HA start", self.area.name)
+
         self.auto_lights = AutoLights(self)
+        await self.auto_lights.initialize()
 
     def cleanup(self):
         """Deinitialize this area."""

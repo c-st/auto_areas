@@ -94,7 +94,7 @@ class PresenceBinarySensor(BinarySensorEntity):
 
     async def async_added_to_hass(self):
         """Start tracking sensors."""
-        LOGGER.info(
+        LOGGER.debug(
             "%s: Presence detection entities %s",
             self.auto_area.area.name,
             self.presence_entities,
