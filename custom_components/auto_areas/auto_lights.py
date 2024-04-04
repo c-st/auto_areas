@@ -3,7 +3,6 @@ from homeassistant.core import State
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.helpers.event import async_track_state_change
 from homeassistant.const import (
-    EVENT_HOMEASSISTANT_STARTED,
     STATE_ON,
     SERVICE_TURN_ON,
     SERVICE_TURN_OFF,
@@ -83,25 +82,6 @@ class AutoLights:
                 "%s: No light entities found to manage", self.auto_area.area.name
             )
             return
-
-        if self.hass.is_running:
-            self.hass.async_create_task(self.initialize())
-        else:
-            self.hass.bus.async_listen_once(
-                EVENT_HOMEASSISTANT_STARTED, self.initialize()
-            )
-
-    def cleanup(self):
-        """Deinitialize this area."""
-        LOGGER.debug("%s: Disabling light control", self.auto_area.area.name)
-        if self.unsubscribe_sleep_mode is not None:
-            self.unsubscribe_sleep_mode()
-
-        if self.unsubscribe_presence is not None:
-            self.unsubscribe_presence()
-
-        if self.unsubscribe_illuminance is not None:
-            self.unsubscribe_illuminance()
 
     async def initialize(self):
         """Start subscribing to state changes."""
@@ -326,3 +306,15 @@ class AutoLights:
             current_illuminance = None
 
         return current_illuminance
+
+    def cleanup(self):
+        """Deinitialize this area."""
+        LOGGER.debug("%s: Disabling light control", self.auto_area.area.name)
+        if self.unsubscribe_sleep_mode is not None:
+            self.unsubscribe_sleep_mode()
+
+        if self.unsubscribe_presence is not None:
+            self.unsubscribe_presence()
+
+        if self.unsubscribe_illuminance is not None:
+            self.unsubscribe_illuminance()
