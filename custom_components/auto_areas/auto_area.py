@@ -1,7 +1,6 @@
 """Core entity functionality."""
 from __future__ import annotations
 from homeassistant.core import HomeAssistant
-from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 
 from homeassistant.config_entries import ConfigEntry
 

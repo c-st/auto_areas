@@ -27,7 +27,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Initialize AutoArea once HA is started
     if hass.is_running:
-        # initialize(hass, auto_area)
         await auto_area.initialize()
     else:
         hass.bus.async_listen_once(
@@ -43,6 +42,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 def initialize(hass: HomeAssistant, auto_area: AutoArea):
+    """Initialize area after HA has started."""
     return asyncio.run_coroutine_threadsafe(
         auto_area.initialize(), hass.loop
     ).result()
@@ -66,7 +66,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload config entry."""
     await async_unload_entry(hass, entry)
-
     await async_setup_entry(hass, entry)
 
 

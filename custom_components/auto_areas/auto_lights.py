@@ -3,7 +3,6 @@ from homeassistant.core import State
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.helpers.event import async_track_state_change
 from homeassistant.const import (
-    EVENT_HOMEASSISTANT_STARTED,
     STATE_ON,
     SERVICE_TURN_ON,
     SERVICE_TURN_OFF,
