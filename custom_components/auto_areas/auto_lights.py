@@ -1,5 +1,4 @@
 """Auto lights."""
-from homeassistant.core import State
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.const import (
