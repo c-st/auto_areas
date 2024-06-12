@@ -1,6 +1,10 @@
 """Core entity functionality."""
 from __future__ import annotations
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.area_registry import async_get as async_get_area_registry
+from homeassistant.helpers.device_registry import async_get as async_get_device_registry
+from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
+
 
 from homeassistant.config_entries import ConfigEntry
 
@@ -28,15 +32,14 @@ class AutoArea:
         self.hass = hass
         self.config_entry = entry
 
-        self.area_registry = self.hass.helpers.area_registry.async_get(self.hass)
-        self.device_registry = self.hass.helpers.device_registry.async_get(self.hass)
-        self.entity_registry = self.hass.helpers.entity_registry.async_get(self.hass)
+        self.area_registry = async_get_area_registry(self.hass)
+        self.device_registry = async_get_device_registry(self.hass)
+        self.entity_registry = async_get_entity_registry(self.hass)
 
         self.area_id: str = entry.data.get("area")
         self.area: AreaEntry = self.area_registry.async_get_area(self.area_id)
 
         LOGGER.info('🤖 Auto Area "%s" (%s)', entry.title, entry.options)
-
 
     async def initialize(self):
         """Subscribe to area changes and reload if necessary."""

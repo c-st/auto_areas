@@ -15,7 +15,8 @@ from .auto_area import (
 
 from .const import DOMAIN, LOGGER, ISSUE_TYPE_YAML_DETECTED
 
-PLATFORMS: list[Platform] = [Platform.SWITCH, Platform.BINARY_SENSOR, Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.SWITCH,
+                             Platform.BINARY_SENSOR, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -36,18 +37,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     return True
 
+
 async def async_init(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
+    """Initialize component."""
     await auto_area.initialize()
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     )
 
+
 def initialize(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
     """Initialize area after HA has started."""
     return asyncio.run_coroutine_threadsafe(
         async_init(hass, entry, auto_area), hass.loop
     ).result()
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""

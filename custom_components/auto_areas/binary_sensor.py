@@ -5,11 +5,12 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.core import State
-from homeassistant.helpers.event import async_track_state_change
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.util import slugify
+from homeassistant.core import Event
+
 
 from .ha_helpers import all_states_are_off
 
@@ -43,7 +44,8 @@ class PresenceBinarySensor(BinarySensorEntity):
         self.presence: bool = None
         self.presence_entities: list[str] = self.get_presence_entities()
         self.unsubscribe = None
-        LOGGER.info("%s: Initialized presence binary sensor", self.auto_area.area.name)
+        LOGGER.info("%s: Initialized presence binary sensor",
+                    self.auto_area.area.name)
 
     @property
     def name(self):
@@ -79,7 +81,8 @@ class PresenceBinarySensor(BinarySensorEntity):
     def get_presence_entities(self) -> list(str):
         """Collect entities to be used for determining presence."""
         entity_ids = [
-            f"{PRESENCE_LOCK_SWITCH_ENTITY_PREFIX}{slugify(self.auto_area.area.name)}"
+            f"{PRESENCE_LOCK_SWITCH_ENTITY_PREFIX}{
+                slugify(self.auto_area.area.name)}"
         ]
 
         # include relevant presence entities, but not this sensor:
@@ -108,10 +111,11 @@ class PresenceBinarySensor(BinarySensorEntity):
         )
         self.schedule_update_ha_state()
 
-        LOGGER.info("%s: Initial presence %s", self.auto_area.area.name, self.presence)
+        LOGGER.info("%s: Initial presence %s",
+                    self.auto_area.area.name, self.presence)
 
         # Subscribe to state changes
-        self.unsubscribe = async_track_state_change(
+        self.unsubscribe = async_track_state_change_event(
             self.hass,
             self.presence_entities,
             self.handle_presence_state_change,
@@ -122,10 +126,12 @@ class PresenceBinarySensor(BinarySensorEntity):
         if self.unsubscribe:
             self.unsubscribe()
 
-    def handle_presence_state_change(
-        self, entity_id, from_state: State, to_state: State
-    ):
+    def handle_presence_state_change(self, event: Event):
         """Handle state change of any tracked presence sensors."""
+        entity_id = event.data.get('entity_id')
+        from_state = event.data.get('old_state')
+        to_state = event.data.get('new_state')
+
         previous_state = from_state.state if from_state else ""
         current_state = to_state.state if to_state else ""
 
@@ -152,6 +158,7 @@ class PresenceBinarySensor(BinarySensorEntity):
                 PRESENCE_ON_STATES,
             ):
                 if self.presence:
-                    LOGGER.info("%s: Presence cleared", self.auto_area.area.name)
+                    LOGGER.info("%s: Presence cleared",
+                                self.auto_area.area.name)
                     self.presence = False
                     self.schedule_update_ha_state()
