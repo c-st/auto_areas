@@ -1,7 +1,7 @@
 """Auto lights."""
 from homeassistant.core import State
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
-from homeassistant.helpers.event import async_track_state_change
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.const import (
     STATE_ON,
     SERVICE_TURN_ON,
@@ -9,6 +9,7 @@ from homeassistant.const import (
     ATTR_ENTITY_ID,
 )
 from homeassistant.util import slugify
+from homeassistant.core import Event
 
 from .ha_helpers import get_all_entities
 
@@ -37,25 +38,31 @@ class AutoLights:
 
         # Config
         self.illuminance_threshold = (
-            self.auto_area.config_entry.options.get(CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE)
+            self.auto_area.config_entry.options.get(
+                CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE)
             or 0
         )
         self.is_sleeping_area = (
-            self.auto_area.config_entry.options.get(CONFIG_IS_SLEEPING_AREA) or False
+            self.auto_area.config_entry.options.get(
+                CONFIG_IS_SLEEPING_AREA) or False
         )
         self.excluded_light_entities = (
-            self.auto_area.config_entry.options.get(CONFIG_EXCLUDED_LIGHT_ENTITIES)
+            self.auto_area.config_entry.options.get(
+                CONFIG_EXCLUDED_LIGHT_ENTITIES)
             or []
         )
 
         self.sleep_mode_entity_id = (
-            f"{SLEEP_MODE_SWITCH_ENTITY_PREFIX}{slugify(self.auto_area.area.name)}"
+            f"{SLEEP_MODE_SWITCH_ENTITY_PREFIX}{
+                slugify(self.auto_area.area.name)}"
         )
         self.presence_entity_id = (
-            f"{PRESENCE_BINARY_SENSOR_ENTITY_PREFIX}{slugify(self.auto_area.area.name)}"
+            f"{PRESENCE_BINARY_SENSOR_ENTITY_PREFIX}{
+                slugify(self.auto_area.area.name)}"
         )
         self.illuminance_entity_id = (
-            f"{ILLUMINANCE_SENSOR_ENTITY_PREFIX}{slugify(self.auto_area.area.name)}"
+            f"{ILLUMINANCE_SENSOR_ENTITY_PREFIX}{
+                slugify(self.auto_area.area.name)}"
         )
 
         self.light_entity_ids = [
@@ -91,7 +98,7 @@ class AutoLights:
             sleep_mode_state = self.hass.states.get(self.sleep_mode_entity_id)
             if sleep_mode_state:
                 self.sleep_mode_enabled = sleep_mode_state.state == STATE_ON
-            self.unsubscribe_sleep_mode = async_track_state_change(
+            self.unsubscribe_sleep_mode = async_track_state_change_event(
                 self.hass,
                 self.sleep_mode_entity_id,
                 self.handle_sleep_mode_state_change,
@@ -115,22 +122,24 @@ class AutoLights:
                 )
                 self.lights_turned_on = False
 
-        self.unsubscribe_presence = async_track_state_change(
+        self.unsubscribe_presence = async_track_state_change_event(
             self.auto_area.hass,
             self.presence_entity_id,
             self.handle_presence_state_change,
         )
 
-        self.unsubscribe_illuminance = async_track_state_change(
+        self.unsubscribe_illuminance = async_track_state_change_event(
             self.auto_area.hass,
             self.illuminance_entity_id,
             self.handle_illuminance_change,
         )
 
-    async def handle_presence_state_change(
-        self, entity_id, from_state: State, to_state: State
-    ):
+    async def handle_presence_state_change(self, event: Event):
         """Handle changes in presence."""
+        entity_id = event.data.get('entity_id')
+        from_state = event.data.get('old_state')
+        to_state = event.data.get('new_state')
+
         previous_state = from_state.state if from_state else ""
         current_state = to_state.state
 
@@ -194,10 +203,12 @@ class AutoLights:
             )
             self.lights_turned_on = False
 
-    async def handle_sleep_mode_state_change(
-        self, entity_id, from_state: State, to_state: State
-    ):
+    async def handle_sleep_mode_state_change(self, event: Event):
         """Handle changes in sleep mode."""
+        entity_id = event.data.get('entity_id')
+        from_state = event.data.get('old_state')
+        to_state = event.data.get('new_state')
+
         previous_state = from_state.state if from_state else ""
         current_state = to_state.state if to_state else ""
 
@@ -245,9 +256,7 @@ class AutoLights:
                 )
                 self.lights_turned_on = True
 
-    async def handle_illuminance_change(
-        self, _entity_id, _from_state: State, _to_state: State
-    ):
+    async def handle_illuminance_change(self, _event: Event):
         """Handle changes in illuminance."""
 
         # Check for presence

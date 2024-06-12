@@ -5,8 +5,9 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.core import State
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.core import Event
 
 from .const import DOMAIN, LOGGER, ILLUMINANCE_SENSOR_PREFIX, VERSION, NAME
 from .auto_area import AutoArea
@@ -28,7 +29,8 @@ class IlluminanceSensor(SensorEntity):
         self.illuminance_entities: list[str] = self.get_illuminance_entities()
         self.unsubscribe = None
         self.value = None
-        LOGGER.info("%s: Initialized illuminance sensor", self.auto_area.area.name)
+        LOGGER.info("%s: Initialized illuminance sensor",
+                    self.auto_area.area.name)
 
     @property
     def name(self):
@@ -102,7 +104,7 @@ class IlluminanceSensor(SensorEntity):
             )
 
         # Subscribe to state changes
-        self.unsubscribe = async_track_state_change(
+        self.unsubscribe = async_track_state_change_event(
             self.hass,
             self.illuminance_entities,
             self.handle_illuminance_change,
@@ -113,10 +115,10 @@ class IlluminanceSensor(SensorEntity):
         if self.unsubscribe:
             self.unsubscribe()
 
-    def handle_illuminance_change(
-        self, _entity_id, _from_state: State, to_state: State
-    ):
+    def handle_illuminance_change(self, event: Event):
         """Handle state change of any tracked illuminance sensors."""
+        to_state = event.data.get('new_state')
+
         if to_state.state not in [
             "unknown",
             "unavailable",
