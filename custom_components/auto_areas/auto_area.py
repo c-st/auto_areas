@@ -51,7 +51,8 @@ class AutoArea:
     def cleanup(self):
         """Deinitialize this area."""
         LOGGER.debug("%s: Disabling area control", self.area.name)
-        self.auto_lights.cleanup()
+        if (self.auto_lights):
+            self.auto_lights.cleanup()
 
     def get_valid_entities(self) -> list[RegistryEntry]:
         """Return all valid and relevant entities for this area."""
