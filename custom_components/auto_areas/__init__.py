@@ -1,6 +1,5 @@
 """🤖 Auto Areas. A custom component for Home Assistant which automates your areas."""
 from __future__ import annotations
-import asyncio
 
 from homeassistant.helpers import issue_registry
 from homeassistant.config_entries import ConfigEntry, ConfigType
@@ -28,11 +27,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Initialize AutoArea once HA is started
     if hass.is_running:
-        initialize(hass, entry, auto_area)
+        LOGGER.debug("Running async_init")
+        await async_init(hass, entry, auto_area)
     else:
+        LOGGER.debug("Scheduling async_init")
         hass.bus.async_listen_once(
             EVENT_HOMEASSISTANT_STARTED,
-            lambda init: initialize(hass, entry, auto_area)
+            lambda init: async_init(hass, entry, auto_area)
         )
 
     return True
@@ -40,18 +41,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_init(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
     """Initialize component."""
+    LOGGER.debug("In async_init")
     await auto_area.initialize()
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     )
-
-
-def initialize(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
-    """Initialize area after HA has started."""
-    return asyncio.run_coroutine_threadsafe(
-        async_init(hass, entry, auto_area), hass.loop
-    ).result()
+    LOGGER.debug("End async_init")
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
