@@ -20,20 +20,26 @@ PLATFORMS: list[Platform] = [Platform.SWITCH,
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Initialize AutoArea for this config entry."""
+    LOGGER.info("%s Setting up AutoAreas entry")
     hass.data.setdefault(DOMAIN, {})
 
     auto_area = AutoArea(hass=hass, entry=entry)
     hass.data[DOMAIN][entry.entry_id] = auto_area
 
-    # Initialize AutoArea once HA is started
     if hass.is_running:
+        """Initialize immediately"""
         LOGGER.debug("Running async_init")
         await async_init(hass, entry, auto_area)
     else:
+        """Schedule initialization when HA is started"""
         LOGGER.debug("Scheduling async_init")
+
+        async def async_init_wrapper(event):
+            await async_init(hass, entry, auto_area)
+
         hass.bus.async_listen_once(
             EVENT_HOMEASSISTANT_STARTED,
-            lambda init: async_init(hass, entry, auto_area)
+            async_init_wrapper
         )
 
     return True

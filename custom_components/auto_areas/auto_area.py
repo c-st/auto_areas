@@ -29,6 +29,7 @@ class AutoArea:
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize."""
+        LOGGER.info('🤖 Auto Area "%s" (%s)', entry.title, entry.options)
         self.hass = hass
         self.config_entry = entry
 
@@ -38,8 +39,8 @@ class AutoArea:
 
         self.area_id: str = entry.data.get("area")
         self.area: AreaEntry = self.area_registry.async_get_area(self.area_id)
+        self.auto_lights = None
 
-        LOGGER.info('🤖 Auto Area "%s" (%s)', entry.title, entry.options)
 
     async def initialize(self):
         """Subscribe to area changes and reload if necessary."""
