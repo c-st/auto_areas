@@ -28,11 +28,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if hass.is_running:
         """Initialize immediately"""
-        LOGGER.debug("Running async_init")
         await async_init(hass, entry, auto_area)
     else:
         """Schedule initialization when HA is started"""
-        LOGGER.debug("Scheduling async_init")
         # https://developers.home-assistant.io/docs/asyncio_working_with_async/#calling-async-functions-from-threads
 
         @callback
@@ -40,6 +38,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             asyncio.run_coroutine_threadsafe(
                 async_init(hass, entry, auto_area), hass.loop
             ).result()
+
+        LOGGER.info(
+            "😴 Deferring AutoAreas setup by 10 seconds to make sure all entities are ready")
+        await asyncio.sleep(10)
 
         hass.bus.async_listen_once(
             EVENT_HOMEASSISTANT_STARTED,
@@ -58,13 +60,11 @@ def initialize(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
 
 async def async_init(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
     """Initialize component."""
-    LOGGER.debug("In async_init")
     await auto_area.initialize()
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     )
-    LOGGER.debug("End async_init ✅")
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
