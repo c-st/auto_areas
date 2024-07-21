@@ -2,9 +2,12 @@
   "domain": "auto_areas",
   "name": "Auto Areas",
   "after_dependencies": [
-    "media_player",
-    "device_tracker",
-    "camera"
+    "light",
+    "button",
+    "group",
+    "binary_sensor",
+    "sensor",
+    "mqtt"
   ],
   "codeowners": [
     "@c-st"
@@ -12,6 +15,7 @@
   "config_flow": true,
   "dependencies": [
     "light",
+    "button",
     "group",
     "binary_sensor",
     "sensor"
