@@ -6,20 +6,13 @@
     "button",
     "group",
     "binary_sensor",
-    "sensor",
-    "mqtt"
+    "sensor"
   ],
   "codeowners": [
     "@c-st"
   ],
   "config_flow": true,
-  "dependencies": [
-    "light",
-    "button",
-    "group",
-    "binary_sensor",
-    "sensor"
-  ],
+  "dependencies": [],
   "documentation": "https://github.com/c-st/auto_areas",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/c-st/auto_areas/issues",
