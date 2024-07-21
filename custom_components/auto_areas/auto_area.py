@@ -1,8 +1,8 @@
 """Core entity functionality."""
 from __future__ import annotations
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.area_registry import async_get as async_get_area_registry
-from homeassistant.helpers.device_registry import async_get as async_get_device_registry
+from homeassistant.helpers.device_registry import async_get as async_get_device_registry, EVENT_DEVICE_REGISTRY_UPDATED
 from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
 
 
@@ -41,13 +41,27 @@ class AutoArea:
         self.area: AreaEntry = self.area_registry.async_get_area(self.area_id)
         self.auto_lights = None
 
-
     async def initialize(self):
         """Subscribe to area changes and reload if necessary."""
         LOGGER.info("%s: Initializing after HA start", self.area.name)
 
         self.auto_lights = AutoLights(self)
         await self.auto_lights.initialize()
+
+        # Listen to new devices being added:
+        @callback
+        def device_registry_updated(event):
+            """Handle device registry updated event."""
+            device_id = event.data.get("device_id")
+            action = event.data.get("action")
+            LOGGER.info("New event %s", device_id)
+            if action == "create":
+                device = self.device_registry.async_get(device_id)
+                if device:
+                    LOGGER.info("⚡️ New device added: %s", device.name)
+
+        self.hass.bus.async_listen(
+            EVENT_DEVICE_REGISTRY_UPDATED, device_registry_updated)
 
     def cleanup(self):
         """Deinitialize this area."""

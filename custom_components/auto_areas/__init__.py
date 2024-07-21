@@ -1,10 +1,11 @@
 """🤖 Auto Areas. A custom component for Home Assistant which automates your areas."""
 from __future__ import annotations
+import asyncio
 
 from homeassistant.helpers import issue_registry
 from homeassistant.config_entries import ConfigEntry, ConfigType
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 
 
@@ -20,7 +21,6 @@ PLATFORMS: list[Platform] = [Platform.SWITCH,
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Initialize AutoArea for this config entry."""
-    LOGGER.info("%s Setting up AutoAreas entry")
     hass.data.setdefault(DOMAIN, {})
 
     auto_area = AutoArea(hass=hass, entry=entry)
@@ -33,16 +33,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     else:
         """Schedule initialization when HA is started"""
         LOGGER.debug("Scheduling async_init")
+        # https://developers.home-assistant.io/docs/asyncio_working_with_async/#calling-async-functions-from-threads
 
-        async def async_init_wrapper(event):
-            await async_init(hass, entry, auto_area)
+        @callback
+        def init(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
+            asyncio.run_coroutine_threadsafe(
+                async_init(hass, entry, auto_area), hass.loop
+            ).result()
 
         hass.bus.async_listen_once(
             EVENT_HOMEASSISTANT_STARTED,
-            async_init_wrapper
+            lambda params: init(hass, entry, auto_area)
         )
 
     return True
+
+
+def initialize(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
+    """Initialize area after HA has started."""
+    asyncio.run_coroutine_threadsafe(
+        async_init(hass, entry, auto_area), hass.loop
+    ).result()
 
 
 async def async_init(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
@@ -53,7 +64,7 @@ async def async_init(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoAre
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     )
-    LOGGER.debug("End async_init")
+    LOGGER.debug("End async_init ✅")
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
