@@ -10,11 +10,8 @@ logger:
     custom_components.auto_areas: debug
 
 # https://www.home-assistant.io/integrations/demo/
-light:
-  - platform: demo
 
-binary_sensor:
-  - platform: demo
+demo:
 
 sensor:
   - platform: random
