@@ -8,7 +8,7 @@
 ./scripts/develop
 ```
 
-Open extension [in browser](http://localhost:8123/).
+Open extension [in browser](http://localhost:8123/) and set up a new user.
 
 ##  Translations
 

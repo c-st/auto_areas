@@ -30,7 +30,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         """Initialize immediately"""
         await async_init(hass, entry, auto_area)
     else:
-        """Schedule initialization when HA is started"""
+        """Schedule initialization when HA is started and initialized"""
+
         # https://developers.home-assistant.io/docs/asyncio_working_with_async/#calling-async-functions-from-threads
 
         @callback
@@ -38,10 +39,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             asyncio.run_coroutine_threadsafe(
                 async_init(hass, entry, auto_area), hass.loop
             ).result()
-
-        LOGGER.info(
-            "😴 Deferring AutoAreas setup by 10 seconds to make sure all entities are ready")
-        await asyncio.sleep(10)
 
         hass.bus.async_listen_once(
             EVENT_HOMEASSISTANT_STARTED,
@@ -51,20 +48,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-def initialize(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
-    """Initialize area after HA has started."""
-    asyncio.run_coroutine_threadsafe(
-        async_init(hass, entry, auto_area), hass.loop
-    ).result()
-
-
 async def async_init(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
     """Initialize component."""
-    await auto_area.initialize()
+    await asyncio.sleep(5)  # wait for all area devices to be initialized
+    await auto_area.async_initialize()
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    )
+
+    return True
+
+
+async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload config entry."""
+    LOGGER.info("🔄 Reloading entry %s", entry)
+
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -81,12 +80,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         LOGGER.error("Couldn't unload config entry %s", entry.entry_id)
 
     return unloaded
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

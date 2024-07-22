@@ -41,7 +41,7 @@ class AutoArea:
         self.area: AreaEntry = self.area_registry.async_get_area(self.area_id)
         self.auto_lights = None
 
-    async def initialize(self):
+    async def async_initialize(self):
         """Subscribe to area changes and reload if necessary."""
         LOGGER.info("%s: Initializing after HA start", self.area.name)
 
