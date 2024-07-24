@@ -19,6 +19,8 @@ async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback
     auto_area: AutoArea = hass.data[DOMAIN][entry.entry_id]
     # only setup if there is at least one sensor
     async_add_entities([IlluminanceSensor(hass, auto_area)])
+    async_add_entities([TemperatureSensor(hass, auto_area)])
+    async_add_entities([HumiditySensor(hass, auto_area)])
 
 
 class IlluminanceSensor(
