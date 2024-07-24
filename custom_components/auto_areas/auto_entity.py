@@ -62,12 +62,12 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
 
         self._get_state()
 
-        if self.__attr_state is not None:
+        if self._attr_state is not None:
             LOGGER.debug(
                 "%s: initial %s: %s lux",
                 self.auto_area.area.name if self.auto_area.area is not None else "unknown",
                 self._logger_name,
-                self.__attr_state
+                self._attr_state
             )
 
         # Subscribe to state changes
@@ -103,5 +103,5 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
         else:
             self.entity_states[to_state.entity_id] = to_state
 
-        self.__attr_state = self._get_state()
+        self._attr_state = self._get_state()
         self.schedule_update_ha_state()
