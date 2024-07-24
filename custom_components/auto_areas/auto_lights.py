@@ -1,6 +1,7 @@
 """Auto lights."""
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.core import Event, EventStateChangedData
 from homeassistant.const import (
     STATE_ON,
     SERVICE_TURN_ON,
@@ -8,7 +9,6 @@ from homeassistant.const import (
     ATTR_ENTITY_ID,
 )
 from homeassistant.util import slugify
-from homeassistant.core import Event
 
 from .ha_helpers import get_all_entities
 
@@ -133,13 +133,16 @@ class AutoLights:
             self.handle_illuminance_change,
         )
 
-    async def handle_presence_state_change(self, event: Event):
+    async def handle_presence_state_change(self, event: Event[EventStateChangedData]):
         """Handle changes in presence."""
         entity_id = event.data.get('entity_id')
         from_state = event.data.get('old_state')
         to_state = event.data.get('new_state')
 
         previous_state = from_state.state if from_state else ""
+        if to_state is None:
+            return
+
         current_state = to_state.state
 
         LOGGER.debug(
@@ -149,7 +152,7 @@ class AutoLights:
             current_state,
         )
 
-        if previous_state == current_state:
+        if previous_state == current_state or current_state is None:
             return
 
         if current_state == STATE_ON:
@@ -202,7 +205,7 @@ class AutoLights:
             )
             self.lights_turned_on = False
 
-    async def handle_sleep_mode_state_change(self, event: Event):
+    async def handle_sleep_mode_state_change(self, event: Event[EventStateChangedData]):
         """Handle changes in sleep mode."""
         entity_id = event.data.get('entity_id')
         from_state = event.data.get('old_state')
@@ -255,7 +258,7 @@ class AutoLights:
                 )
                 self.lights_turned_on = True
 
-    async def handle_illuminance_change(self, _event: Event):
+    async def handle_illuminance_change(self, _event: Event[EventStateChangedData]):
         """Handle changes in illuminance."""
 
         # Check for presence

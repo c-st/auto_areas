@@ -10,8 +10,8 @@ from homeassistant.helpers.entity_registry import EntityRegistry, RegistryEntry
 def get_all_entities(
     entity_registry: EntityRegistry,
     device_registry: DeviceRegistry,
-    area_id: str,
-    domains: list[str] = None,
+    area_id: str | None,
+    domains: list[str] | None = None,
 ) -> list[RegistryEntry]:
     """Return all entities from an area."""
     entities: list[RegistryEntry] = []
@@ -20,7 +20,7 @@ def get_all_entities(
         if get_area_id(entity, device_registry) != area_id:
             continue
 
-        if entity.domain not in domains:
+        if domains is None or entity.domain not in domains:
             continue
 
         entities.append(entity)

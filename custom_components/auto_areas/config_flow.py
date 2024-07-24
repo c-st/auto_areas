@@ -5,11 +5,16 @@ from typing import Any
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
-from homeassistant import helpers
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
-from homeassistant.helpers.area_registry import AreaRegistry
+from homeassistant.helpers.area_registry import AreaRegistry, AreaEntry
+from homeassistant.helpers import (
+    area_registry as ar,
+    device_registry as dr,
+    entity_registry as er,
+)
 
 import homeassistant.helpers.selector as selector
+from homeassistant.config_entries import ConfigFlowResult
 
 from homeassistant.data_entry_flow import FlowResult
 
@@ -18,10 +23,18 @@ from .ha_helpers import get_all_entities
 from .auto_area import AutoAreasError, AutoArea
 
 from .const import (
+    CALCULATE_LAST,
+    CALCULATE_MAX,
+    CALCULATE_MEAN,
+    CALCULATE_MEDIAN,
+    CALCULATE_MIN,
     CONFIG_AREA,
+    CONFIG_HUMIDITY_CALCULATION,
+    CONFIG_ILLUMINANCE_CALCULATION,
     CONFIG_IS_SLEEPING_AREA,
     CONFIG_EXCLUDED_LIGHT_ENTITIES,
     CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
+    CONFIG_TEMPERATURE_CALCULATION,
     DOMAIN,
     LOGGER,
 )
@@ -34,14 +47,14 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         return await self.async_step_init(user_input)
 
     async def async_step_init(
         self,
         user_input: dict | None = None,
-    ) -> config_entries.FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         _errors = {}
 
@@ -64,7 +77,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     # Areas need to have at least one entity/device before they can be selected !
                     vol.Required(
-                        CONFIG_AREA, default=(user_input or {}).get(CONFIG_AREA)
+                        CONFIG_AREA, default=(user_input or {}).get(CONFIG_AREA) # type: ignore
                     ): selector.AreaSelector(
                         selector.AreaSelectorConfig(multiple=False)
                     ),
@@ -73,9 +86,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=_errors,
         )
 
-    def validate_area(self, area_id: str):
+    def validate_area(self, area_id: str) -> AreaEntry:
         """Validate a new area to be added."""
-        area_registry: AreaRegistry = helpers.area_registry.async_get(self.hass)
+        area_registry: AreaRegistry = ar.async_get(self.hass)
         area = area_registry.async_get_area(area_id)
         existing_configs: dict[str, AutoArea] = self.hass.data.get(DOMAIN) or {}
         for auto_area in existing_configs.values():
@@ -83,7 +96,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if existing_area_id == area_id:
                 raise AutoAreasError("This area is already managed")
 
-        return area
+        return area # type: ignore
 
     @staticmethod
     @callback
@@ -117,14 +130,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         default=(self.config_entry.options or {}).get(
                             CONFIG_IS_SLEEPING_AREA
                         )
-                        or False,
+                        or False, # type: ignore
                     ): bool,
                     vol.Optional(
                         CONFIG_EXCLUDED_LIGHT_ENTITIES,
                         default=(self.config_entry.options or {}).get(
                             CONFIG_EXCLUDED_LIGHT_ENTITIES
                         )
-                        or [],
+                        or [], # type: ignore
                     ): selector.EntitySelector(
                         selector.EntitySelectorConfig(
                             include_entities=self.get_light_entities(),
@@ -135,9 +148,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(
                         CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
                         default=(self.config_entry.options or {}).get(
-                            CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE
+                            CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
+                             0
                         )
-                        or 0,
+                        or 0, # type: ignore
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0,
@@ -146,14 +160,62 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                             mode=selector.NumberSelectorMode.BOX,
                         )
                     ),
+                    vol.Optional(
+                        CONFIG_TEMPERATURE_CALCULATION,
+                        default=CALCULATE_MEAN, # type: ignore
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                CALCULATE_MEAN,
+                                CALCULATE_MAX,
+                                CALCULATE_MIN,
+                                CALCULATE_MEDIAN,
+                                CALCULATE_LAST,
+                            ],
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN
+                        )
+                    ),
+                    vol.Optional(
+                        CONFIG_HUMIDITY_CALCULATION,
+                        default=CALCULATE_MAX, # type: ignore
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                CALCULATE_MEAN,
+                                CALCULATE_MAX,
+                                CALCULATE_MIN,
+                                CALCULATE_MEDIAN,
+                                CALCULATE_LAST,
+                            ],
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN
+                        )
+                    ),
+                    vol.Optional(
+                        CONFIG_ILLUMINANCE_CALCULATION,
+                        default=CALCULATE_LAST, # type: ignore
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                CALCULATE_MEAN,
+                                CALCULATE_MAX,
+                                CALCULATE_MIN,
+                                CALCULATE_MEDIAN,
+                                CALCULATE_LAST,
+                            ],
+                            multiple=False,
+                            mode=selector.SelectSelectorMode.DROPDOWN
+                        )
+                    )
                 }
             ),
         )
 
     def get_light_entities(self) -> list[str]:
         """Return a list of selectable light entities."""
-        device_registry = helpers.device_registry.async_get(self.hass)
-        entity_registry = helpers.entity_registry.async_get(self.hass)
+        device_registry = dr.async_get(self.hass)
+        entity_registry = er.async_get(self.hass)
 
         entities = [
             entity.entity_id
