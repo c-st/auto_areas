@@ -66,8 +66,8 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             "%s: initial %s: %s %s",
             self.auto_area.area.name if self.auto_area.area is not None else "unknown",
             self._logger_name or "unknown",
-            self._attr_state or "unknown",
-            self._attr_unit_of_measurement or "unknown"
+            getattr(self, '_attr_state', "unknown"),
+            getattr(self, '_attr_unit_of_measurement', "unknown")
         )
 
         # Subscribe to state changes
