@@ -26,7 +26,7 @@ ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 #
 # Constants
 #
-ISSUE_TYPE_YAML_DETECTED = "issue_yaml_detected"
+
 #
 PRESENCE_LOCK_SWITCH_PREFIX = "Area Presence Lock "
 PRESENCE_LOCK_SWITCH_ENTITY_PREFIX = "switch.area_presence_lock_"

@@ -48,9 +48,10 @@ class PresenceBinarySensor(
     @cached_property
     def is_on(self) -> bool:
         """Return the presence state."""
-        return self.state == 'on' if isinstance(self.state, bool) else False
+        return self.state == 'on' if isinstance(self._attr_state, bool) else False
 
     @override
     def _get_state(self):
         """Handle state change of any tracked presence sensors."""
-        return not all_states_are_off(self.hass, self.entities, PRESENCE_ON_STATES)
+        self._attr_state = not all_states_are_off(self.hass, self.entities, PRESENCE_ON_STATES) # type: ignore
+        return self._attr_state
