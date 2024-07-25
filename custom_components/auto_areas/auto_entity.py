@@ -1,6 +1,7 @@
 """Base auto-entity class."""
 
-from typing import Generic, TypeVar
+from functools import cached_property
+from typing import Generic, TypeVar, override
 
 from homeassistant.core import Event, EventStateChangedData, State, HomeAssistant
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
@@ -12,8 +13,10 @@ from homeassistant.helpers.event import async_track_state_change_event
 from .auto_area import AutoArea
 from .const import DOMAIN, LOGGER, NAME, VERSION
 
-_TDeviceClass = TypeVar("_TDeviceClass", BinarySensorDeviceClass, SensorDeviceClass)
+_TDeviceClass = TypeVar(
+    "_TDeviceClass", BinarySensorDeviceClass, SensorDeviceClass)
 _TEntity = TypeVar("_TEntity", bound=Entity)
+
 
 class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
     """Set up an aggregated entity."""
@@ -29,7 +32,8 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
         """Initialize sensor."""
         super().__init__()
         self.auto_area = auto_area
-        self.entities: list[str] = self.auto_area.get_valid_entity_ids(device_classes) or []
+        self.entities: list[str] = self.auto_area.get_valid_entity_ids(
+            device_classes) or []
         self.unsubscribe = None
         self.entity_states: dict[str, State] = {}
         self._hass = hass
@@ -46,10 +50,13 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             "manufacturer": NAME,
             "suggested_area": self.auto_area.area.name if self.auto_area.area is not None else "unknown",
         }
-        self._attr_name = f"{self._prefix}{self.auto_area.area.name if self.auto_area.area is not None else "unknown"}"
-        self._attr_unique_id = f"{self.auto_area.config_entry.entry_id}_aggregated_{self._aggregate_type}"
+        self._attr_name = f"{self._prefix}{
+            self.auto_area.area.name if self.auto_area.area is not None else "unknown"}"
+        self._attr_unique_id = f"{
+            self.auto_area.config_entry.entry_id}_aggregated_{self._aggregate_type}"
         self._attr_device_class = device_class
-        LOGGER.info("%s: Initialized %s sensor", self._logger_name, self.auto_area.area.name if self.auto_area.area is not None else "unknown")
+        LOGGER.info("%s: Initialized %s sensor", self._logger_name,
+                    self.auto_area.area.name if self.auto_area.area is not None else "unknown")
 
     async def async_added_to_hass(self):
         """Start tracking sensors."""
@@ -89,7 +96,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             return None
         return calculate_state(list(self.entity_states.values()))
 
-    def _handle_state_change(self, event: Event[EventStateChangedData]):
+    async def _handle_state_change(self, event: Event[EventStateChangedData]):
         """Handle state change of any tracked illuminance sensors."""
         to_state = event.data.get("new_state")
         if to_state is None:
@@ -104,5 +111,11 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             self.entity_states[to_state.entity_id] = to_state
 
         self._attr_state = self._get_state()
-        LOGGER.debug("%s Calcualted state %s", self._logger_name, self._attr_state)
-        self.schedule_update_ha_state()
+
+        self.async_schedule_update_ha_state()
+
+    @cached_property
+    @override
+    def state(self) -> StateType:
+        """Return the state of the entity."""
+        return self._attr_state

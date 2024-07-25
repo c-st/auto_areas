@@ -14,13 +14,16 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
 
+from .calculations import CALCULATE
+
 from .auto_lights import AutoLights
 
 from .ha_helpers import get_all_entities, is_valid_entity
 
 from .const import (
-    CALCULATE,
     CONFIG_TEMPERATURE_CALCULATION,
+    CONFIG_ILLUMINANCE_CALCULATION,
+    CONFIG_HUMIDITY_CALCULATION,
     DOMAIN,
     LOGGER,
     PRESENCE_BINARY_SENSOR_DEVICE_CLASSES,
@@ -48,19 +51,22 @@ class AutoArea:
         self.entity_registry = async_get_entity_registry(self.hass)
 
         self.area_id: str | None = entry.data.get("area")
-        self.area: AreaEntry | None = self.area_registry.async_get_area(self.area_id or "")
+        self.area: AreaEntry | None = self.area_registry.async_get_area(
+            self.area_id or "")
         self.auto_lights = None
 
     async def async_initialize(self):
         """Subscribe to area changes and reload if necessary."""
-        LOGGER.info("%s: Initializing after HA start", self.area.name if self.area is not None else "unknown")
+        LOGGER.info("%s: Initializing after HA start",
+                    self.area.name if self.area is not None else "unknown")
 
         self.auto_lights = AutoLights(self)
         await self.auto_lights.initialize()
 
     def cleanup(self):
         """Deinitialize this area."""
-        LOGGER.debug("%s: Disabling area control", self.area.name if self.area is not None else "unknown")
+        LOGGER.debug("%s: Disabling area control",
+                     self.area.name if self.area is not None else "unknown")
         if (self.auto_lights):
             self.auto_lights.cleanup()
 
@@ -77,7 +83,7 @@ class AutoArea:
             if is_valid_entity(self.hass, entity) and (
                 device_class is None or ((
                     entity.device_class in device_class or entity.original_device_class in device_class
-                    ) and entity.platform != DOMAIN)
+                ) and entity.platform != DOMAIN)
             )
         ]
         return entities
@@ -95,9 +101,9 @@ class AutoArea:
         if sensor_type in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES:
             return None  # TODO
         if sensor_type == SensorDeviceClass.TEMPERATURE:
-            return CALCULATE[self.config_entry.options[CONFIG_TEMPERATURE_CALCULATION]]
+            return CALCULATE.get(self.config_entry.options.get(CONFIG_TEMPERATURE_CALCULATION, None), None)
         if sensor_type == SensorDeviceClass.ILLUMINANCE:
-            return CALCULATE[self.config_entry.options[CONFIG_TEMPERATURE_CALCULATION]]
+            return CALCULATE.get(self.config_entry.options.get(CONFIG_ILLUMINANCE_CALCULATION, None), None)
         if sensor_type == SensorDeviceClass.HUMIDITY:
-            return CALCULATE[self.config_entry.options[CONFIG_TEMPERATURE_CALCULATION]]
+            return CALCULATE.get(self.config_entry.options.get(CONFIG_HUMIDITY_CALCULATION, None), None)
         return None
