@@ -8,7 +8,7 @@ from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.const import LIGHT_LUX, PERCENTAGE
 
-from custom_components.auto_areas.auto_entity import AutoEntity
+from .auto_entity import AutoEntity
 
 from .auto_area import AutoArea
 from .const import DOMAIN

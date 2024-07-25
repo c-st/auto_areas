@@ -11,7 +11,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from custom_components.auto_areas.auto_entity import AutoEntity
+from .auto_entity import AutoEntity
 
 from .auto_area import AutoArea
 from .const import (
@@ -49,9 +49,3 @@ class PresenceBinarySensor(
     def is_on(self) -> bool:
         """Return the presence state."""
         return self._attr_state == 'on' if isinstance(self._attr_state, bool) else False
-
-    @override
-    def _get_state(self):
-        """Handle state change of any tracked presence sensors."""
-        self._attr_state = not all_states_are_off(self.hass, self.entities, PRESENCE_ON_STATES) # type: ignore
-        return self._attr_state
