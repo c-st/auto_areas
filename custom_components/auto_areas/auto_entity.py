@@ -60,15 +60,15 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             self.entities,
         )
 
-        self._get_state()
+        self._attr_state = self._get_state()
 
-        if self._attr_state is not None:
-            LOGGER.debug(
-                "%s: initial %s: %s lux",
-                self.auto_area.area.name if self.auto_area.area is not None else "unknown",
-                self._logger_name,
-                self._attr_state
-            )
+        LOGGER.debug(
+            "%s: initial %s: %s %s",
+            self.auto_area.area.name if self.auto_area.area is not None else "unknown",
+            self._logger_name or "unknown",
+            self._attr_state or "unknown",
+            self._attr_unit_of_measurement or "unknown"
+        )
 
         # Subscribe to state changes
         self.unsubscribe = async_track_state_change_event(
@@ -95,7 +95,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
         if to_state is None:
             return
 
-        if to_state.state not in [
+        if to_state.state in [
             "unknown",
             "unavailable",
         ]:
@@ -104,4 +104,5 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             self.entity_states[to_state.entity_id] = to_state
 
         self._attr_state = self._get_state()
+        LOGGER.debug("%s Calcualted state %s", self._logger_name, self._attr_state)
         self.schedule_update_ha_state()
