@@ -113,9 +113,3 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
         self._attr_state = self._get_state()
 
         self.async_schedule_update_ha_state()
-
-    @cached_property
-    @override
-    def state(self) -> StateType:
-        """Return the state of the entity."""
-        return self._attr_state
