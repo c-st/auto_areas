@@ -92,6 +92,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
     def _get_state(self) -> StateType | None:
         """Get the state of the sensor."""
         calculate_state = self.auto_area.get_calculation(self._device_class)
+
         if calculate_state is None:
             return None
         return calculate_state(list(self.entity_states.values()))
@@ -111,11 +112,13 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             self.entity_states[to_state.entity_id] = to_state
 
         self._attr_state = self._get_state()
+        LOGGER.info("%s: got state %s", self._logger_name,
+                    str(self._attr_state))
 
         self.async_schedule_update_ha_state()
 
-    @cached_property
-    @override
-    def state(self) -> StateType:
-        """Return the state of the entity."""
-        return self._attr_state
+    # @cached_property
+    # @override
+    # def state(self) -> StateType:
+    #     """Return the state of the entity."""
+    #     return self._attr_state

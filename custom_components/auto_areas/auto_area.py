@@ -14,13 +14,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
 
-from .calculations import CALCULATE
-
 from .auto_lights import AutoLights
 
 from .ha_helpers import get_all_entities, is_valid_entity
 
 from .const import (
+    CALCULATE,
     CONFIG_TEMPERATURE_CALCULATION,
     CONFIG_ILLUMINANCE_CALCULATION,
     CONFIG_HUMIDITY_CALCULATION,

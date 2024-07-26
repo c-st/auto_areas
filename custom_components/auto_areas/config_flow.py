@@ -77,7 +77,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     # Areas need to have at least one entity/device before they can be selected !
                     vol.Required(
-                        CONFIG_AREA, default=(user_input or {}).get(CONFIG_AREA) # type: ignore
+                        CONFIG_AREA, default=(user_input or {}).get(
+                            CONFIG_AREA)  # type: ignore
                     ): selector.AreaSelector(
                         selector.AreaSelectorConfig(multiple=False)
                     ),
@@ -90,13 +91,14 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Validate a new area to be added."""
         area_registry: AreaRegistry = ar.async_get(self.hass)
         area = area_registry.async_get_area(area_id)
-        existing_configs: dict[str, AutoArea] = self.hass.data.get(DOMAIN) or {}
+        existing_configs: dict[str, AutoArea] = self.hass.data.get(DOMAIN) or {
+        }
         for auto_area in existing_configs.values():
             existing_area_id = auto_area.config_entry.data.get("area")
             if existing_area_id == area_id:
                 raise AutoAreasError("This area is already managed")
 
-        return area # type: ignore
+        return area  # type: ignore
 
     @staticmethod
     @callback
@@ -130,14 +132,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         default=(self.config_entry.options or {}).get(
                             CONFIG_IS_SLEEPING_AREA
                         )
-                        or False, # type: ignore
+                        or False,  # type: ignore
                     ): bool,
                     vol.Optional(
                         CONFIG_EXCLUDED_LIGHT_ENTITIES,
                         default=(self.config_entry.options or {}).get(
                             CONFIG_EXCLUDED_LIGHT_ENTITIES
                         )
-                        or [], # type: ignore
+                        or [],  # type: ignore
                     ): selector.EntitySelector(
                         selector.EntitySelectorConfig(
                             include_entities=self.get_light_entities(),
@@ -149,9 +151,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
                         default=(self.config_entry.options or {}).get(
                             CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
-                             0
+                            0
                         )
-                        or 0, # type: ignore
+                        or 0,  # type: ignore
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0,
@@ -162,7 +164,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ),
                     vol.Optional(
                         CONFIG_TEMPERATURE_CALCULATION,
-                        default=CALCULATE_MEAN, # type: ignore
+                        default=CALCULATE_MEAN,  # type: ignore
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=[
@@ -178,7 +180,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ),
                     vol.Optional(
                         CONFIG_HUMIDITY_CALCULATION,
-                        default=CALCULATE_MAX, # type: ignore
+                        default=CALCULATE_MAX,  # type: ignore
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=[
@@ -194,7 +196,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ),
                     vol.Optional(
                         CONFIG_ILLUMINANCE_CALCULATION,
-                        default=CALCULATE_LAST, # type: ignore
+                        default=CALCULATE_LAST,  # type: ignore
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=[

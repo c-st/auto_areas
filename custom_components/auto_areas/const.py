@@ -12,6 +12,17 @@ from homeassistant.components.sensor.const import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.switch.const import DOMAIN as SWITCH_DOMAIN
 from homeassistant.const import STATE_HOME, STATE_ON, STATE_PLAYING
 
+from .calculations import (
+    calculate_all,
+    calculate_last,
+    calculate_max,
+    calculate_mean,
+    calculate_median,
+    calculate_min,
+    calculate_none,
+    calculate_one
+)
+
 
 LOGGER: Logger = getLogger(__package__)
 
@@ -55,6 +66,17 @@ CALCULATE_LAST = "last"
 CALCULATE_ALL = "all"
 CALCULATE_ONE = "one"
 CALCULATE_NONE = "none"
+
+CALCULATE = {
+    CALCULATE_MAX: calculate_max,
+    CALCULATE_MEAN: calculate_mean,
+    CALCULATE_MIN: calculate_min,
+    CALCULATE_MEDIAN: calculate_median,
+    CALCULATE_ALL: calculate_all,
+    CALCULATE_ONE: calculate_one,
+    CALCULATE_NONE: calculate_none,
+    CALCULATE_LAST: calculate_last,
+}
 
 #
 # Config
