@@ -113,7 +113,11 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             self.entity_states.pop(to_state.entity_id, None)
         else:
             try:
-                to_state.state = float(to_state.state)  # type: ignore
+                if isinstance(self._attr_device_class, BinarySensorDeviceClass):
+                    to_state.state = to_state.state in [  # type: ignore
+                        "on", "yes", "true", "1", True, 1]
+                else:
+                    to_state.state = float(to_state.state)  # type: ignore
                 self.entity_states[to_state.entity_id] = to_state
             except:
                 self.entity_states.pop(to_state.entity_id, None)
