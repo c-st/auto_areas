@@ -28,6 +28,9 @@ from .const import (
     CALCULATE_MEAN,
     CALCULATE_MEDIAN,
     CALCULATE_MIN,
+    CALCULATE_ONE,
+    CALCULATE_ALL,
+    CALCULATE_NONE,
     CONFIG_AREA,
     CONFIG_HUMIDITY_CALCULATION,
     CONFIG_ILLUMINANCE_CALCULATION,
@@ -35,6 +38,7 @@ from .const import (
     CONFIG_EXCLUDED_LIGHT_ENTITIES,
     CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
     CONFIG_TEMPERATURE_CALCULATION,
+    CONFIG_OCCUPANCY_CALCULATION,
     DOMAIN,
     LOGGER,
 )
@@ -116,6 +120,23 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         """Initialize options flow."""
         self.config_entry: config_entries.ConfigEntry = config_entry
 
+    @property
+    def sensor_selector(self) -> selector.Selector:
+        """Get the sensor selector configuration."""
+        return selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    CALCULATE_MEAN,
+                    CALCULATE_MAX,
+                    CALCULATE_MIN,
+                    CALCULATE_MEDIAN,
+                    CALCULATE_LAST,
+                ],
+                multiple=False,
+                mode=selector.SelectSelectorMode.DROPDOWN
+            )
+        )
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -165,45 +186,24 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(
                         CONFIG_TEMPERATURE_CALCULATION,
                         default=CALCULATE_MEAN,  # type: ignore
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=[
-                                CALCULATE_MEAN,
-                                CALCULATE_MAX,
-                                CALCULATE_MIN,
-                                CALCULATE_MEDIAN,
-                                CALCULATE_LAST,
-                            ],
-                            multiple=False,
-                            mode=selector.SelectSelectorMode.DROPDOWN
-                        )
-                    ),
+                    ): self.sensor_selector,
                     vol.Optional(
                         CONFIG_HUMIDITY_CALCULATION,
                         default=CALCULATE_MAX,  # type: ignore
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=[
-                                CALCULATE_MEAN,
-                                CALCULATE_MAX,
-                                CALCULATE_MIN,
-                                CALCULATE_MEDIAN,
-                                CALCULATE_LAST,
-                            ],
-                            multiple=False,
-                            mode=selector.SelectSelectorMode.DROPDOWN
-                        )
-                    ),
+                    ): self.sensor_selector,
                     vol.Optional(
                         CONFIG_ILLUMINANCE_CALCULATION,
                         default=CALCULATE_LAST,  # type: ignore
+                    ): self.sensor_selector,
+                    vol.Optional(
+                        CONFIG_OCCUPANCY_CALCULATION,
+                        default=CALCULATE_ALL,  # type: ignore
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=[
-                                CALCULATE_MEAN,
-                                CALCULATE_MAX,
-                                CALCULATE_MIN,
-                                CALCULATE_MEDIAN,
+                                CALCULATE_ALL,
+                                CALCULATE_ONE,
+                                CALCULATE_NONE,
                                 CALCULATE_LAST,
                             ],
                             multiple=False,

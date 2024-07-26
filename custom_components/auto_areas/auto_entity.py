@@ -4,6 +4,7 @@ from functools import cached_property
 from typing import Generic, TypeVar, override
 
 from homeassistant.core import Event, EventStateChangedData, State, HomeAssistant
+from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import StateType
@@ -94,6 +95,8 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
         calculate_state = self.auto_area.get_calculation(self._device_class)
 
         if calculate_state is None:
+            LOGGER.info("%s unable to get state calculation method",
+                        self._logger_name)
             return None
         return calculate_state(list(self.entity_states.values()))
 
@@ -104,21 +107,26 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             return
 
         if to_state.state in [
-            "unknown",
-            "unavailable",
+            STATE_UNKNOWN,
+            STATE_UNAVAILABLE,
         ]:
             self.entity_states.pop(to_state.entity_id, None)
         else:
-            self.entity_states[to_state.entity_id] = to_state
+            try:
+                to_state.state = float(to_state.state)  # type: ignore
+                self.entity_states[to_state.entity_id] = to_state
+            except:
+                self.entity_states.pop(to_state.entity_id, None)
 
         self._attr_state = self._get_state()
-        LOGGER.info("%s: got state %s", self._logger_name,
-                    str(self._attr_state))
+        LOGGER.info("%s: got state %s, %d entities", self._logger_name,
+                    str(self._attr_state),
+                    len(self.entity_states.values()))
 
         self.async_schedule_update_ha_state()
 
-    # @cached_property
-    # @override
-    # def state(self) -> StateType:
-    #     """Return the state of the entity."""
-    #     return self._attr_state
+    @cached_property
+    @override
+    def state(self) -> StateType:
+        """Return the state of the entity."""
+        return self._attr_state

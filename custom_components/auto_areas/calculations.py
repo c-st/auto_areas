@@ -6,80 +6,69 @@ from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
 from homeassistant.helpers.typing import StateType
 
 
-def is_numeric(value: Any) -> bool:
-    """Checks if the value is numeric."""
-    try:
-        if float(value) is not None:
-            return True
-    except:
-        return False
-    else:
-        return False
-
-
-def calculate_max(values: list[State]) -> StateType:
+def calculate_max(states: list[State]) -> StateType:
     """Calculate the maximum of the list of values."""
-    calc_values = [float(v.state) for v in values if isinstance(
-        v, Number) and not isinstance(v.state, bool) and is_numeric(v)]
+    calc_values = [float(s.state) for s in states]
+
     if len(calc_values) == 0:
         return STATE_UNKNOWN
     return max(calc_values)
 
 
-def calculate_min(values: list[State]) -> StateType:
+def calculate_min(states: list[State]) -> StateType:
     """Calculate the mean of the list of values."""
-    calc_values = [float(v.state) for v in values if isinstance(
-        v, Number) and not isinstance(v.state, bool) and is_numeric(v)]
+    calc_values = [float(s.state) for s in states]
+
     if len(calc_values) == 0:
         return STATE_UNKNOWN
     return min(calc_values)
 
 
-def calculate_mean(values: list[State]) -> StateType:
+def calculate_mean(states: list[State]) -> StateType:
     """Calculate the mean of the list of values."""
-    calc_values = [float(v.state) for v in values if isinstance(
-        v, Number) and not isinstance(v.state, bool) and is_numeric(v)]
+    calc_values = [float(s.state) for s in states]
+
     if len(calc_values) == 0:
         return STATE_UNKNOWN
     return mean(calc_values)
 
 
-def calculate_median(values: list[State]) -> StateType:
+def calculate_median(states: list[State]) -> StateType:
     """Calculate the median of the list of values."""
-    calc_values = [float(v.state) for v in values if isinstance(
-        v, Number) and not isinstance(v.state, bool) and is_numeric(v)]
+    calc_values = [float(s.state) for s in states]
+
     if len(calc_values) == 0:
         return STATE_UNKNOWN
     return median(calc_values)
 
 
-def calculate_all(values: list[State]) -> StateType:
+def calculate_all(states: list[State]) -> StateType:
     """Calculate the whether all of the list of values are true."""
-    calc_values = [v.state for v in values if isinstance(v.state, bool)]
+    calc_values = [s.state for s in states if isinstance(s.state, bool)]
     if len(calc_values) == 0:
         return STATE_UNKNOWN
     return len([v for v in calc_values if not v]) == 0
 
 
-def calculate_one(values: list[State]) -> StateType:
+def calculate_one(states: list[State]) -> StateType:
     """Calculate the whether one of the list of values is true."""
-    calc_values = [v.state for v in values if isinstance(v.state, bool)]
+    calc_values = [s.state for s in states if isinstance(s.state, bool)]
     if len(calc_values) == 0:
         return STATE_UNKNOWN
     return len([v for v in calc_values if v]) > 0
 
 
-def calculate_none(values: list[State]) -> StateType:
+def calculate_none(states: list[State]) -> StateType:
     """Calculate the whether none of the list of values is true."""
-    calc_values = [v.state for v in values if isinstance(v.state, bool)]
+    calc_values = [s.state for s in states if isinstance(s.state, bool)]
     if len(calc_values) == 0:
         return STATE_UNKNOWN
     return len([v for v in calc_values if v]) == 0
 
 
-def calculate_last(values: list[State]) -> StateType:
+def calculate_last(states: list[State]) -> StateType:
     """Calculate the last update of the list of values."""
-    calc_values = [v for v in values if v.state is not None and v.state not in [
+    calc_values = [s for s in states if s.state is not None and s.state not in [
         STATE_UNKNOWN, STATE_UNAVAILABLE]]
     if len(calc_values) == 0:
         return STATE_UNKNOWN
