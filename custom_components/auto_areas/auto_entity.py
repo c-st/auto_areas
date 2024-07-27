@@ -119,7 +119,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
                 else:
                     to_state.state = float(to_state.state)  # type: ignore
                 self.entity_states[to_state.entity_id] = to_state
-            except:
+            except Exception:
                 self.entity_states.pop(to_state.entity_id, None)
 
         self._attr_state = self._get_state()

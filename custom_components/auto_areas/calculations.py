@@ -1,5 +1,5 @@
-from typing import Any
-from numbers import Number
+"""Perform calculations based on entity states."""
+
 from statistics import mean, median
 from homeassistant.core import State
 from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
@@ -43,7 +43,7 @@ def calculate_median(states: list[State]) -> StateType:
 
 
 def calculate_all(states: list[State]) -> StateType:
-    """Calculate the whether all of the list of values are true."""
+    """Calculate whether all of the list of values are true."""
     calc_values = [s.state for s in states if isinstance(s.state, bool)]
     if len(calc_values) == 0:
         return STATE_UNKNOWN
@@ -51,7 +51,7 @@ def calculate_all(states: list[State]) -> StateType:
 
 
 def calculate_one(states: list[State]) -> StateType:
-    """Calculate the whether one of the list of values is true."""
+    """Calculate whether one of the list of values is true."""
     calc_values = [s.state for s in states if isinstance(s.state, bool)]
     if len(calc_values) == 0:
         return STATE_UNKNOWN
@@ -59,7 +59,7 @@ def calculate_one(states: list[State]) -> StateType:
 
 
 def calculate_none(states: list[State]) -> StateType:
-    """Calculate the whether none of the list of values is true."""
+    """Calculate whether none of the list of values is true."""
     calc_values = [s.state for s in states if isinstance(s.state, bool)]
     if len(calc_values) == 0:
         return STATE_UNKNOWN

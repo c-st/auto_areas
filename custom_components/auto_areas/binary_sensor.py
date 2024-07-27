@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import override
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -17,9 +16,7 @@ from .auto_area import AutoArea
 from .const import (
     DOMAIN,
     PRESENCE_BINARY_SENSOR_DEVICE_CLASSES,
-    PRESENCE_ON_STATES,
 )
-from .ha_helpers import all_states_are_off
 
 
 async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback):
