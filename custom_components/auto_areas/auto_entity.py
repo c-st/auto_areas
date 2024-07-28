@@ -160,10 +160,10 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             self.auto_area.config_entry.options,
             self.device_class
         )
-
         if calculate_state is None:
             LOGGER.error(
-                "%s unable to get state calculation method",
+                "%s: %s unable to get state calculation method",
+                self.auto_area.area_name,
                 self.device_class
             )
             return None

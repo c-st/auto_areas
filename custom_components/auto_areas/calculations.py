@@ -27,16 +27,14 @@ CALCULATE_NONE = "none"
 def calculate_max(states: list[State]) -> StateType:
     """Calculate the maximum of the list of values."""
     calc_values = [float(s.state) for s in states]
-
     if len(calc_values) == 0:
         return STATE_UNKNOWN
     return max(calc_values)
 
 
 def calculate_min(states: list[State]) -> StateType:
-    """Calculate the mean of the list of values."""
+    """Calculate the min of the list of values."""
     calc_values = [float(s.state) for s in states]
-
     if len(calc_values) == 0:
         return STATE_UNKNOWN
     return min(calc_values)
@@ -45,7 +43,6 @@ def calculate_min(states: list[State]) -> StateType:
 def calculate_mean(states: list[State]) -> StateType:
     """Calculate the mean of the list of values."""
     calc_values = [float(s.state) for s in states]
-
     if len(calc_values) == 0:
         return STATE_UNKNOWN
     return mean(calc_values)
@@ -54,7 +51,6 @@ def calculate_mean(states: list[State]) -> StateType:
 def calculate_median(states: list[State]) -> StateType:
     """Calculate the median of the list of values."""
     calc_values = [float(s.state) for s in states]
-
     if len(calc_values) == 0:
         return STATE_UNKNOWN
     return median(calc_values)
@@ -117,20 +113,23 @@ def get_calculation(
     """Get the configured calculation for the sensor provided."""
     if sensor_type == SensorDeviceClass.ILLUMINANCE:
         return CALCULATE.get(
-            config_options.get(CONFIG_ILLUMINANCE_CALCULATION),
-            DEFAULT_CALCULATION_ILLUMINANCE
+            config_options.get(
+                CONFIG_ILLUMINANCE_CALCULATION,
+                DEFAULT_CALCULATION_ILLUMINANCE),
         )
 
     if sensor_type == SensorDeviceClass.TEMPERATURE:
         return CALCULATE.get(
-            config_options.get(CONFIG_TEMPERATURE_CALCULATION),
-            DEFAULT_CALCULATION_TEMPERATURE
+            config_options.get(
+                CONFIG_TEMPERATURE_CALCULATION,
+                DEFAULT_CALCULATION_TEMPERATURE),
         )
 
     if sensor_type == SensorDeviceClass.HUMIDITY:
         return CALCULATE.get(
-            config_options.get(CONFIG_HUMIDITY_CALCULATION),
-            DEFAULT_CALCULATION_HUMIDITY
+            config_options.get(
+                CONFIG_HUMIDITY_CALCULATION,
+                DEFAULT_CALCULATION_HUMIDITY),
         )
 
     return None
