@@ -10,6 +10,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.components.sensor.const import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.switch.const import DOMAIN as SWITCH_DOMAIN
+from homeassistant.components.cover import DOMAIN as COVER_DOMAIN
 from homeassistant.const import STATE_HOME, STATE_ON, STATE_PLAYING
 
 
@@ -44,6 +45,9 @@ TEMPERATURE_SENSOR_ENTITY_PREFIX = "sensor.area_temperature_"
 HUMIDITY_SENSOR_PREFIX = "Area Humidity "
 HUMIDITY_SENSOR_ENTITY_PREFIX = "sensor.area_humidity_"
 
+COVER_GROUP_PREFIX = "Area Covers "
+COVER_GROUP_ENTITY_PREFIX = "cover.area_covers_"
+
 #
 # Config flow constants
 #
@@ -55,15 +59,14 @@ CONFIG_HUMIDITY_CALCULATION = "humidity_calculation"
 CONFIG_TEMPERATURE_CALCULATION = "temperature_calculation"
 CONFIG_ILLUMINANCE_CALCULATION = "illuminance_calculation"
 
-#
 
-
-# Fetch entities from these domains
+# Fetch entities from these domains:
 RELEVANT_DOMAINS = [
     BINARY_SENSOR_DOMAIN,
     SENSOR_DOMAIN,
     SWITCH_DOMAIN,
     LIGHT_DOMAIN,
+    COVER_DOMAIN,
 ]
 
 # Presence entities

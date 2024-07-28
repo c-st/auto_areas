@@ -10,6 +10,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import StateType
 from homeassistant.components.sensor.const import SensorDeviceClass
+from homeassistant.components.cover import CoverDeviceClass
 from homeassistant.helpers.event import async_track_state_change_event
 
 from custom_components.auto_areas.calculations import get_calculation
@@ -17,13 +18,17 @@ from custom_components.auto_areas.calculations import get_calculation
 from .auto_area import AutoArea
 from .const import DOMAIN, LOGGER, NAME, VERSION
 
-_TDeviceClass = TypeVar(
-    "_TDeviceClass", BinarySensorDeviceClass, SensorDeviceClass)
 _TEntity = TypeVar("_TEntity", bound=Entity)
+_TDeviceClass = TypeVar(
+    "_TDeviceClass",
+    BinarySensorDeviceClass,
+    SensorDeviceClass,
+    CoverDeviceClass
+)
 
 
 class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
-    """Set up an aggregated entity."""
+    """Set up an Auto Area entity."""
 
     def __init__(self,
                  hass: HomeAssistant,

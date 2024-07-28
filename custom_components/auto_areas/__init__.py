@@ -16,8 +16,12 @@ from .auto_area import (
 
 from .const import DOMAIN, LOGGER, ISSUE_TYPE_YAML_DETECTED
 
-PLATFORMS: list[Platform] = [Platform.SWITCH,
-                             Platform.BINARY_SENSOR, Platform.SENSOR]
+PLATFORMS: list[Platform] = [
+    Platform.SWITCH,
+    Platform.BINARY_SENSOR,
+    Platform.SENSOR,
+    Platform.COVER,
+]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
