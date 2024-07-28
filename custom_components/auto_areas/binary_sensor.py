@@ -11,7 +11,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.event import async_track_state_change_event
 from custom_components.auto_areas.ha_helpers import all_states_are_off
 

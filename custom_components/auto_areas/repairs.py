@@ -4,9 +4,8 @@ from typing import Any, cast
 
 import voluptuous as vol
 
-from homeassistant import data_entry_flow
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
+from homeassistant.components.repairs import RepairsFlow
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry

@@ -6,7 +6,6 @@ from typing import Any, override
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import StateType
 from homeassistant.const import LIGHT_LUX, PERCENTAGE
 
 from .auto_entity import AutoEntity

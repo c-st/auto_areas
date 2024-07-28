@@ -2,7 +2,8 @@
 from __future__ import annotations
 from statistics import mean, median
 from collections.abc import Callable
-from typing import Any, Mapping
+from typing import Any
+from collections.abc import Mapping
 from homeassistant.core import State
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor.const import SensorDeviceClass
@@ -26,19 +27,19 @@ CALCULATE_NONE = "none"
 
 
 def is_float(state: State) -> bool:
-    """Checks if state is a float."""
+    """Check if state is a float."""
     try:
         return float(state.state) is not None
-    except:
+    except Exception:
         return False
 
 
 def is_bool(state: State) -> bool:
-    """Checks if state is a boolean."""
+    """Check if state is a boolean."""
     try:
         return isinstance(state.state, bool) or state.state in [
             "on", "yes", "true", "1", True, 1]
-    except:
+    except Exception:
         return False
 
 

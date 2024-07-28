@@ -4,7 +4,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.area_registry import async_get as async_get_area_registry
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
-from homeassistant.helpers.issue_registry import async_create_issue as async_create_issue, IssueSeverity
+from homeassistant.helpers.issue_registry import async_create_issue, IssueSeverity
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.area_registry import AreaEntry
