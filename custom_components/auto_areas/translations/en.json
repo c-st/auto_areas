@@ -35,7 +35,6 @@
         },
         "invalid_area_config": {
             "title": "Selected area is invalid.",
-            "description": "The selected area is invalid, this may mean the area has been deleted or renamed.",
             "fix_flow": {
                 "step": {
                     "area": {
