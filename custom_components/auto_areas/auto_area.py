@@ -93,6 +93,15 @@ class AutoArea:
         ]
         return entities
 
+    def get_area_entity_ids(self, device_classes: list[str]) -> list[str]:
+        """Return all entity ids in a list of device classes."""
+        return [
+            entity.entity_id
+            for entity in self.get_valid_entities()
+            if entity.device_class in device_classes
+            or entity.original_device_class in device_classes
+        ]
+
     @property
     def area_name(self) -> str:
         """Return area name or fallback."""
