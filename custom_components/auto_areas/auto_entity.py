@@ -1,6 +1,7 @@
 """Base auto-entity class."""
 
-from typing import Generic, TypeVar
+from functools import cached_property
+from typing import Generic, TypeVar, cast
 
 from homeassistant.core import Event, EventStateChangedData, State, HomeAssistant
 from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
@@ -42,7 +43,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
         self.entity_ids: list[str] = self._get_sensor_entities()
         self.unsubscribe = None
         self.entity_states: dict[str, State] = {}
-        self._aggregated_state: str | None = None
+        self._aggregated_state: StateType = None
 
         LOGGER.info(
             "%s: Initialized %s sensor",
@@ -59,22 +60,22 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             or entity.original_device_class == self.device_class
         ]
 
-    @property
+    @cached_property
     def name(self):
         """Name of this entity."""
         return f"{self._name_prefix}{self.auto_area.area.name}"
 
-    @property
+    @cached_property
     def unique_id(self) -> str:
         """Return a unique ID."""
         return f"{self.auto_area.config_entry.entry_id}_aggregated_{self.device_class}"
 
-    @property
-    def device_class(self) -> SensorDeviceClass:
+    @cached_property
+    def device_class(self) -> _TDeviceClass:
         """Return device class."""
-        return self._device_class
+        return cast(_TDeviceClass, self._device_class)
 
-    @property
+    @cached_property
     def device_info(self) -> DeviceInfo:
         """Information about this device."""
         return {
@@ -84,11 +85,6 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             "manufacturer": NAME,
             "suggested_area": self.auto_area.area.name,
         }
-
-    @property
-    def state(self) -> StateType:
-        """Return the state of the entity."""
-        return self._aggregated_state
 
     async def async_added_to_hass(self):
         """Start tracking sensors."""

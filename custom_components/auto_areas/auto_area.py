@@ -39,8 +39,15 @@ class AutoArea:
         self.device_registry = async_get_device_registry(self.hass)
         self.entity_registry = async_get_entity_registry(self.hass)
 
-        self.area_id: str = entry.data.get(CONFIG_AREA)
-        self.area: AreaEntry = self.area_registry.async_get_area(self.area_id)
+        area_id = entry.data.get(CONFIG_AREA)
+        if area_id is None:
+            raise ValueError(
+                f"Invalid Entry: missing configuration for {CONFIG_AREA}")
+        area = self.area_registry.async_get_area(self.area_id)
+        if area is None:
+            raise ValueError(f"Area {area_id} does not exist.")
+        self.area_id: str = area_id
+        self.area: AreaEntry = area
         self.auto_lights = None
 
     async def async_initialize(self):

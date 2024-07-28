@@ -1,10 +1,12 @@
 """Sensor platform for auto_areas."""
 
-from typing import override
+from functools import cached_property
+from typing import Any, override
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import StateType
 from homeassistant.const import LIGHT_LUX, PERCENTAGE
 
 from .auto_entity import AutoEntity
@@ -38,11 +40,16 @@ class IlluminanceSensor(
             ILLUMINANCE_SENSOR_ENTITY_PREFIX
         )
 
-    @property
+    @cached_property
     @override
-    def native_unit_of_measurement(self) -> str:
+    def native_unit_of_measurement(self) -> str | None:
         """Return unit of measurement."""
         return LIGHT_LUX
+
+    @cached_property
+    def state(self) -> Any:  # type: ignore
+        """Return the state of the entity."""
+        return self._aggregated_state
 
 
 class TemperatureSensor(AutoEntity[SensorEntity, SensorDeviceClass], SensorEntity):
@@ -58,11 +65,16 @@ class TemperatureSensor(AutoEntity[SensorEntity, SensorDeviceClass], SensorEntit
             TEMPERATURE_SENSOR_ENTITY_PREFIX
         )
 
-    @property
+    @cached_property
     @override
-    def native_unit_of_measurement(self) -> str:
+    def native_unit_of_measurement(self) -> str | None:
         """Return unit of measurement."""
         return self.hass.config.units.temperature_unit
+
+    @cached_property
+    def state(self) -> Any:  # type: ignore
+        """Return the state of the entity."""
+        return self._aggregated_state
 
 
 class HumiditySensor(AutoEntity[SensorEntity, SensorDeviceClass], SensorEntity):
@@ -78,8 +90,13 @@ class HumiditySensor(AutoEntity[SensorEntity, SensorDeviceClass], SensorEntity):
             HUMIDITY_SENSOR_ENTITY_PREFIX
         )
 
-    @property
+    @cached_property
     @override
-    def native_unit_of_measurement(self) -> str:
+    def native_unit_of_measurement(self) -> str | None:
         """Return unit of measurement."""
         return PERCENTAGE
+
+    @cached_property
+    def state(self) -> Any:  # type: ignore
+        """Return the state of the entity."""
+        return self._aggregated_state

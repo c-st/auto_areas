@@ -2,8 +2,9 @@
 from __future__ import annotations
 from statistics import mean, median
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Mapping
 from homeassistant.core import State
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.helpers.typing import StateType
 from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
@@ -107,8 +108,8 @@ DEFAULT_CALCULATION_HUMIDITY = CALCULATE_MAX
 
 
 def get_calculation(
-    config_options: dict[str, Any],
-    sensor_type: SensorDeviceClass
+    config_options: Mapping[str, Any],
+    sensor_type: SensorDeviceClass | BinarySensorDeviceClass
 ) -> Callable[[list[State]], StateType] | None:
     """Get the configured calculation for the sensor provided."""
     if sensor_type == SensorDeviceClass.ILLUMINANCE:

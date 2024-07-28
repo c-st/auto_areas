@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from typing import override
+from functools import cached_property
+from typing import Literal, override
 from homeassistant.core import Event, EventStateChangedData
+from homeassistant.const import STATE_ON, STATE_OFF
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -46,14 +48,20 @@ class PresenceBinarySensor(
             PRESENCE_BINARY_SENSOR_PREFIX,
             PRESENCE_BINARY_SENSOR_ENTITY_PREFIX
         )
-        self.presence: bool = None
+        self.presence: bool | None = None
         LOGGER.debug("Presence entities %s", self.entity_ids)
 
-    @override
-    @property
-    def state(self) -> StateType:
-        """Return presence state."""
-        return "on" if self.presence else "off"
+    @cached_property
+    def is_on(self) -> bool | None:
+        """Return true if the binary sensor is on."""
+        return self.presence
+
+    @cached_property
+    def state(self) -> Literal["on", "off"] | None:  # type: ignore
+        """Return the state of the binary sensor."""
+        if (is_on := self.is_on) is None:
+            return None
+        return STATE_ON if is_on else STATE_OFF
 
     @override
     def _get_sensor_entities(self) -> list[str]:

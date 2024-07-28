@@ -185,13 +185,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         """Return a list of selectable light entities."""
         device_registry = dr.async_get(self.hass)
         entity_registry = er.async_get(self.hass)
-
+        area_id = self.config_entry.data.get(CONFIG_AREA)
+        if area_id is None:
+            raise ValueError(f'Missing {CONFIG_AREA} configruation value.')
         entities = [
             entity.entity_id
             for entity in get_all_entities(
                 entity_registry,
                 device_registry,
-                self.config_entry.data.get(CONFIG_AREA),
+                area_id,
                 [LIGHT_DOMAIN],
             )
         ]

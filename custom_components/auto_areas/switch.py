@@ -1,5 +1,6 @@
 """Switch platform for integration_blueprint."""
 from __future__ import annotations
+from functools import cached_property
 
 from homeassistant.components.switch import (
     SwitchEntity,
@@ -50,17 +51,17 @@ class PresenceLockSwitch(SwitchEntity):
             self.auto_area.area_name
         )
 
-    @property
+    @cached_property
     def name(self) -> str | UndefinedType | None:
         """Return the name of the entity."""
         return f"{PRESENCE_LOCK_SWITCH_PREFIX}{self.auto_area.area_name}"
 
-    @property
+    @cached_property
     def unique_id(self) -> str | None:
         """Return a unique ID."""
         return f"{self.auto_area.config_entry.entry_id}_presence_lock"
 
-    @property
+    @cached_property
     def device_info(self) -> DeviceInfo:
         """Information about this device."""
         return {
@@ -71,13 +72,13 @@ class PresenceLockSwitch(SwitchEntity):
             "suggested_area": getattr(self.auto_area.area, 'name', None),
         }
 
-    @property
-    def device_class(self):
+    @cached_property
+    def device_class(self) -> SwitchDeviceClass | None:
         """Return device class."""
         return SwitchDeviceClass.SWITCH
 
-    @property
-    def is_on(self):
+    @cached_property
+    def is_on(self) -> bool | None:
         """Return the state of the switch."""
         return self._is_on
 
@@ -110,17 +111,17 @@ class SleepModeSwitch(SwitchEntity):
             self.auto_area.area_name
         )
 
-    @property
+    @cached_property
     def name(self) -> str | UndefinedType | None:
         """Return the name of the entity."""
         return f"{SLEEP_MODE_SWITCH_PREFIX}{getattr(self.auto_area.area, 'name', 'unknown')}"
 
-    @property
+    @cached_property
     def unique_id(self) -> str | None:
         """Return a unique ID."""
         return f"{self.auto_area.config_entry.entry_id}_sleep_mode"
 
-    @property
+    @cached_property
     def device_info(self) -> DeviceInfo:
         """Information about this device."""
         return {
@@ -131,13 +132,13 @@ class SleepModeSwitch(SwitchEntity):
             "suggested_area": getattr(self.auto_area.area, 'name', None),
         }
 
-    @property
-    def device_class(self):
+    @cached_property
+    def device_class(self) -> SwitchDeviceClass | None:
         """Return device class."""
         return SwitchDeviceClass.SWITCH
 
-    @property
-    def is_on(self):
+    @cached_property
+    def is_on(self) -> bool | None:
         """Return the state of the switch."""
         return self._is_on
 
