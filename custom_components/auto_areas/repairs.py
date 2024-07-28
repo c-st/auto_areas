@@ -43,12 +43,13 @@ class InvalidAreaConfigRepairFlow(RepairsFlow):
 
         if user_input is not None:
             selected_area = user_input[CONFIG_AREA]
+            area: AreaEntry | None = None
             try:
                 area = self.validate_area(selected_area)
             except AutoAreasError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "area_already_managed"
-            else:
+            if area is not None:
                 data = {
                     **self.entry.data,
                     CONFIG_AREA: area.id
@@ -64,7 +65,7 @@ class InvalidAreaConfigRepairFlow(RepairsFlow):
                 return self.async_create_entry(data={})
 
         return self.async_show_form(
-            step_id="init",
+            step_id="area",
             data_schema=vol.Schema(
                 {
                     # Areas need to have at least one entity/device before they can be selected !
@@ -85,12 +86,14 @@ class InvalidAreaConfigRepairFlow(RepairsFlow):
         area = area_registry.async_get_area(area_id)
         existing_configs: dict[str, AutoArea] = self.hass.data.get(DOMAIN) or {
         }
+        if area is None:
+            raise AutoAreasError("Area is not defined")
         for auto_area in existing_configs.values():
             existing_area_id = auto_area.config_entry.data.get("area")
             if existing_area_id == area_id:
                 raise AutoAreasError("This area is already managed")
 
-        return area  # type: ignore
+        return area
 
 
 async def async_create_fix_flow(hass: HomeAssistant, issue_id: str, data: dict[str, str | int | float | None] | None) -> RepairsFlow:
