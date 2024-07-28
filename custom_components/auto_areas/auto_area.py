@@ -43,7 +43,7 @@ class AutoArea:
         if area_id is None:
             raise ValueError(
                 f"Invalid Entry: missing configuration for {CONFIG_AREA}")
-        area = self.area_registry.async_get_area(self.area_id)
+        area = self.area_registry.async_get_area(area_id)
         if area is None:
             raise ValueError(f"Area {area_id} does not exist.")
         self.area_id: str = area_id
