@@ -4,6 +4,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.area_registry import async_get as async_get_area_registry
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
+from homeassistant.helpers.issue_registry import async_create_issue as async_create_issue, IssueSeverity
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.area_registry import AreaEntry
@@ -15,6 +16,7 @@ from .ha_helpers import get_all_entities, is_valid_entity
 
 from .const import (
     CONFIG_AREA,
+    DOMAIN,
     LOGGER,
     RELEVANT_DOMAINS,
 )
@@ -40,12 +42,21 @@ class AutoArea:
         self.entity_registry = async_get_entity_registry(self.hass)
 
         area_id = entry.data.get(CONFIG_AREA)
-        if area_id is None:
-            raise ValueError(
-                f"Invalid Entry: missing configuration for {CONFIG_AREA}")
-        area = self.area_registry.async_get_area(area_id)
-        if area is None:
-            raise ValueError(f"Area {area_id} does not exist.")
+        area = self.area_registry.async_get_area(area_id or "")
+        if area_id is None or area is None:
+            async_create_issue(
+                hass,
+                DOMAIN,
+                f"invalid_area_config_{entry.entry_id}",
+                is_fixable=True,
+                severity=IssueSeverity.ERROR,
+                translation_key="invalid_area_config",
+                data={
+                    "entry_id": entry.entry_id
+                }
+            )
+            return
+
         self.area_id: str = area_id
         self.area: AreaEntry = area
         self.auto_lights = None
