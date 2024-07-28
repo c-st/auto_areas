@@ -43,7 +43,7 @@ class PresenceBinarySensor(
         super().__init__(
             hass,
             auto_area,
-            BinarySensorDeviceClass.OCCUPANCY,
+            BinarySensorDeviceClass.PRESENCE,
             PRESENCE_BINARY_SENSOR_PREFIX,
             PRESENCE_BINARY_SENSOR_ENTITY_PREFIX
         )
