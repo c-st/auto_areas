@@ -1,14 +1,9 @@
-"""Core entity functionality."""
+"""Core area functionality."""
 from __future__ import annotations
-from enum import StrEnum
-from collections.abc import Callable
-from homeassistant.core import HomeAssistant, State
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.area_registry import async_get as async_get_area_registry
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
-from homeassistant.components.sensor.const import SensorDeviceClass
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
-from homeassistant.helpers.typing import StateType
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.helpers.area_registry import AreaEntry
@@ -19,13 +14,8 @@ from .auto_lights import AutoLights
 from .ha_helpers import get_all_entities, is_valid_entity
 
 from .const import (
-    CALCULATE,
-    CONFIG_TEMPERATURE_CALCULATION,
-    CONFIG_ILLUMINANCE_CALCULATION,
-    CONFIG_HUMIDITY_CALCULATION,
-    DOMAIN,
+    CONFIG_AREA,
     LOGGER,
-    PRESENCE_BINARY_SENSOR_DEVICE_CLASSES,
     RELEVANT_DOMAINS,
 )
 
@@ -49,27 +39,30 @@ class AutoArea:
         self.device_registry = async_get_device_registry(self.hass)
         self.entity_registry = async_get_entity_registry(self.hass)
 
-        self.area_id: str | None = entry.data.get("area")
-        self.area: AreaEntry | None = self.area_registry.async_get_area(
-            self.area_id or "")
+        self.area_id: str = entry.data.get(CONFIG_AREA)
+        self.area: AreaEntry = self.area_registry.async_get_area(self.area_id)
         self.auto_lights = None
 
     async def async_initialize(self):
         """Subscribe to area changes and reload if necessary."""
-        LOGGER.info("%s: Initializing after HA start",
-                    self.area.name if self.area is not None else "unknown")
+        LOGGER.info(
+            "%s: Initializing after HA start",
+            self.area.name
+        )
 
         self.auto_lights = AutoLights(self)
         await self.auto_lights.initialize()
 
     def cleanup(self):
         """Deinitialize this area."""
-        LOGGER.debug("%s: Disabling area control",
-                     self.area.name if self.area is not None else "unknown")
-        if (self.auto_lights):
+        LOGGER.debug(
+            "%s: Disabling area control",
+            self.area.name
+        )
+        if self.auto_lights:
             self.auto_lights.cleanup()
 
-    def get_valid_entities(self, device_class: tuple[StrEnum, ...] | None = None) -> list[RegistryEntry]:
+    def get_valid_entities(self) -> list[RegistryEntry]:
         """Return all valid and relevant entities for this area."""
         entities = [
             entity
@@ -79,30 +72,11 @@ class AutoArea:
                 self.area_id,
                 RELEVANT_DOMAINS,
             )
-            if is_valid_entity(self.hass, entity) and (
-                device_class is None or ((
-                    entity.device_class in device_class or entity.original_device_class in device_class
-                ) and entity.platform != DOMAIN)
-            )
+            if is_valid_entity(self.hass, entity)
         ]
         return entities
 
-    def get_valid_entity_ids(self, device_class: tuple[StrEnum, ...] | None = None) -> list[str]:
-        """Return all valid and relevant entity ids for this area."""
-        return [
-            entity.entity_id
-            for entity
-            in self.get_valid_entities(device_class)
-        ]
-
-    def get_calculation(self, sensor_type: BinarySensorDeviceClass | SensorDeviceClass) -> Callable[[list[State]], StateType] | None:
-        """Get the configured calculation for the sensor provided."""
-        if sensor_type in PRESENCE_BINARY_SENSOR_DEVICE_CLASSES:
-            return None  # TODO
-        if sensor_type == SensorDeviceClass.TEMPERATURE:
-            return CALCULATE.get(self.config_entry.options.get(CONFIG_TEMPERATURE_CALCULATION, None), None)
-        if sensor_type == SensorDeviceClass.ILLUMINANCE:
-            return CALCULATE.get(self.config_entry.options.get(CONFIG_ILLUMINANCE_CALCULATION, None), None)
-        if sensor_type == SensorDeviceClass.HUMIDITY:
-            return CALCULATE.get(self.config_entry.options.get(CONFIG_HUMIDITY_CALCULATION, None), None)
-        return None
+    @property
+    def area_name(self) -> str:
+        """Return area name or fallback."""
+        return self.area.name if self.area is not None else "unknown"

@@ -28,11 +28,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = auto_area
 
     if hass.is_running:
-        """Initialize immediately"""
+        # Initialize immediately
         await async_init(hass, entry, auto_area)
     else:
-        """Schedule initialization when HA is started and initialized"""
-
+        # Schedule initialization when HA is started and initialized
         # https://developers.home-assistant.io/docs/asyncio_working_with_async/#calling-async-functions-from-threads
 
         @callback

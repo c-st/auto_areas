@@ -1,15 +1,17 @@
 """Base auto-entity class."""
 
-from functools import cached_property
-from typing import Generic, TypeVar, override
+from typing import Generic, TypeVar
 
 from homeassistant.core import Event, EventStateChangedData, State, HomeAssistant
 from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import StateType
 from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.helpers.event import async_track_state_change_event
+
+from custom_components.auto_areas.calculations import get_calculation
 
 from .auto_area import AutoArea
 from .const import DOMAIN, LOGGER, NAME, VERSION
@@ -26,79 +28,97 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
                  hass: HomeAssistant,
                  auto_area: AutoArea,
                  device_class: _TDeviceClass,
-                 device_classes: tuple[_TDeviceClass, ...],
-                 prefix: str,
-                 aggregate_type: str,
-                 logger_name: str) -> None:
+                 name_prefix: str,
+                 prefix: str
+                 ) -> None:
         """Initialize sensor."""
         super().__init__()
+        self.hass = hass
         self.auto_area = auto_area
-        self.entities: list[str] = self.auto_area.get_valid_entity_ids(
-            device_classes) or []
+        self._device_class = device_class
+        self._name_prefix = name_prefix
+        self._prefix = prefix
+
+        self.entity_ids: list[str] = self._get_sensor_entities()
         self.unsubscribe = None
         self.entity_states: dict[str, State] = {}
-        self._hass = hass
-        self._attr_device_class = device_class
-        self._device_class = device_class
-        self._device_classes = device_classes
-        self._prefix = prefix
-        self._aggregate_type = aggregate_type
-        self._logger_name = logger_name
-        self._attr_device_info = {
+        self._aggregated_state: str | None = None
+
+        LOGGER.info(
+            "%s: Initialized %s sensor",
+            self.auto_area.area_name,
+            self.device_class
+        )
+
+    def _get_sensor_entities(self) -> list[str]:
+        """Retrieve all relevant entity ids for this sensor."""
+        return [
+            entity.entity_id
+            for entity in self.auto_area.get_valid_entities()
+            if entity.device_class == self.device_class
+            or entity.original_device_class == self.device_class
+        ]
+
+    @property
+    def name(self):
+        """Name of this entity."""
+        return f"{self._name_prefix}{self.auto_area.area.name}"
+
+    @property
+    def unique_id(self) -> str:
+        """Return a unique ID."""
+        return f"{self.auto_area.config_entry.entry_id}_aggregated_{self.device_class}"
+
+    @property
+    def device_class(self) -> SensorDeviceClass:
+        """Return device class."""
+        return self._device_class
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Information about this device."""
+        return {
             "identifiers": {(DOMAIN, self.auto_area.config_entry.entry_id)},
             "name": NAME,
             "model": VERSION,
             "manufacturer": NAME,
-            "suggested_area": self.auto_area.area.name if self.auto_area.area is not None else "unknown",
+            "suggested_area": self.auto_area.area.name,
         }
-        self._attr_name = f"{self._prefix}{
-            self.auto_area.area.name if self.auto_area.area is not None else "unknown"}"
-        self._attr_unique_id = f"{
-            self.auto_area.config_entry.entry_id}_aggregated_{self._aggregate_type}"
-        self._attr_device_class = device_class
-        LOGGER.info("%s: Initialized %s sensor", self._logger_name,
-                    self.auto_area.area.name if self.auto_area.area is not None else "unknown")
+
+    @property
+    def state(self) -> StateType:
+        """Return the state of the entity."""
+        return self._aggregated_state
 
     async def async_added_to_hass(self):
         """Start tracking sensors."""
         LOGGER.debug(
             "%s: %s sensor entities: %s",
-            self._logger_name,
-            self.auto_area.area.name if self.auto_area.area is not None else "unknown",
-            self.entities,
+            self.auto_area.area_name,
+            self.device_class,
+            self.entity_ids,
         )
 
-        self._attr_state = self._get_state()
+        # Get all current states
+        for entity_id in self.entity_ids:
+            state = self.hass.states.get(entity_id)
+            if state is not None:
+                try:
+                    self.entity_states[entity_id] = state
+                except ValueError:
+                    LOGGER.warning(
+                        "No initial state available for %s", entity_id
+                    )
 
-        LOGGER.debug(
-            "%s: initial %s: %s %s",
-            self.auto_area.area.name if self.auto_area.area is not None else "unknown",
-            self._logger_name or "unknown",
-            getattr(self, '_attr_state', "unknown"),
-            getattr(self, '_attr_unit_of_measurement', "unknown")
-        )
+        self._aggregated_state = self._get_state()
+        self.schedule_update_ha_state()
 
         # Subscribe to state changes
         self.unsubscribe = async_track_state_change_event(
-            self._hass,
-            self.entities,
+            self.hass,
+            self.entity_ids,
             self._handle_state_change,
         )
-
-    async def async_will_remove_from_hass(self) -> None:
-        """Clean up event listeners."""
-        if self.unsubscribe:
-            self.unsubscribe()
-
-    def _get_state(self) -> StateType | None:
-        """Get the state of the sensor."""
-        calculate_state = self.auto_area.get_calculation(self._device_class)
-
-        if calculate_state is None:
-            LOGGER.info("%s unable to get state calculation method",
-                        self._logger_name)
-            return None
-        return calculate_state(list(self.entity_states.values()))
 
     async def _handle_state_change(self, event: Event[EventStateChangedData]):
         """Handle state change of any tracked illuminance sensors."""
@@ -113,24 +133,39 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             self.entity_states.pop(to_state.entity_id, None)
         else:
             try:
-                if isinstance(self._attr_device_class, BinarySensorDeviceClass):
-                    to_state.state = to_state.state in [  # type: ignore
-                        "on", "yes", "true", "1", True, 1]
-                else:
-                    to_state.state = float(to_state.state)  # type: ignore
+                to_state.state = float(to_state.state)  # type: ignore
                 self.entity_states[to_state.entity_id] = to_state
-            except Exception:
+            except ValueError:
                 self.entity_states.pop(to_state.entity_id, None)
 
-        self._attr_state = self._get_state()
-        LOGGER.info("%s: got state %s, %d entities", self._logger_name,
-                    str(self._attr_state),
-                    len(self.entity_states.values()))
+        self._aggregated_state = self._get_state()
+
+        LOGGER.debug(
+            "%s: got state %s, %d entities",
+            self.device_class,
+            str(self.state),
+            len(self.entity_states.values())
+        )
 
         self.async_schedule_update_ha_state()
 
-    @cached_property
-    @override
-    def state(self) -> StateType:
-        """Return the state of the entity."""
-        return self._attr_state
+    async def async_will_remove_from_hass(self) -> None:
+        """Clean up event listeners."""
+        if self.unsubscribe:
+            self.unsubscribe()
+
+    def _get_state(self) -> StateType | None:
+        """Get the state of the sensor."""
+        calculate_state = get_calculation(
+            self.auto_area.config_entry.options,
+            self.device_class
+        )
+
+        if calculate_state is None:
+            LOGGER.error(
+                "%s unable to get state calculation method",
+                self.device_class
+            )
+            return None
+
+        return calculate_state(list(self.entity_states.values()))
