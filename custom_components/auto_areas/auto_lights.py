@@ -313,7 +313,7 @@ class AutoLights:
             current_illuminance = float(
                 self.hass.states.get(self.illuminance_entity_id).state
             )
-        except ValueError:
+        except (ValueError, AttributeError):
             current_illuminance = None
 
         return current_illuminance
