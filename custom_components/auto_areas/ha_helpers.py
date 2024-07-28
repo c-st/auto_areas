@@ -11,7 +11,7 @@ def get_all_entities(
     entity_registry: EntityRegistry,
     device_registry: DeviceRegistry,
     area_id: str,
-    domains: list[str] = None,
+    domains: list[str] | None = None,
 ) -> list[RegistryEntry]:
     """Return all entities from an area."""
     entities: list[RegistryEntry] = []
@@ -20,7 +20,7 @@ def get_all_entities(
         if get_area_id(entity, device_registry) != area_id:
             continue
 
-        if entity.domain not in domains:
+        if domains is None or entity.domain not in domains:
             continue
 
         entities.append(entity)
@@ -62,6 +62,7 @@ def is_valid_entity(hass: HomeAssistant, entity: RegistryEntry) -> bool:
     """Check whether an entity should be included."""
     if entity.disabled:
         return False
+
     entity_state = hass.states.get(entity.entity_id)
     if entity_state and entity_state.state == STATE_UNAVAILABLE:
         return False

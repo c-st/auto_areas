@@ -1,8 +1,6 @@
 # https://www.home-assistant.io/integrations/default_config/
 default_config:
 
-# auto_areas:
-
 # https://www.home-assistant.io/integrations/logger/
 logger:
   default: info
@@ -47,4 +45,3 @@ sensor:
         icon_template: mdi:brightness-auto
         unit_of_measurement: lx
         value_template: "{{ states('sensor.random_sensor') | float * 0.9 }}"
-        device_class: illuminance

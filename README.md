@@ -63,8 +63,18 @@ A new switch with ID `switch.area_presence_lock_{area_name}` is created for each
 
 ### Aggregated illuminance
 
-Tracks all illuminance measuring sensors in an area. The last known illuminance of all sensors is used.
+Tracks all illuminance measuring sensors in an area. By default the last known illuminance of all sensors is used.
 This illuminance is published in a `sensor` with the ID `sensor.area_illuminance_{area_name}`.
+
+### Aggregated temperature
+
+Tracks all temperature measuring sensors in an area. By default the average of known temperature of all sensors is used.
+This temperature is published in a `sensor` with the ID `sensor.area_temperature_{area_name}`.
+
+### Aggregated humidity
+
+Tracks all humidity measuring sensors in an area. By default the maximum of known humidity of all sensors is used.
+This humidity is published in a `sensor` with the ID `sensor.area_humidity_{area_name}`.
 
 ### Control lights automatically
 
@@ -84,12 +94,20 @@ A switch with ID `switch.area_sleep_mode_{area_name}` is created for each sleepi
 
 For information on how to mark an area as "sleeping area" refer to the [configuration section](#configuration).
 
+#### Calculation methods
+
+- `mean` - The arithmetic mean of all sensor states that are available and have a numeric value.
+- `median` - The arithmetic median of all sensor states that are available and have a numeric value.
+- `min` - The minimum of all sensor states that are available and have a numeric value.
+- `max` - The maximum of all sensor states that are available and have a numeric value.
+- `last` - The last updated of all sensor states that is available and has a numeric value.
+
 ## Installation
 
 Auto Areas is a custom_component for Home Assistant.
 
 1. The recommended installation method is using [HACS](https://hacs.xyz): search for "Auto Areas", install it and restart Home Assistant.
-Alternatively [download a release](https://github.com/c-st/auto_areas/releases) and copy the folder `custom_components/auto_areas` to the `custom_components` folder of your Home Assistant installation.
+   Alternatively [download a release](https://github.com/c-st/auto_areas/releases) and copy the folder `custom_components/auto_areas` to the `custom_components` folder of your Home Assistant installation.
 2. For each area that you want to control with Auto Areas, go to "Settings"/"Devices & Services"/"Add integration" and search for "Auto Areas". You can then create an instance for each area you want to manage.
 
 ## Configuration
@@ -101,6 +119,9 @@ Navigate to "Settings"/"Devices & Services"/"Auto Areas" and select the area for
 | Set as sleeping area    | Mark area as sleeping area. A switch for controlling sleep mode is created. [See more](#sleep-mode) | `false` (disabled) |
 | Excluded light entities | Entities to exclude from automatic light control. These lights are never turned on or off.          | `[]` (none)        |
 | Illuminance threshold   | Only if area illuminance is lower than this threshold, lights are turned on.                        | `0`                |
+| Illuminance calculation | Configure the calculation for the aggregate illuminance sensor.                                     | `last`             |
+| Temperature calculation | Configure the calculation for the aggregate temperature sensor.                                     | `mean`             |
+| Humditity calculation   | Configure the calculation for the aggregate humidity sensor.                                        | `max`              |
 
 ## Development
 
