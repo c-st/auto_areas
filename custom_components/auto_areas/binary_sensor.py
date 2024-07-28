@@ -78,7 +78,7 @@ class PresenceBinarySensor(
         """Start tracking sensors."""
         LOGGER.debug(
             "%s: Presence detection entities %s",
-            self.auto_area.area.name,
+            self.auto_area.area_name,
             self.entity_ids,
         )
 
@@ -92,7 +92,8 @@ class PresenceBinarySensor(
 
         LOGGER.info(
             "%s: Initial presence %s",
-            self.auto_area.area.name, self.presence
+            self.auto_area.area_name,
+            self.presence
         )
 
         # Subscribe to state changes
@@ -119,7 +120,7 @@ class PresenceBinarySensor(
 
         LOGGER.debug(
             "%s: State change %s: %s -> %s",
-            self.auto_area.area.name,
+            self.auto_area.area_name,
             entity_id,
             previous_state,
             current_state,
@@ -127,7 +128,7 @@ class PresenceBinarySensor(
 
         if current_state in PRESENCE_ON_STATES:
             if not self.presence:
-                LOGGER.info("%s: Presence detected", self.auto_area.area.name)
+                LOGGER.info("%s: Presence detected", self.auto_area.area_name)
                 self.presence = True
                 self.schedule_update_ha_state()
         else:
@@ -139,7 +140,7 @@ class PresenceBinarySensor(
                 if self.presence:
                     LOGGER.info(
                         "%s: Presence cleared",
-                        self.auto_area.area.name
+                        self.auto_area.area_name
                     )
                     self.presence = False
                     self.schedule_update_ha_state()

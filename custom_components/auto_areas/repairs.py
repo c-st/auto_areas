@@ -7,10 +7,12 @@ import voluptuous as vol
 from homeassistant import data_entry_flow
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.area_registry import async_get as async_get_area_registry, AreaRegistry, AreaEntry
 from homeassistant.helpers.issue_registry import async_delete_issue
-from homeassistant.helpers.selector import AreaSelector, AreaSelectorConfig
+from homeassistant.helpers.selector import AreaSelector, AreaSelectorConfig, EntityFilterSelectorConfig
 from homeassistant.core import HomeAssistant
 
 from .const import CONFIG_AREA, LOGGER, DOMAIN
@@ -73,7 +75,23 @@ class InvalidAreaConfigRepairFlow(RepairsFlow):
                         CONFIG_AREA, default=(user_input or {}).get(
                             CONFIG_AREA)  # type: ignore
                     ): AreaSelector(
-                        AreaSelectorConfig(multiple=False)
+                        AreaSelectorConfig(
+                            entity=[
+                                EntityFilterSelectorConfig(
+                                    device_class=SensorDeviceClass.TEMPERATURE),
+                                EntityFilterSelectorConfig(
+                                    device_class=SensorDeviceClass.HUMIDITY),
+                                EntityFilterSelectorConfig(
+                                    device_class=SensorDeviceClass.ILLUMINANCE),
+                                EntityFilterSelectorConfig(
+                                    device_class=BinarySensorDeviceClass.MOTION),
+                                EntityFilterSelectorConfig(
+                                    device_class=BinarySensorDeviceClass.OCCUPANCY),
+                                EntityFilterSelectorConfig(
+                                    device_class=BinarySensorDeviceClass.PRESENCE),
+                            ],
+                            multiple=False
+                        )
                     ),
                 }
             ),

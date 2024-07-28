@@ -41,9 +41,11 @@ class AutoArea:
         self.device_registry = async_get_device_registry(self.hass)
         self.entity_registry = async_get_entity_registry(self.hass)
 
-        area_id = entry.data.get(CONFIG_AREA)
-        area = self.area_registry.async_get_area(area_id or "")
-        if area_id is None or area is None:
+        self.area_id: str | None = entry.data.get(CONFIG_AREA, None)
+        self.area: AreaEntry | None = self.area_registry.async_get_area(
+            self.area_id or "")
+        self.auto_lights = None
+        if self.area_id is None or self.area is None:
             async_create_issue(
                 hass,
                 DOMAIN,
@@ -55,17 +57,12 @@ class AutoArea:
                     "entry_id": entry.entry_id
                 }
             )
-            return
-
-        self.area_id: str = area_id
-        self.area: AreaEntry = area
-        self.auto_lights = None
 
     async def async_initialize(self):
         """Subscribe to area changes and reload if necessary."""
         LOGGER.info(
             "%s: Initializing after HA start",
-            self.area.name
+            self.area_name
         )
 
         self.auto_lights = AutoLights(self)
@@ -75,7 +72,7 @@ class AutoArea:
         """Deinitialize this area."""
         LOGGER.debug(
             "%s: Disabling area control",
-            self.area.name
+            self.area_name
         )
         if self.auto_lights:
             self.auto_lights.cleanup()
@@ -87,7 +84,7 @@ class AutoArea:
             for entity in get_all_entities(
                 self.entity_registry,
                 self.device_registry,
-                self.area_id,
+                self.area_id or "",
                 RELEVANT_DOMAINS,
             )
             if is_valid_entity(self.hass, entity)

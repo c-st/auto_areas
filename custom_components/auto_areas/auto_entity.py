@@ -63,7 +63,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
     @cached_property
     def name(self):
         """Name of this entity."""
-        return f"{self._name_prefix}{self.auto_area.area.name}"
+        return f"{self._name_prefix}{self.auto_area.area_name}"
 
     @cached_property
     def unique_id(self) -> str:
@@ -83,7 +83,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             "name": NAME,
             "model": VERSION,
             "manufacturer": NAME,
-            "suggested_area": self.auto_area.area.name,
+            "suggested_area": self.auto_area.area_name,
         }
 
     async def async_added_to_hass(self):

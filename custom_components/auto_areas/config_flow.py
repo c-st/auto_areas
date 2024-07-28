@@ -1,4 +1,5 @@
 """Adds config flow for Blueprint."""
+
 from __future__ import annotations
 from typing import Any
 
@@ -15,10 +16,17 @@ from homeassistant.helpers import (
 
 import homeassistant.helpers.selector as selector
 from homeassistant.config_entries import ConfigFlowResult
-
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.data_entry_flow import FlowResult
 
-from custom_components.auto_areas.calculations import CALCULATE_LAST, CALCULATE_MAX, CALCULATE_MEAN, CALCULATE_MEDIAN, CALCULATE_MIN
+from custom_components.auto_areas.calculations import (
+    CALCULATE_LAST,
+    CALCULATE_MAX,
+    CALCULATE_MEAN,
+    CALCULATE_MEDIAN,
+    CALCULATE_MIN,
+)
 
 from .ha_helpers import get_all_entities
 
@@ -39,7 +47,7 @@ from .const import (
 from .calculations import (
     DEFAULT_CALCULATION_ILLUMINANCE,
     DEFAULT_CALCULATION_TEMPERATURE,
-    DEFAULT_CALCULATION_HUMIDITY
+    DEFAULT_CALCULATION_HUMIDITY,
 )
 
 
@@ -80,10 +88,33 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     # Areas need to have at least one entity/device before they can be selected !
                     vol.Required(
-                        CONFIG_AREA, default=(user_input or {}).get(
-                            CONFIG_AREA)  # type: ignore
+                        CONFIG_AREA,
+                        default=(user_input or {}).get(
+                            CONFIG_AREA),  # type: ignore
                     ): selector.AreaSelector(
-                        selector.AreaSelectorConfig(multiple=False)
+                        selector.AreaSelectorConfig(
+                            entity=[
+                                selector.EntityFilterSelectorConfig(
+                                    device_class=SensorDeviceClass.TEMPERATURE
+                                ),
+                                selector.EntityFilterSelectorConfig(
+                                    device_class=SensorDeviceClass.HUMIDITY
+                                ),
+                                selector.EntityFilterSelectorConfig(
+                                    device_class=SensorDeviceClass.ILLUMINANCE
+                                ),
+                                selector.EntityFilterSelectorConfig(
+                                    device_class=BinarySensorDeviceClass.MOTION
+                                ),
+                                selector.EntityFilterSelectorConfig(
+                                    device_class=BinarySensorDeviceClass.OCCUPANCY
+                                ),
+                                selector.EntityFilterSelectorConfig(
+                                    device_class=BinarySensorDeviceClass.PRESENCE
+                                ),
+                            ],
+                            multiple=False,
+                        )
                     ),
                 }
             ),
@@ -153,8 +184,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Optional(
                         CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
                         default=(self.config_entry.options or {}).get(
-                            CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
-                            0
+                            CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE, 0
                         )
                         or 0,  # type: ignore
                     ): selector.NumberSelector(
@@ -187,7 +217,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         entity_registry = er.async_get(self.hass)
         area_id = self.config_entry.data.get(CONFIG_AREA)
         if area_id is None:
-            raise ValueError(f'Missing {CONFIG_AREA} configruation value.')
+            raise ValueError(f"Missing {CONFIG_AREA} configruation value.")
         entities = [
             entity.entity_id
             for entity in get_all_entities(
@@ -212,6 +242,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     CALCULATE_LAST,
                 ],
                 multiple=False,
-                mode=selector.SelectSelectorMode.DROPDOWN
+                mode=selector.SelectSelectorMode.DROPDOWN,
             )
         )

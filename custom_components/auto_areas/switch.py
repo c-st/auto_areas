@@ -69,7 +69,7 @@ class PresenceLockSwitch(SwitchEntity):
             "name": NAME,
             "model": VERSION,
             "manufacturer": NAME,
-            "suggested_area": getattr(self.auto_area.area, 'name', None),
+            "suggested_area": self.auto_area.area_name,
         }
 
     @cached_property
@@ -84,15 +84,13 @@ class PresenceLockSwitch(SwitchEntity):
 
     def turn_on(self, **kwargs) -> None:
         """Turn on switch."""
-        LOGGER.info("%s: Presence lock turned on", getattr(
-            self.auto_area.area, 'name', 'unknown'))
+        LOGGER.info("%s: Presence lock turned on", self.auto_area.area_name)
         self._is_on = True
         self.schedule_update_ha_state()
 
     def turn_off(self, **kwargs):
         """Turn off switch."""
-        LOGGER.info("%s: Presence lock turned off", getattr(
-            self.auto_area.area, 'name', 'unknown'))
+        LOGGER.info("%s: Presence lock turned off", self.auto_area.area_name)
         self._is_on = False
         self.schedule_update_ha_state()
 
@@ -114,7 +112,7 @@ class SleepModeSwitch(SwitchEntity):
     @cached_property
     def name(self) -> str | UndefinedType | None:
         """Return the name of the entity."""
-        return f"{SLEEP_MODE_SWITCH_PREFIX}{getattr(self.auto_area.area, 'name', 'unknown')}"
+        return f"{SLEEP_MODE_SWITCH_PREFIX}{self.auto_area.area_name}"
 
     @cached_property
     def unique_id(self) -> str | None:
@@ -129,7 +127,7 @@ class SleepModeSwitch(SwitchEntity):
             "name": NAME,
             "model": VERSION,
             "manufacturer": NAME,
-            "suggested_area": getattr(self.auto_area.area, 'name', None),
+            "suggested_area": self.auto_area.area_name,
         }
 
     @cached_property
@@ -144,14 +142,12 @@ class SleepModeSwitch(SwitchEntity):
 
     def turn_on(self, **kwargs) -> None:
         """Turn on switch."""
-        LOGGER.info("%s: Sleep mode turned on", getattr(
-            self.auto_area.area, 'name', 'unknown'))
+        LOGGER.info("%s: Sleep mode turned on", self.auto_area.area_name)
         self._is_on = True
         self.schedule_update_ha_state()
 
     def turn_off(self, **kwargs):
         """Turn off switch."""
-        LOGGER.info("%s: Sleep mode turned off", getattr(
-            self.auto_area.area, 'name', 'unknown'))
+        LOGGER.info("%s: Sleep mode turned off", self.auto_area.area_name)
         self._is_on = False
         self.schedule_update_ha_state()
