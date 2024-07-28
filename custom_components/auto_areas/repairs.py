@@ -9,9 +9,17 @@ from homeassistant.components.repairs import RepairsFlow
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.area_registry import async_get as async_get_area_registry, AreaRegistry, AreaEntry
+from homeassistant.helpers.area_registry import (
+    async_get as async_get_area_registry,
+    AreaRegistry,
+    AreaEntry
+)
 from homeassistant.helpers.issue_registry import async_delete_issue
-from homeassistant.helpers.selector import AreaSelector, AreaSelectorConfig, EntityFilterSelectorConfig
+from homeassistant.helpers.selector import (
+    AreaSelector,
+    AreaSelectorConfig,
+    EntityFilterSelectorConfig
+)
 from homeassistant.core import HomeAssistant
 
 from .const import CONFIG_AREA, LOGGER, DOMAIN
@@ -22,7 +30,7 @@ class InvalidAreaConfigRepairFlow(RepairsFlow):
     """Handler for fixing invalid area config."""
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, issue_id: str) -> None:
-        """Initialize repaire config flow."""
+        """Initialize repair config flow."""
         super().__init__()
         self.hass = hass
         self.entry = entry
@@ -30,7 +38,7 @@ class InvalidAreaConfigRepairFlow(RepairsFlow):
 
     async def async_step_init(
             self,
-            user_input: dict[str, Any] | None = None
+            _user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
         return await self.async_step_area()
@@ -113,7 +121,9 @@ class InvalidAreaConfigRepairFlow(RepairsFlow):
         return area
 
 
-async def async_create_fix_flow(hass: HomeAssistant, issue_id: str, data: dict[str, str | int | float | None] | None) -> RepairsFlow:
+async def async_create_fix_flow(
+        hass: HomeAssistant, issue_id: str, data: dict[str, str | int | float | None] | None
+) -> RepairsFlow:
     """Create repair flow."""
     assert data
     entry_id = cast(str, data.get("entry_id", ""))

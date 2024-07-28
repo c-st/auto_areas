@@ -11,7 +11,15 @@ from homeassistant.const import LIGHT_LUX, PERCENTAGE
 from .auto_entity import AutoEntity
 
 from .auto_area import AutoArea
-from .const import DOMAIN, HUMIDITY_SENSOR_ENTITY_PREFIX, HUMIDITY_SENSOR_PREFIX, ILLUMINANCE_SENSOR_ENTITY_PREFIX, ILLUMINANCE_SENSOR_PREFIX, TEMPERATURE_SENSOR_ENTITY_PREFIX, TEMPERATURE_SENSOR_PREFIX
+from .const import (
+    DOMAIN,
+    HUMIDITY_SENSOR_ENTITY_PREFIX,
+    HUMIDITY_SENSOR_PREFIX,
+    ILLUMINANCE_SENSOR_ENTITY_PREFIX,
+    ILLUMINANCE_SENSOR_PREFIX,
+    TEMPERATURE_SENSOR_ENTITY_PREFIX,
+    TEMPERATURE_SENSOR_PREFIX
+)
 
 
 async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback):
@@ -70,6 +78,7 @@ class TemperatureSensor(AutoEntity[SensorEntity, SensorDeviceClass], SensorEntit
         """Return unit of measurement."""
         return self.hass.config.units.temperature_unit
 
+    @override
     @cached_property
     def state(self) -> Any:  # type: ignore
         """Return the state of the entity."""
@@ -95,6 +104,7 @@ class HumiditySensor(AutoEntity[SensorEntity, SensorDeviceClass], SensorEntity):
         """Return unit of measurement."""
         return PERCENTAGE
 
+    @override
     @cached_property
     def state(self) -> Any:  # type: ignore
         """Return the state of the entity."""

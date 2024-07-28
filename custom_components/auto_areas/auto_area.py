@@ -17,6 +17,7 @@ from .ha_helpers import get_all_entities, is_valid_entity
 from .const import (
     CONFIG_AREA,
     DOMAIN,
+    ISSUE_TYPE_INVALID_AREA,
     LOGGER,
     RELEVANT_DOMAINS,
 )
@@ -43,20 +44,22 @@ class AutoArea:
 
         self.area_id: str | None = entry.data.get(CONFIG_AREA, None)
         self.area: AreaEntry | None = self.area_registry.async_get_area(
-            self.area_id or "")
-        self.auto_lights = None
+            self.area_id or ""
+        )
         if self.area_id is None or self.area is None:
             async_create_issue(
                 hass,
                 DOMAIN,
-                f"invalid_area_config_{entry.entry_id}",
+                f"{ISSUE_TYPE_INVALID_AREA}_{entry.entry_id}",
                 is_fixable=True,
                 severity=IssueSeverity.ERROR,
-                translation_key="invalid_area_config",
+                translation_key=ISSUE_TYPE_INVALID_AREA,
                 data={
                     "entry_id": entry.entry_id
                 }
             )
+
+        self.auto_lights = None
 
     async def async_initialize(self):
         """Subscribe to area changes and reload if necessary."""
