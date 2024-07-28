@@ -1,24 +1,15 @@
 """Sensor platform for auto_areas."""
 
-from functools import cached_property
-from typing import Any, override
-
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.const import LIGHT_LUX, PERCENTAGE
 
-from .auto_entity import AutoEntity
+from custom_components.auto_areas.sensors.humidity import HumiditySensor
+from custom_components.auto_areas.sensors.illuminance import IlluminanceSensor
+from custom_components.auto_areas.sensors.temperature import TemperatureSensor
+
 
 from .auto_area import AutoArea
 from .const import (
     DOMAIN,
-    HUMIDITY_SENSOR_ENTITY_PREFIX,
-    HUMIDITY_SENSOR_PREFIX,
-    ILLUMINANCE_SENSOR_ENTITY_PREFIX,
-    ILLUMINANCE_SENSOR_PREFIX,
-    TEMPERATURE_SENSOR_ENTITY_PREFIX,
-    TEMPERATURE_SENSOR_PREFIX
 )
 
 
@@ -30,82 +21,3 @@ async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback
         TemperatureSensor(hass, auto_area),
         HumiditySensor(hass, auto_area)
     ])
-
-
-class IlluminanceSensor(
-    AutoEntity[SensorEntity, SensorDeviceClass], SensorEntity
-):
-    """Set up aggregated illuminance sensor."""
-
-    def __init__(self, hass, auto_area: AutoArea) -> None:
-        """Initialize sensor."""
-        super().__init__(
-            hass,
-            auto_area,
-            SensorDeviceClass.ILLUMINANCE,
-            ILLUMINANCE_SENSOR_PREFIX,
-            ILLUMINANCE_SENSOR_ENTITY_PREFIX
-        )
-
-    @cached_property
-    @override
-    def native_unit_of_measurement(self) -> str | None:
-        """Return unit of measurement."""
-        return LIGHT_LUX
-
-    @cached_property
-    def state(self) -> Any:  # type: ignore
-        """Return the state of the entity."""
-        return self._aggregated_state
-
-
-class TemperatureSensor(AutoEntity[SensorEntity, SensorDeviceClass], SensorEntity):
-    """Set up aggregated temperature sensor."""
-
-    def __init__(self, hass, auto_area: AutoArea) -> None:
-        """Initialize sensor."""
-        super().__init__(
-            hass,
-            auto_area,
-            SensorDeviceClass.TEMPERATURE,
-            TEMPERATURE_SENSOR_PREFIX,
-            TEMPERATURE_SENSOR_ENTITY_PREFIX
-        )
-
-    @cached_property
-    @override
-    def native_unit_of_measurement(self) -> str | None:
-        """Return unit of measurement."""
-        return self.hass.config.units.temperature_unit
-
-    @override
-    @cached_property
-    def state(self) -> Any:  # type: ignore
-        """Return the state of the entity."""
-        return self._aggregated_state
-
-
-class HumiditySensor(AutoEntity[SensorEntity, SensorDeviceClass], SensorEntity):
-    """Set up aggregated humidity sensor."""
-
-    def __init__(self, hass, auto_area: AutoArea) -> None:
-        """Initialize sensor."""
-        super().__init__(
-            hass,
-            auto_area,
-            SensorDeviceClass.HUMIDITY,
-            HUMIDITY_SENSOR_PREFIX,
-            HUMIDITY_SENSOR_ENTITY_PREFIX
-        )
-
-    @cached_property
-    @override
-    def native_unit_of_measurement(self) -> str | None:
-        """Return unit of measurement."""
-        return PERCENTAGE
-
-    @override
-    @cached_property
-    def state(self) -> Any:  # type: ignore
-        """Return the state of the entity."""
-        return self._aggregated_state

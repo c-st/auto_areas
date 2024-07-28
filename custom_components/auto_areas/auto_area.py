@@ -6,7 +6,7 @@ from homeassistant.helpers.device_registry import async_get as async_get_device_
 from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
 from homeassistant.helpers.issue_registry import async_create_issue, IssueSeverity
 from homeassistant.config_entries import ConfigEntry
-
+from homeassistant.util import slugify
 from homeassistant.helpers.area_registry import AreaEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
 
@@ -67,7 +67,6 @@ class AutoArea:
             "%s: Initializing after HA start",
             self.area_name
         )
-
         self.auto_lights = AutoLights(self)
         await self.auto_lights.initialize()
 
@@ -98,3 +97,8 @@ class AutoArea:
     def area_name(self) -> str:
         """Return area name or fallback."""
         return self.area.name if self.area is not None else "unknown"
+
+    @property
+    def slugified_area_name(self) -> str:
+        """Return slugified area name or fallback."""
+        return slugify(self.area.name) if self.area is not None else "unknown"

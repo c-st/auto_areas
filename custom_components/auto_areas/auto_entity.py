@@ -136,13 +136,6 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
 
         self._aggregated_state = self._get_state()
 
-        LOGGER.debug(
-            "%s: got state %s, %d entities",
-            self.device_class,
-            str(self.state),
-            len(self.entity_states.values())
-        )
-
         self.async_schedule_update_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:
