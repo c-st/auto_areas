@@ -14,10 +14,15 @@ Example setup of areas and entities:
   - Light
   - Light 2
   - Light 3
+  - Cover 1
+  - Cover 2
+  - Cover 3
 - Bedroom (Area)
   - Motion sensor
   - Illuminance sensor
   - Light
+  - Cover 1
+  - Cover 2
 - Office (Area)
   - Motion sensor
   - Light
@@ -61,21 +66,6 @@ If only relying on motion sensors, presence could be cleared if there is only li
 
 A new switch with ID `switch.area_presence_lock_{area_name}` is created for each area. If the switch is `on`, lights will not be turned off.
 
-### Aggregated illuminance
-
-Tracks all illuminance measuring sensors in an area. By default the last known illuminance of all sensors is used.
-This illuminance is published in a `sensor` with the ID `sensor.area_illuminance_{area_name}`.
-
-### Aggregated temperature
-
-Tracks all temperature measuring sensors in an area. By default the average of known temperature of all sensors is used.
-This temperature is published in a `sensor` with the ID `sensor.area_temperature_{area_name}`.
-
-### Aggregated humidity
-
-Tracks all humidity measuring sensors in an area. By default the maximum of known humidity of all sensors is used.
-This humidity is published in a `sensor` with the ID `sensor.area_humidity_{area_name}`.
-
 ### Control lights automatically
 
 Lights are automatically turned on and off based on presence in an area.
@@ -94,6 +84,23 @@ A switch with ID `switch.area_sleep_mode_{area_name}` is created for each sleepi
 
 For information on how to mark an area as "sleeping area" refer to the [configuration section](#configuration).
 
+### Aggregated sensor readings
+
+#### Aggregated illuminance
+
+Tracks all illuminance measuring sensors in an area. By default the last known illuminance of all sensors is used.
+This illuminance is published in a `sensor` with the ID `sensor.area_illuminance_{area_name}`.
+
+#### Aggregated temperature
+
+Tracks all temperature measuring sensors in an area. By default the average of known temperature of all sensors is used.
+This temperature is published in a `sensor` with the ID `sensor.area_temperature_{area_name}`.
+
+#### Aggregated humidity
+
+Tracks all humidity measuring sensors in an area. By default the maximum of known humidity of all sensors is used.
+This humidity is published in a `sensor` with the ID `sensor.area_humidity_{area_name}`.
+
 #### Calculation methods
 
 - `mean` - The arithmetic mean of all sensor states that are available and have a numeric value.
@@ -101,6 +108,12 @@ For information on how to mark an area as "sleeping area" refer to the [configur
 - `min` - The minimum of all sensor states that are available and have a numeric value.
 - `max` - The maximum of all sensor states that are available and have a numeric value.
 - `last` - The last updated of all sensor states that is available and has a numeric value.
+
+### Automatic groups
+
+#### Cover groups
+
+If at least one cover is detected in an area, a cover group is created. This group can be used to control all blinds with one entity.
 
 ## Installation
 
