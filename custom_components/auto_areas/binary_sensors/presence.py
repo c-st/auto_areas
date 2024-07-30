@@ -1,7 +1,6 @@
 """Presence binary sensor."""
 
 from __future__ import annotations
-from custom_components.auto_areas.ha_helpers import all_states_are_off
 
 from functools import cached_property
 from typing import Literal, override
@@ -12,6 +11,8 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 from homeassistant.helpers.event import async_track_state_change_event
+
+from custom_components.auto_areas.ha_helpers import all_states_are_off
 from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.auto_entity import AutoEntity
 from custom_components.auto_areas.const import (

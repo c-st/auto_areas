@@ -69,13 +69,7 @@ class AutoCoverGroup(CoverGroup):
     @cached_property
     def device_info(self) -> DeviceInfo:
         """Information about this device."""
-        return {
-            "identifiers": {(DOMAIN, self.auto_area.config_entry.entry_id)},
-            "name": NAME,
-            "model": VERSION,
-            "manufacturer": NAME,
-            "suggested_area": self.auto_area.area_name,
-        }
+        return self.auto_area.device_info
 
     @cached_property
     def unique_id(self) -> str | None:
