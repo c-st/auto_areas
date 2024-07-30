@@ -14,9 +14,7 @@ from custom_components.auto_areas.const import (
     COVER_GROUP_ENTITY_PREFIX,
     COVER_GROUP_PREFIX,
     DOMAIN,
-    LOGGER,
-    NAME,
-    VERSION
+    LOGGER
 )
 
 

@@ -1,6 +1,5 @@
 """Core area functionality."""
 from __future__ import annotations
-from token import NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.area_registry import async_get as async_get_area_registry
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry

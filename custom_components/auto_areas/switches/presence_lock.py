@@ -11,11 +11,8 @@ from homeassistant.helpers.typing import UndefinedType
 
 from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.const import (
-    DOMAIN,
     LOGGER,
-    NAME,
-    PRESENCE_LOCK_SWITCH_PREFIX,
-    VERSION
+    PRESENCE_LOCK_SWITCH_PREFIX
 )
 
 
