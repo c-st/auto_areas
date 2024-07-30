@@ -11,11 +11,8 @@ from homeassistant.helpers.typing import UndefinedType
 
 from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.const import (
-    DOMAIN,
     LOGGER,
-    NAME,
-    SLEEP_MODE_SWITCH_PREFIX,
-    VERSION
+    SLEEP_MODE_SWITCH_PREFIX
 )
 
 
@@ -47,13 +44,7 @@ class SleepModeSwitch(SwitchEntity):
     @cached_property
     def device_info(self) -> DeviceInfo:
         """Information about this device."""
-        return {
-            "identifiers": {(DOMAIN, self.auto_area.config_entry.entry_id)},
-            "name": NAME,
-            "model": VERSION,
-            "manufacturer": NAME,
-            "suggested_area": self.auto_area.area_name,
-        }
+        return self.auto_area.device_info
 
     @cached_property
     def device_class(self) -> SwitchDeviceClass | None:

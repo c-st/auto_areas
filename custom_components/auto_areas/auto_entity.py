@@ -16,7 +16,7 @@ from homeassistant.helpers.event import async_track_state_change_event
 from custom_components.auto_areas.calculations import get_calculation
 
 from .auto_area import AutoArea
-from .const import DOMAIN, LOGGER, NAME, VERSION
+from .const import LOGGER
 
 _TEntity = TypeVar("_TEntity", bound=Entity)
 _TDeviceClass = TypeVar(
@@ -83,13 +83,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
     @cached_property
     def device_info(self) -> DeviceInfo:
         """Information about this device."""
-        return {
-            "identifiers": {(DOMAIN, self.auto_area.config_entry.entry_id)},
-            "name": NAME,
-            "model": VERSION,
-            "manufacturer": NAME,
-            "suggested_area": self.auto_area.area_name,
-        }
+        return self.auto_area.device_info
 
     @cached_property
     def suggested_display_precision(self) -> int | None:

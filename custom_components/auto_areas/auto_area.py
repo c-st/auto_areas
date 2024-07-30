@@ -4,6 +4,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.area_registry import async_get as async_get_area_registry
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.issue_registry import async_create_issue, IssueSeverity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.util import slugify
@@ -20,6 +21,8 @@ from .const import (
     ISSUE_TYPE_INVALID_AREA,
     LOGGER,
     RELEVANT_DOMAINS,
+    NAME,
+    VERSION
 )
 
 
@@ -101,6 +104,17 @@ class AutoArea:
             if entity.device_class in device_classes
             or entity.original_device_class in device_classes
         ]
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Information about this device."""
+        return {
+            "identifiers": {(DOMAIN, self.config_entry.entry_id)},
+            "name": NAME,
+            "model": VERSION,
+            "manufacturer": NAME,
+            "suggested_area": self.area_name,
+        }
 
     @property
     def area_name(self) -> str:

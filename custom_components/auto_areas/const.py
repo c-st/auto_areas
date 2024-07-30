@@ -18,8 +18,7 @@ LOGGER: Logger = getLogger(__package__)
 
 NAME = "Auto Areas"
 DOMAIN = "auto_areas"
-VERSION = "2.0.0"
-ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
+VERSION = "2.6.2"
 
 #
 # Naming constants
