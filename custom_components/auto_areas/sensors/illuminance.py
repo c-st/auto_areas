@@ -36,6 +36,12 @@ class IlluminanceSensor(
         """Return unit of measurement."""
         return LIGHT_LUX
 
+    @override
+    @cached_property
+    def suggested_display_precision(self) -> int | None:
+        """Set the suggested precision (0)."""
+        return 0
+
     @property
     def state(self) -> Any:  # type: ignore
         """Return the state of the entity."""

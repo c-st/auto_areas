@@ -91,6 +91,11 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             "suggested_area": self.auto_area.area_name,
         }
 
+    @cached_property
+    def suggested_display_precision(self) -> int | None:
+        """Set the suggested precision (0.12)."""
+        return 2
+
     async def async_added_to_hass(self):
         """Start tracking sensors."""
         LOGGER.debug(
