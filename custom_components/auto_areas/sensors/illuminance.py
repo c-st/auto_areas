@@ -39,7 +39,7 @@ class IlluminanceSensor(
     @override
     @cached_property
     def suggested_display_precision(self) -> int | None:
-        """Set the suggested precision (0). """
+        """Set the suggested precision (0)."""
         return 0
 
     @property
