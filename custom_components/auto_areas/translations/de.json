@@ -1,0 +1,53 @@
+{
+    "config": {
+        "step": {
+            "init": {
+                "title": "🤖 Auto Area",
+                "data": {
+                    "area": "Zu verwaltende Area"
+                }
+            }
+        },
+        "error": {
+            "area_already_managed": "Diese Area wird bereits von Auto Areas kontrolliert. Bitte ändere stattdessen die bestehende Konfiguration."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "🤖 Auto Area",
+                "description": "Konfiguriere das Verhalten dieser Area",
+                "data": {
+                    "is_sleeping_area": "Schlafbereich",
+                    "excluded_light_entities": "Ausgeschlossene Licht-Entities:",
+                    "auto_lights_illuminance_threshold": "Licht nur einschalten, wenn Beleuchtungsstärke unter:",
+                    "humidity_calculation": "Berechnung Luftfeuchte:",
+                    "temperature_calculation": "Berechnung Temperatur:",
+                    "illuminance_calculation": "Berechnung Beleuchtungsstärke:"
+                }
+            }
+        }
+    },
+    "issues": {
+        "issue_yaml_detected": {
+            "title": "YAML-Konfiguration wird nicht mehr unterstützt",
+            "description": "🤖 Auto Areas wird von nun an vollständig über die Home-Assistant UI konfiguriert:\n\nGehe zu `Einstellungen`/`Geräte & Dienste` und füge eine `Auto Areas` Integration für alle zu verwaltenden Areas hinzu.\nDu kannst sie nun komfortabel über die UI konfigurieren 🙌.\n\nDie vorhandene Konfiguration in `configuration.yaml` wird ignoriert. Dieser Hinweis verschwindet, sobald die YAML-Konfiguration entfernt wurde."
+        },
+        "invalid_area_config": {
+            "title": "Gewählt Area ist nicht gültig",
+            "fix_flow": {
+                "step": {
+                    "area": {
+                        "title": "🤖 Auto Area",
+                        "data": {
+                            "area": "Zu verwaltende Area"
+                        }
+                    }
+                },
+                "error": {
+                    "area_already_managed": "Diese Area wird bereits von Auto Areas kontrolliert. Bitte ändere stattdessen die bestehende Konfiguration."
+                }
+            }
+        }
+    }
+}
