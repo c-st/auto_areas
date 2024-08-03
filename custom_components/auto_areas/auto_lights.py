@@ -10,13 +10,10 @@ from homeassistant.const import (
 )
 from homeassistant.util import slugify
 
-from .ha_helpers import get_all_entities
-
 from .const import (
-    DOMAIN,
     CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
-    EXCLUDED_DOMAINS,
     ILLUMINANCE_SENSOR_ENTITY_PREFIX,
+    LIGHT_GROUP_ENTITY_PREFIX,
     LOGGER,
     CONFIG_IS_SLEEPING_AREA,
     CONFIG_EXCLUDED_LIGHT_ENTITIES,
@@ -66,32 +63,19 @@ class AutoLights:
             f"{ILLUMINANCE_SENSOR_ENTITY_PREFIX}{
                 slugify(self.auto_area.area_name)}"
         )
-
-        self.light_entity_ids = [
-            entity.entity_id
-            for entity in get_all_entities(
-                self.auto_area.entity_registry,
-                self.auto_area.device_registry,
-                self.auto_area.area_id,
-                [LIGHT_DOMAIN],
-            )
-            if entity.entity_id not in self.excluded_light_entities and entity.platform not in EXCLUDED_DOMAINS
-        ]
+        self.light_group_entity_id = (
+            f"{LIGHT_GROUP_ENTITY_PREFIX}{
+                slugify(self.auto_area.area_name)}"
+        )
 
         self.sleep_mode_enabled = None
         self.lights_turned_on = None
 
         LOGGER.debug(
-            "%s: Managing light entities: %s",
+            "%s: Managing light group entity: %s",
             self.auto_area.area_name,
-            self.light_entity_ids,
+            self.light_group_entity_id,
         )
-
-        if len(self.light_entity_ids) == 0:
-            LOGGER.warning(
-                "%s: No light entities found to manage",
-                self.auto_area.area_name
-            )
 
     async def initialize(self):
         """Start subscribing to state changes."""
@@ -113,31 +97,21 @@ class AutoLights:
 
         # set lights initially based on presence
         initial_presence_state = self.hass.states.get(self.presence_entity_id)
-        if initial_presence_state and self.light_entity_ids:
+        if initial_presence_state and self.light_group_entity_id:
             if initial_presence_state.state == STATE_ON:
                 LOGGER.info(
                     "%s: Initial presence detected. Turning lights on %s",
                     self.auto_area.area_name,
-                    self.light_entity_ids,
+                    self.light_group_entity_id,
                 )
-                await self.auto_area.hass.services.async_call(
-                    LIGHT_DOMAIN,
-                    SERVICE_TURN_ON,
-                    {ATTR_ENTITY_ID: self.light_entity_ids},
-                )
-                self.lights_turned_on = True
+                await self._turn_lights_on()
             else:
                 LOGGER.info(
                     "%s: No initial presence detected. Turning lights off %s",
                     self.auto_area.area_name,
-                    self.light_entity_ids,
+                    self.light_group_entity_id,
                 )
-                await self.auto_area.hass.services.async_call(
-                    LIGHT_DOMAIN,
-                    SERVICE_TURN_OFF,
-                    {ATTR_ENTITY_ID: self.light_entity_ids},
-                )
-                self.lights_turned_on = False
+                await self._turn_lights_off()
 
         self.unsubscribe_presence = async_track_state_change_event(
             self.auto_area.hass,
@@ -201,14 +175,9 @@ class AutoLights:
             LOGGER.info(
                 "%s: Turning lights on %s",
                 self.auto_area.area_name,
-                self.light_entity_ids,
+                self.light_group_entity_id,
             )
-            await self.hass.services.async_call(
-                LIGHT_DOMAIN,
-                SERVICE_TURN_ON,
-                {ATTR_ENTITY_ID: self.light_entity_ids},
-            )
-            self.lights_turned_on = True
+            await self._turn_lights_on()
             return
         else:
             # turn lights off
@@ -216,14 +185,25 @@ class AutoLights:
                 LOGGER.info(
                     "%s: Turning lights off %s",
                     self.auto_area.area_name,
-                    self.light_entity_ids,
+                    self.light_group_entity_id,
                 )
-            await self.hass.services.async_call(
-                LIGHT_DOMAIN,
-                SERVICE_TURN_OFF,
-                {ATTR_ENTITY_ID: self.light_entity_ids},
-            )
-            self.lights_turned_on = False
+            await self._turn_lights_off()
+
+    async def _turn_lights_on(self):
+        await self.hass.services.async_call(
+            LIGHT_DOMAIN,
+            SERVICE_TURN_ON,
+            {ATTR_ENTITY_ID: self.light_group_entity_id},
+        )
+        self.lights_turned_on = True
+
+    async def _turn_lights_off(self):
+        await self.hass.services.async_call(
+            LIGHT_DOMAIN,
+            SERVICE_TURN_OFF,
+            {ATTR_ENTITY_ID: self.light_group_entity_id},
+        )
+        self.lights_turned_on = False
 
     async def handle_sleep_mode_state_change(self, event: Event[EventStateChangedData]):
         """Handle changes in sleep mode."""
@@ -249,15 +229,10 @@ class AutoLights:
             LOGGER.info(
                 "%s: Sleep mode enabled - turning lights off %s",
                 self.auto_area.area_name,
-                self.light_entity_ids,
+                self.light_group_entity_id,
             )
             self.sleep_mode_enabled = True
-            await self.hass.services.async_call(
-                LIGHT_DOMAIN,
-                SERVICE_TURN_OFF,
-                {ATTR_ENTITY_ID: self.light_entity_ids},
-            )
-            self.lights_turned_on = False
+            await self._turn_lights_off()
         else:
             LOGGER.info(
                 "%s: Sleep mode disabled",
@@ -273,14 +248,9 @@ class AutoLights:
                 LOGGER.info(
                     "%s: Turning lights on due to presence %s",
                     self.auto_area.area_name,
-                    self.light_entity_ids,
+                    self.light_group_entity_id,
                 )
-                await self.hass.services.async_call(
-                    LIGHT_DOMAIN,
-                    SERVICE_TURN_ON,
-                    {ATTR_ENTITY_ID: self.light_entity_ids},
-                )
-                self.lights_turned_on = True
+                await self._turn_lights_on()
 
     async def handle_illuminance_change(self, _event: Event[EventStateChangedData]):
         """Handle changes in illuminance."""
@@ -304,13 +274,9 @@ class AutoLights:
         LOGGER.info(
             "%s: Turning lights on due to illuminance %s",
             self.auto_area.area_name,
-            self.light_entity_ids,
+            self.light_group_entity_id,
         )
-        await self.hass.services.async_call(
-            LIGHT_DOMAIN,
-            SERVICE_TURN_ON,
-            {ATTR_ENTITY_ID: self.light_entity_ids},
-        )
+        await self._turn_lights_on()
 
     def is_below_illuminance_threshold(self) -> bool:
         """Evaluate if current illuminance is below threshold."""
