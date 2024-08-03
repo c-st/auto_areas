@@ -1,63 +1,75 @@
-"""Cover group."""
+"""Light group."""
 
 from functools import cached_property
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.components.group.cover import CoverGroup
+from homeassistant.components.group.light import LightGroup
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.components.cover import (
-    CoverDeviceClass,
-    DEVICE_CLASSES as COVER_DEVICE_CLASSES,
-)
+from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 
 from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.const import (
-    COVER_GROUP_ENTITY_PREFIX,
-    COVER_GROUP_PREFIX,
+    CONFIG_EXCLUDED_LIGHT_ENTITIES,
     DOMAIN,
+    LIGHT_GROUP_ENTITY_PREFIX,
+    LIGHT_GROUP_PREFIX,
     LOGGER
 )
 
+from .ha_helpers import get_all_entities
+
 
 async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback):
-    """Set up the cover platform."""
+    """Set up the light platform."""
     auto_area: AutoArea = hass.data[DOMAIN][entry.entry_id]
-
-    cover_entity_ids: list[str] = auto_area.get_area_entity_ids(
-        COVER_DEVICE_CLASSES
+    excluded_light_entities = excluded_light_entities = (
+        auto_area.config_entry.options.get(
+            CONFIG_EXCLUDED_LIGHT_ENTITIES)
+        or []
     )
-    if not cover_entity_ids:
+    light_entity_ids = [
+        entity.entity_id
+        for entity in get_all_entities(
+            auto_area.entity_registry,
+            auto_area.device_registry,
+            auto_area.area_id,
+            [LIGHT_DOMAIN],
+        )
+        if entity.entity_id not in excluded_light_entities
+    ]
+
+    if not light_entity_ids:
         LOGGER.info(
-            "%s: No covers found in area. Not creating cover group.",
+            "%s: No lights found in area. Not creating light group.",
             auto_area.area_name,
         )
     else:
-        async_add_entities([AutoCoverGroup(
+        async_add_entities([AutoLightGroup(
             hass,
             auto_area,
-            entity_ids=cover_entity_ids
+            entity_ids=light_entity_ids
         )])
 
 
-class AutoCoverGroup(CoverGroup):
+class AutoLightGroup(LightGroup):
     """Cover group with area covers."""
 
     def __init__(self, hass, auto_area: AutoArea, entity_ids: list[str]) -> None:
         """Initialize cover group."""
         self.hass = hass
         self.auto_area = auto_area
-        self._device_class = CoverDeviceClass.BLIND
-        self._name_prefix = COVER_GROUP_PREFIX
-        self._prefix = COVER_GROUP_ENTITY_PREFIX
+        self._name_prefix = LIGHT_GROUP_PREFIX
+        self._prefix = LIGHT_GROUP_ENTITY_PREFIX
         self.entity_ids: list[str] = entity_ids
 
-        CoverGroup.__init__(
+        LightGroup.__init__(
             self,
-            entities=self.entity_ids,
-            name=None,
             unique_id=self._attr_unique_id,
+            name=None,
+            entity_ids=self.entity_ids,
+            mode=None
         )
         LOGGER.info(
-            "%s (%s): Initialized cover group. Entities: %s",
+            "%s (%s): Initialized light group. Entities: %s",
             self.auto_area.area_name,
             self.device_class,
             self.entity_ids
@@ -76,4 +88,4 @@ class AutoCoverGroup(CoverGroup):
     @cached_property
     def unique_id(self) -> str | None:
         """Return a unique ID."""
-        return f"{self.auto_area.config_entry.entry_id}_cover_group"
+        return f"{self.auto_area.config_entry.entry_id}_light_group"
