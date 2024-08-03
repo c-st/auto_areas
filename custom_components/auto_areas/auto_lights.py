@@ -293,10 +293,6 @@ class AutoLights:
 
         # Check if lights were already turned on before
         if self.lights_turned_on:
-            LOGGER.debug(
-                "%s: Lights were already turned on. Not turning on lights",
-                self.auto_area.area_name,
-            )
             return
 
         # Evaluate current illuminance

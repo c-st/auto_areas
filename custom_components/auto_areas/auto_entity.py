@@ -51,9 +51,10 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
         self._aggregated_state: StateType = None
 
         LOGGER.info(
-            "%s: Initialized %s sensor",
+            "%s (%s): Initialized sensor. Entities: %s",
             self.auto_area.area_name,
-            self.device_class
+            self.device_class,
+            self.entity_ids
         )
 
     def _get_sensor_entities(self) -> list[str]:
@@ -92,13 +93,6 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
 
     async def async_added_to_hass(self):
         """Start tracking sensors."""
-        LOGGER.debug(
-            "%s: %s sensor entities: %s",
-            self.auto_area.area_name,
-            self.device_class,
-            self.entity_ids,
-        )
-
         # Get all current states
         for entity_id in self.entity_ids:
             state = self.hass.states.get(entity_id)
@@ -107,7 +101,10 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
                     self.entity_states[entity_id] = state
                 except ValueError:
                     LOGGER.warning(
-                        "No initial state available for %s", entity_id
+                        "%s (%s): No initial state available for %s",
+                        self.auto_area.area_name,
+                        self.device_class,
+                        entity_id
                     )
 
         self._aggregated_state = self._get_state()

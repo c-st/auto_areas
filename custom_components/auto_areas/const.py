@@ -47,6 +47,8 @@ HUMIDITY_SENSOR_ENTITY_PREFIX = "sensor.area_humidity_"
 COVER_GROUP_PREFIX = "Area Covers "
 COVER_GROUP_ENTITY_PREFIX = "cover.area_covers_"
 
+LIGHT_GROUP_PREFIX = "Area Lights "
+LIGHT_GROUP_ENTITY_PREFIX = "cover.area_lights_"
 #
 # Config flow constants
 #
