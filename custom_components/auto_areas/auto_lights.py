@@ -13,6 +13,7 @@ from homeassistant.util import slugify
 from .ha_helpers import get_all_entities
 
 from .const import (
+    DOMAIN,
     CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
     ILLUMINANCE_SENSOR_ENTITY_PREFIX,
     LOGGER,
@@ -73,7 +74,7 @@ class AutoLights:
                 self.auto_area.area_id,
                 [LIGHT_DOMAIN],
             )
-            if entity.entity_id not in self.excluded_light_entities
+            if entity.entity_id not in self.excluded_light_entities and entity.platform != DOMAIN
         ]
 
         self.sleep_mode_enabled = None

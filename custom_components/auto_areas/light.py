@@ -34,7 +34,7 @@ async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback
             auto_area.area_id,
             [LIGHT_DOMAIN],
         )
-        if entity.entity_id not in excluded_light_entities
+        if entity.entity_id not in excluded_light_entities and entity.platform != DOMAIN
     ]
 
     if not light_entity_ids:
