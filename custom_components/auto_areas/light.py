@@ -10,6 +10,7 @@ from custom_components.auto_areas.auto_area import AutoArea
 from custom_components.auto_areas.const import (
     CONFIG_EXCLUDED_LIGHT_ENTITIES,
     DOMAIN,
+    EXCLUDED_DOMAINS,
     LIGHT_GROUP_ENTITY_PREFIX,
     LIGHT_GROUP_PREFIX,
     LOGGER
@@ -34,7 +35,8 @@ async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback
             auto_area.area_id,
             [LIGHT_DOMAIN],
         )
-        if entity.entity_id not in excluded_light_entities and entity.platform != DOMAIN
+        if entity.entity_id not in excluded_light_entities
+        and entity.platform not in EXCLUDED_DOMAINS
     ]
 
     if not light_entity_ids:

@@ -9,6 +9,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.components.sensor.const import DOMAIN as SENSOR_DOMAIN
+from homeassistant.components.group.const import DOMAIN as GROUP_DOMAIN
 from homeassistant.components.switch.const import DOMAIN as SWITCH_DOMAIN
 from homeassistant.components.cover import DOMAIN as COVER_DOMAIN
 from homeassistant.const import STATE_HOME, STATE_ON, STATE_PLAYING
@@ -68,6 +69,11 @@ RELEVANT_DOMAINS = [
     SWITCH_DOMAIN,
     LIGHT_DOMAIN,
     COVER_DOMAIN,
+]
+
+EXCLUDED_DOMAINS = [
+    DOMAIN,
+    GROUP_DOMAIN,
 ]
 
 # Presence entities

@@ -15,6 +15,7 @@ from .ha_helpers import get_all_entities
 from .const import (
     DOMAIN,
     CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
+    EXCLUDED_DOMAINS,
     ILLUMINANCE_SENSOR_ENTITY_PREFIX,
     LOGGER,
     CONFIG_IS_SLEEPING_AREA,
@@ -74,7 +75,7 @@ class AutoLights:
                 self.auto_area.area_id,
                 [LIGHT_DOMAIN],
             )
-            if entity.entity_id not in self.excluded_light_entities and entity.platform != DOMAIN
+            if entity.entity_id not in self.excluded_light_entities and entity.platform not in EXCLUDED_DOMAINS
         ]
 
         self.sleep_mode_enabled = None
