@@ -113,7 +113,11 @@ This humidity is published in a `sensor` with the ID `sensor.area_humidity_{area
 
 #### Cover groups
 
-If at least one cover is detected in an area, a cover group is created. This group can be used to control all blinds with one entity.
+If at least one cover is detected in an area, a cover group is created. This group can be used to control all blinds at once.
+
+#### Light groups
+
+If an area contains at least one light, a group is created. This group can be used to control all lights at once.
 
 ## Installation
 
@@ -127,14 +131,14 @@ Auto Areas is a custom_component for Home Assistant.
 
 Navigate to "Settings"/"Devices & Services"/"Auto Areas" and select the area for which you want to change the options for. Select "Configure" and change the behaviour with the following options:
 
-| Area option             | Description                                                                                         | Default value      |
-| ----------------------- | :-------------------------------------------------------------------------------------------------- | ------------------ |
-| Set as sleeping area    | Mark area as sleeping area. A switch for controlling sleep mode is created. [See more](#sleep-mode) | `false` (disabled) |
-| Excluded light entities | Entities to exclude from automatic light control. These lights are never turned on or off.          | `[]` (none)        |
-| Illuminance threshold   | Only if area illuminance is lower than this threshold, lights are turned on.                        | `0`                |
-| Illuminance calculation | Configure the calculation for the aggregate illuminance sensor.                                     | `last`             |
-| Temperature calculation | Configure the calculation for the aggregate temperature sensor.                                     | `mean`             |
-| Humditity calculation   | Configure the calculation for the aggregate humidity sensor.                                        | `max`              |
+| Area option             | Description                                                                                                                  | Default value      |
+| ----------------------- | :--------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Set as sleeping area    | Mark area as sleeping area. A switch for controlling sleep mode is created. [See more](#sleep-mode).                         | `false` (disabled) |
+| Excluded light entities | Entities to exclude from automatic light control. These lights are never turned on or off and are not part of a light group. | `[]` (none)        |
+| Illuminance threshold   | Only if area illuminance is lower than this threshold, lights are turned on.                                                 | `0`                |
+| Illuminance calculation | Configure the calculation for the aggregate illuminance sensor.                                                              | `last`             |
+| Temperature calculation | Configure the calculation for the aggregate temperature sensor.                                                              | `mean`             |
+| Humditity calculation   | Configure the calculation for the aggregate humidity sensor.                                                                 | `max`              |
 
 ## Development
 
