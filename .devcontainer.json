@@ -1,6 +1,6 @@
 {
     "name": "c-st/auto_areas",
-    "image": "mcr.microsoft.com/devcontainers/python:3.12",
+    "image": "mcr.microsoft.com/devcontainers/python:latest",
     "postCreateCommand": "scripts/setup",
     "forwardPorts": [
         8123
