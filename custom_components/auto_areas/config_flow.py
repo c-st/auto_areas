@@ -16,8 +16,6 @@ from homeassistant.helpers import (
 
 import homeassistant.helpers.selector as selector
 from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
-from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.data_entry_flow import FlowResult
 
 from custom_components.auto_areas.calculations import (
@@ -93,26 +91,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                             CONFIG_AREA),  # type: ignore
                     ): selector.AreaSelector(
                         selector.AreaSelectorConfig(
-                            entity=[
-                                selector.EntityFilterSelectorConfig(
-                                    device_class=SensorDeviceClass.TEMPERATURE
-                                ),
-                                selector.EntityFilterSelectorConfig(
-                                    device_class=SensorDeviceClass.HUMIDITY
-                                ),
-                                selector.EntityFilterSelectorConfig(
-                                    device_class=SensorDeviceClass.ILLUMINANCE
-                                ),
-                                selector.EntityFilterSelectorConfig(
-                                    device_class=BinarySensorDeviceClass.MOTION
-                                ),
-                                selector.EntityFilterSelectorConfig(
-                                    device_class=BinarySensorDeviceClass.OCCUPANCY
-                                ),
-                                selector.EntityFilterSelectorConfig(
-                                    device_class=BinarySensorDeviceClass.PRESENCE
-                                ),
-                            ],
                             multiple=False,
                         )
                     ),
