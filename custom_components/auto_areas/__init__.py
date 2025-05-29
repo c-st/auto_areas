@@ -55,7 +55,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_init(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
     """Initialize component."""
-    await asyncio.sleep(5)  # wait for all area devices to be initialized
     await auto_area.async_initialize()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
