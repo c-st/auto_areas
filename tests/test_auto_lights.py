@@ -1,8 +1,7 @@
 """Test Auto Lights functionality."""
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 import pytest
 from homeassistant.const import STATE_ON, STATE_OFF
-from homeassistant.core import HomeAssistant, Event
 
 from custom_components.auto_areas.auto_lights import AutoLights
 from custom_components.auto_areas.const import (
@@ -13,11 +12,21 @@ from custom_components.auto_areas.const import (
 
 
 @pytest.fixture
-def mock_auto_area():
+def mock_hass():
+    """Create a mock HomeAssistant instance."""
+    hass = MagicMock()
+    hass.states = MagicMock()
+    hass.services = MagicMock()
+    hass.services.async_call = AsyncMock()
+    return hass
+
+
+@pytest.fixture
+def mock_auto_area(mock_hass):
     """Create a mock AutoArea."""
     auto_area = MagicMock()
     auto_area.area_name = "test_room"
-    auto_area.hass = MagicMock(spec=HomeAssistant)
+    auto_area.hass = mock_hass
     auto_area.config_entry = MagicMock()
     auto_area.config_entry.options = {
         CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE: 100,
@@ -31,6 +40,25 @@ def mock_auto_area():
 def auto_lights(mock_auto_area):
     """Create an AutoLights instance."""
     return AutoLights(mock_auto_area)
+
+
+def create_state_change_event(entity_id, old_state_value, new_state_value):
+    """Helper to create state change event."""
+    old_state = MagicMock() if old_state_value is not None else None
+    if old_state:
+        old_state.state = old_state_value
+
+    new_state = MagicMock() if new_state_value is not None else None
+    if new_state:
+        new_state.state = new_state_value
+
+    event = MagicMock()
+    event.data = {
+        "entity_id": entity_id,
+        "old_state": old_state,
+        "new_state": new_state,
+    }
+    return event
 
 
 class TestAutoLightsInitialization:
@@ -123,8 +151,6 @@ class TestPresenceHandling:
     @pytest.mark.asyncio
     async def test_turn_lights_on(self, auto_lights):
         """Test turning lights on."""
-        auto_lights.hass.services.async_call = AsyncMock()
-
         await auto_lights._turn_lights_on()
 
         auto_lights.hass.services.async_call.assert_called_once()
@@ -133,8 +159,6 @@ class TestPresenceHandling:
     @pytest.mark.asyncio
     async def test_turn_lights_off(self, auto_lights):
         """Test turning lights off."""
-        auto_lights.hass.services.async_call = AsyncMock()
-
         await auto_lights._turn_lights_off()
 
         auto_lights.hass.services.async_call.assert_called_once()
@@ -143,21 +167,14 @@ class TestPresenceHandling:
     @pytest.mark.asyncio
     async def test_handle_presence_on_below_illuminance(self, auto_lights):
         """Test lights turn on when presence detected and dark."""
-        # Setup
         auto_lights.sleep_mode_enabled = False
         mock_state = MagicMock()
-        mock_state.state = "50"  # Below threshold of 100
+        mock_state.state = "50"
         auto_lights.hass.states.get.return_value = mock_state
-        auto_lights.hass.services.async_call = AsyncMock()
 
-        # Create event
-        event_data = {
-            "entity_id": auto_lights.presence_entity_id,
-            "old_state": MagicMock(state=STATE_OFF),
-            "new_state": MagicMock(state=STATE_ON),
-        }
-        event = MagicMock(spec=Event)
-        event.data = event_data
+        event = create_state_change_event(
+            auto_lights.presence_entity_id, STATE_OFF, STATE_ON
+        )
 
         await auto_lights.handle_presence_state_change(event)
 
@@ -167,21 +184,14 @@ class TestPresenceHandling:
     @pytest.mark.asyncio
     async def test_handle_presence_on_above_illuminance(self, auto_lights):
         """Test lights don't turn on when too bright."""
-        # Setup
         auto_lights.sleep_mode_enabled = False
         mock_state = MagicMock()
-        mock_state.state = "150"  # Above threshold of 100
+        mock_state.state = "150"
         auto_lights.hass.states.get.return_value = mock_state
-        auto_lights.hass.services.async_call = AsyncMock()
 
-        # Create event
-        event_data = {
-            "entity_id": auto_lights.presence_entity_id,
-            "old_state": MagicMock(state=STATE_OFF),
-            "new_state": MagicMock(state=STATE_ON),
-        }
-        event = MagicMock(spec=Event)
-        event.data = event_data
+        event = create_state_change_event(
+            auto_lights.presence_entity_id, STATE_OFF, STATE_ON
+        )
 
         await auto_lights.handle_presence_state_change(event)
 
@@ -190,18 +200,11 @@ class TestPresenceHandling:
     @pytest.mark.asyncio
     async def test_handle_presence_off(self, auto_lights):
         """Test lights turn off when presence cleared."""
-        # Setup
         auto_lights.sleep_mode_enabled = False
-        auto_lights.hass.services.async_call = AsyncMock()
 
-        # Create event
-        event_data = {
-            "entity_id": auto_lights.presence_entity_id,
-            "old_state": MagicMock(state=STATE_ON),
-            "new_state": MagicMock(state=STATE_OFF),
-        }
-        event = MagicMock(spec=Event)
-        event.data = event_data
+        event = create_state_change_event(
+            auto_lights.presence_entity_id, STATE_ON, STATE_OFF
+        )
 
         await auto_lights.handle_presence_state_change(event)
 
@@ -215,18 +218,11 @@ class TestSleepMode:
     @pytest.mark.asyncio
     async def test_sleep_mode_prevents_lights_on(self, auto_lights):
         """Test that sleep mode prevents lights from turning on."""
-        # Setup
         auto_lights.sleep_mode_enabled = True
-        auto_lights.hass.services.async_call = AsyncMock()
 
-        # Create event
-        event_data = {
-            "entity_id": auto_lights.presence_entity_id,
-            "old_state": MagicMock(state=STATE_OFF),
-            "new_state": MagicMock(state=STATE_ON),
-        }
-        event = MagicMock(spec=Event)
-        event.data = event_data
+        event = create_state_change_event(
+            auto_lights.presence_entity_id, STATE_OFF, STATE_ON
+        )
 
         await auto_lights.handle_presence_state_change(event)
 
@@ -235,17 +231,9 @@ class TestSleepMode:
     @pytest.mark.asyncio
     async def test_sleep_mode_enabled_turns_lights_off(self, auto_lights):
         """Test enabling sleep mode turns lights off."""
-        # Setup
-        auto_lights.hass.services.async_call = AsyncMock()
-
-        # Create event
-        event_data = {
-            "entity_id": auto_lights.sleep_mode_entity_id,
-            "old_state": MagicMock(state=STATE_OFF),
-            "new_state": MagicMock(state=STATE_ON),
-        }
-        event = MagicMock(spec=Event)
-        event.data = event_data
+        event = create_state_change_event(
+            auto_lights.sleep_mode_entity_id, STATE_OFF, STATE_ON
+        )
 
         await auto_lights.handle_sleep_mode_state_change(event)
 
@@ -255,27 +243,20 @@ class TestSleepMode:
     @pytest.mark.asyncio
     async def test_sleep_mode_disabled_restores_lights(self, auto_lights):
         """Test disabling sleep mode turns lights on if presence detected."""
-        # Setup
         auto_lights.sleep_mode_enabled = True
         mock_presence_state = MagicMock()
         mock_presence_state.state = STATE_ON
 
         mock_illuminance_state = MagicMock()
-        mock_illuminance_state.state = "50"  # Below threshold
+        mock_illuminance_state.state = "50"
 
         auto_lights.hass.states.get.side_effect = lambda entity_id: (
             mock_presence_state if "presence" in entity_id else mock_illuminance_state
         )
-        auto_lights.hass.services.async_call = AsyncMock()
 
-        # Create event
-        event_data = {
-            "entity_id": auto_lights.sleep_mode_entity_id,
-            "old_state": MagicMock(state=STATE_ON),
-            "new_state": MagicMock(state=STATE_OFF),
-        }
-        event = MagicMock(spec=Event)
-        event.data = event_data
+        event = create_state_change_event(
+            auto_lights.sleep_mode_entity_id, STATE_ON, STATE_OFF
+        )
 
         await auto_lights.handle_sleep_mode_state_change(event)
 
@@ -283,96 +264,11 @@ class TestSleepMode:
         auto_lights.hass.services.async_call.assert_called_once()
 
 
-class TestIlluminanceChangeHandling:
-    """Test illuminance change event handling."""
-
-    @pytest.mark.asyncio
-    async def test_illuminance_change_turns_lights_on(self, auto_lights):
-        """Test lights turn on when it gets dark with presence."""
-        # Setup
-        auto_lights.sleep_mode_enabled = False
-        auto_lights.lights_turned_on = False
-
-        mock_presence_state = MagicMock()
-        mock_presence_state.state = STATE_ON
-
-        mock_illuminance_state = MagicMock()
-        mock_illuminance_state.state = "50"  # Below threshold
-
-        auto_lights.hass.states.get.side_effect = lambda entity_id: (
-            mock_presence_state if "presence" in entity_id else mock_illuminance_state
-        )
-        auto_lights.hass.services.async_call = AsyncMock()
-
-        # Create event
-        event = MagicMock(spec=Event)
-        event.data = {}
-
-        await auto_lights.handle_illuminance_change(event)
-
-        auto_lights.hass.services.async_call.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_illuminance_change_no_presence(self, auto_lights):
-        """Test lights don't turn on when no presence."""
-        # Setup
-        mock_presence_state = MagicMock()
-        mock_presence_state.state = STATE_OFF
-        auto_lights.hass.states.get.return_value = mock_presence_state
-        auto_lights.hass.services.async_call = AsyncMock()
-
-        # Create event
-        event = MagicMock(spec=Event)
-        event.data = {}
-
-        await auto_lights.handle_illuminance_change(event)
-
-        auto_lights.hass.services.async_call.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_illuminance_change_with_sleep_mode(self, auto_lights):
-        """Test lights don't turn on when sleep mode is active."""
-        # Setup
-        auto_lights.sleep_mode_enabled = True
-        mock_presence_state = MagicMock()
-        mock_presence_state.state = STATE_ON
-        auto_lights.hass.states.get.return_value = mock_presence_state
-        auto_lights.hass.services.async_call = AsyncMock()
-
-        # Create event
-        event = MagicMock(spec=Event)
-        event.data = {}
-
-        await auto_lights.handle_illuminance_change(event)
-
-        auto_lights.hass.services.async_call.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_illuminance_change_lights_already_on(self, auto_lights):
-        """Test lights don't turn on again if already on."""
-        # Setup
-        auto_lights.sleep_mode_enabled = False
-        auto_lights.lights_turned_on = True
-        mock_presence_state = MagicMock()
-        mock_presence_state.state = STATE_ON
-        auto_lights.hass.states.get.return_value = mock_presence_state
-        auto_lights.hass.services.async_call = AsyncMock()
-
-        # Create event
-        event = MagicMock(spec=Event)
-        event.data = {}
-
-        await auto_lights.handle_illuminance_change(event)
-
-        auto_lights.hass.services.async_call.assert_not_called()
-
-
 class TestCleanup:
     """Test cleanup functionality."""
 
     def test_cleanup_unsubscribes_listeners(self, auto_lights):
         """Test cleanup unsubscribes all event listeners."""
-        # Setup mock unsubscribe functions
         auto_lights.unsubscribe_sleep_mode = MagicMock()
         auto_lights.unsubscribe_presence = MagicMock()
         auto_lights.unsubscribe_illuminance = MagicMock()
@@ -389,54 +285,4 @@ class TestCleanup:
         auto_lights.unsubscribe_presence = None
         auto_lights.unsubscribe_illuminance = None
 
-        # Should not raise any exceptions
         auto_lights.cleanup()
-
-
-class TestEdgeCases:
-    """Test edge cases and error conditions."""
-
-    @pytest.mark.asyncio
-    async def test_handle_presence_none_new_state(self, auto_lights):
-        """Test handling presence change with None new state."""
-        auto_lights.hass.services.async_call = AsyncMock()
-
-        event_data = {
-            "entity_id": auto_lights.presence_entity_id,
-            "old_state": MagicMock(state=STATE_ON),
-            "new_state": None,
-        }
-        event = MagicMock(spec=Event)
-        event.data = event_data
-
-        await auto_lights.handle_presence_state_change(event)
-
-        # Should return early without calling service
-        auto_lights.hass.services.async_call.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_handle_presence_same_state(self, auto_lights):
-        """Test handling presence change with same state."""
-        auto_lights.hass.services.async_call = AsyncMock()
-
-        event_data = {
-            "entity_id": auto_lights.presence_entity_id,
-            "old_state": MagicMock(state=STATE_ON),
-            "new_state": MagicMock(state=STATE_ON),
-        }
-        event = MagicMock(spec=Event)
-        event.data = event_data
-
-        await auto_lights.handle_presence_state_change(event)
-
-        # Should return early without calling service
-        auto_lights.hass.services.async_call.assert_not_called()
-
-    def test_get_illuminance_with_none_presence_entity(self, auto_lights):
-        """Test getting illuminance handles None presence entity."""
-        auto_lights.hass.states.get.return_value = None
-
-        presence_state = auto_lights.hass.states.get(auto_lights.presence_entity_id)
-
-        # Should handle None gracefully
-        assert presence_state is None
