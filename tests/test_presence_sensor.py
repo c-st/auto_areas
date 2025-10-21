@@ -1,5 +1,5 @@
 """Test Presence Binary Sensor functionality."""
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 import pytest
 from homeassistant.const import STATE_ON, STATE_OFF
 from homeassistant.core import HomeAssistant, Event

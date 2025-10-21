@@ -43,7 +43,7 @@ def auto_lights(mock_auto_area):
 
 
 def create_state_change_event(entity_id, old_state_value, new_state_value):
-    """Helper to create state change event."""
+    """Create a state change event for testing."""
     old_state = MagicMock() if old_state_value is not None else None
     if old_state:
         old_state.state = old_state_value
