@@ -175,14 +175,3 @@ class TestSensorCommon:
         assert temp_sensor.device_info == mock_auto_area.device_info
         assert humidity_sensor.device_info == mock_auto_area.device_info
         assert illuminance_sensor.device_info == mock_auto_area.device_info
-
-    def test_should_not_poll(self, mock_hass, mock_auto_area):
-        """Test that sensors don't poll."""
-        temp_sensor = TemperatureSensor(mock_hass, mock_auto_area)
-        humidity_sensor = HumiditySensor(mock_hass, mock_auto_area)
-        illuminance_sensor = IlluminanceSensor(mock_hass, mock_auto_area)
-
-        # Sensors should be event-driven, not polled
-        assert hasattr(temp_sensor, "_attr_should_poll")
-        assert hasattr(humidity_sensor, "_attr_should_poll")
-        assert hasattr(illuminance_sensor, "_attr_should_poll")

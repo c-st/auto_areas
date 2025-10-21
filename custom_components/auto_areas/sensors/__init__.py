@@ -1,0 +1,1 @@
+"""Sensors for Auto Areas."""
