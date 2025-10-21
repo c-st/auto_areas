@@ -52,20 +52,16 @@ class AutoLights:
 
         # Entities
         self.sleep_mode_entity_id = (
-            f"{SLEEP_MODE_SWITCH_ENTITY_PREFIX}{
-                slugify(self.auto_area.area_name)}"
+            f"{SLEEP_MODE_SWITCH_ENTITY_PREFIX}{slugify(self.auto_area.area_name)}"
         )
         self.presence_entity_id = (
-            f"{PRESENCE_BINARY_SENSOR_ENTITY_PREFIX}{
-                slugify(self.auto_area.area_name)}"
+            f"{PRESENCE_BINARY_SENSOR_ENTITY_PREFIX}{slugify(self.auto_area.area_name)}"
         )
         self.illuminance_entity_id = (
-            f"{ILLUMINANCE_SENSOR_ENTITY_PREFIX}{
-                slugify(self.auto_area.area_name)}"
+            f"{ILLUMINANCE_SENSOR_ENTITY_PREFIX}{slugify(self.auto_area.area_name)}"
         )
         self.light_group_entity_id = (
-            f"{LIGHT_GROUP_ENTITY_PREFIX}{
-                slugify(self.auto_area.area_name)}"
+            f"{LIGHT_GROUP_ENTITY_PREFIX}{slugify(self.auto_area.area_name)}"
         )
 
         self.sleep_mode_enabled = None
@@ -239,8 +235,9 @@ class AutoLights:
                 self.auto_area.area_name,
             )
             self.sleep_mode_enabled = False
+            presence_state = self.hass.states.get(self.presence_entity_id)
             has_presence = (
-                self.hass.states.get(self.presence_entity_id).state == STATE_ON
+                presence_state is not None and presence_state.state == STATE_ON
             )
             if has_presence:
                 if not self.is_below_illuminance_threshold():
@@ -256,7 +253,8 @@ class AutoLights:
         """Handle changes in illuminance."""
 
         # Check for presence
-        if self.hass.states.get(self.presence_entity_id).state != STATE_ON:
+        presence_state = self.hass.states.get(self.presence_entity_id)
+        if presence_state is None or presence_state.state != STATE_ON:
             return
 
         # Check for sleep mode
@@ -296,10 +294,23 @@ class AutoLights:
     def get_current_illuminance(self) -> float | None:
         """Return current area illuminance."""
         try:
-            current_illuminance = float(
-                self.hass.states.get(self.illuminance_entity_id).state
+            illuminance_state = self.hass.states.get(self.illuminance_entity_id)
+            if illuminance_state is None:
+                LOGGER.debug(
+                    "%s: Illuminance entity %s not found",
+                    self.auto_area.area_name,
+                    self.illuminance_entity_id,
+                )
+                return None
+
+            current_illuminance = float(illuminance_state.state)
+        except (ValueError, AttributeError) as err:
+            LOGGER.debug(
+                "%s: Could not get illuminance from %s: %s",
+                self.auto_area.area_name,
+                self.illuminance_entity_id,
+                err,
             )
-        except (ValueError, AttributeError):
             current_illuminance = None
 
         return current_illuminance
