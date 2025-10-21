@@ -19,7 +19,7 @@ def get_all_entities(
         if get_area_id(entity, device_registry) != area_id:
             continue
 
-        if domains is None or entity.domain not in domains:
+        if domains is not None and entity.domain not in domains:
             continue
 
         entities.append(entity)
