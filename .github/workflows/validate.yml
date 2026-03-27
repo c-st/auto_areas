@@ -29,7 +29,7 @@ jobs:
             category: "integration"
 
   test:
-    name: "Unit tests"
+    name: "Tests (unit + integration)"
     runs-on: "ubuntu-latest"
     steps:
         - uses: "actions/checkout@v4"
@@ -43,5 +43,5 @@ jobs:
         - name: "Install requirements"
           run: python3 -m pip install -r requirements-test.txt
 
-        - name: Run tests
-          run: pytest
+        - name: "Run tests"
+          run: pytest tests/ -v --timeout=60
