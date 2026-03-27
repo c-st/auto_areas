@@ -129,7 +129,7 @@ class PresenceBinarySensor(
 
         if current_state in PRESENCE_ON_STATES:
             if not self.presence:
-                LOGGER.info("%s: Presence detected", self.auto_area.area_name)
+                LOGGER.debug("%s: Presence detected", self.auto_area.area_name)
                 self.presence = True
                 self.async_write_ha_state()
         else:
@@ -139,7 +139,7 @@ class PresenceBinarySensor(
                 PRESENCE_ON_STATES,
             ):
                 if self.presence:
-                    LOGGER.info(
+                    LOGGER.debug(
                         "%s: Presence cleared",
                         self.auto_area.area_name
                     )
