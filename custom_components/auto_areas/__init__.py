@@ -2,7 +2,7 @@
 from __future__ import annotations
 import asyncio
 
-from homeassistant.helpers import issue_registry
+from homeassistant.helpers import issue_registry, config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, Platform
@@ -14,6 +14,8 @@ from .auto_area import (
 )
 
 from .const import DOMAIN, LOGGER, ISSUE_TYPE_YAML_DETECTED
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,
