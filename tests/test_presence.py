@@ -171,3 +171,85 @@ class TestPresenceClears:
             await sensor._handle_state_change(event)
 
         assert sensor.presence is True
+
+
+class TestPresenceInitialState:
+    """Test initial presence state."""
+
+    def test_initial_presence_false_when_all_off(self):
+        """Initial presence should be False when all entities are OFF."""
+        auto_area = _make_auto_area()
+        entity_ids = ["binary_sensor.motion1", "binary_sensor.motion2"]
+        hass = _make_hass({
+            "binary_sensor.motion1": STATE_OFF,
+            "binary_sensor.motion2": STATE_OFF,
+        })
+
+        sensor = _create_presence_sensor(hass, auto_area, entity_ids)
+
+        with patch.object(sensor, 'async_write_ha_state'):
+            from custom_components.auto_areas.ha_helpers import all_states_are_off
+            from custom_components.auto_areas.const import PRESENCE_ON_STATES
+
+            sensor.presence = not all_states_are_off(
+                hass, sensor.entity_ids, PRESENCE_ON_STATES,
+            )
+            assert sensor.presence is False
+
+    def test_initial_presence_true_when_one_on(self):
+        """Initial presence should be True when one entity is ON."""
+        auto_area = _make_auto_area()
+        entity_ids = ["binary_sensor.motion1", "binary_sensor.motion2"]
+        hass = _make_hass({
+            "binary_sensor.motion1": STATE_ON,
+            "binary_sensor.motion2": STATE_OFF,
+        })
+
+        sensor = _create_presence_sensor(hass, auto_area, entity_ids)
+
+        with patch.object(sensor, 'async_write_ha_state'):
+            from custom_components.auto_areas.ha_helpers import all_states_are_off
+            from custom_components.auto_areas.const import PRESENCE_ON_STATES
+
+            sensor.presence = not all_states_are_off(
+                hass, sensor.entity_ids, PRESENCE_ON_STATES,
+            )
+            assert sensor.presence is True
+
+
+class TestPresenceEdgeCases:
+    """Test edge cases in presence detection."""
+
+    @pytest.mark.asyncio
+    async def test_no_change_transition_ignored(self):
+        """Presence should ignore events where old == new state."""
+        auto_area = _make_auto_area()
+        hass = _make_hass()
+
+        sensor = _create_presence_sensor(
+            hass, auto_area, ["binary_sensor.motion1"],
+        )
+        sensor.presence = False
+
+        event = _make_event("binary_sensor.motion1", STATE_OFF, STATE_OFF)
+
+        with patch.object(sensor, 'async_write_ha_state'):
+            await sensor._handle_state_change(event)
+
+        assert sensor.presence is False
+
+    @pytest.mark.asyncio
+    async def test_none_new_state_handled_gracefully(self):
+        """Handle None new_state without crashing."""
+        auto_area = _make_auto_area()
+        hass = _make_hass()
+
+        sensor = _create_presence_sensor(
+            hass, auto_area, ["binary_sensor.motion1"],
+        )
+        sensor.presence = True
+
+        event = _make_event("binary_sensor.motion1", STATE_ON, None)
+
+        with patch.object(sensor, 'async_write_ha_state'):
+            await sensor._handle_state_change(event)

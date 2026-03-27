@@ -160,6 +160,24 @@ class TestAutoEntityStateMutation:
         assert entity.entity_float_values["sensor.temp1"] == 23.7
 
     @pytest.mark.asyncio
+    async def test_none_new_state_handled_gracefully(self):
+        """_handle_state_change should return early when new_state is None."""
+        hass = _make_hass()
+        auto_area = _make_auto_area()
+        entity = _create_auto_entity(hass, auto_area)
+
+        entity.entity_states["sensor.temp1"] = _make_state("sensor.temp1", "21.0")
+        entity.entity_float_values["sensor.temp1"] = 21.0
+
+        event = _make_event("sensor.temp1", _make_state("sensor.temp1", "21.0"), None)
+
+        with patch.object(entity, 'async_write_ha_state'):
+            await entity._handle_state_change(event)
+
+        assert "sensor.temp1" in entity.entity_states
+        assert entity.entity_float_values["sensor.temp1"] == 21.0
+
+    @pytest.mark.asyncio
     async def test_non_numeric_state_excluded(self):
         """Non-numeric state values should be excluded."""
         hass = _make_hass()
@@ -179,3 +197,40 @@ class TestAutoEntityStateMutation:
 
         assert "sensor.temp1" not in entity.entity_states
         assert "sensor.temp1" not in entity.entity_float_values
+
+
+class TestAutoEntityAsyncAddedToHass:
+    """Test async_added_to_hass loading initial states."""
+
+    @pytest.mark.asyncio
+    async def test_loads_initial_states(self):
+        """async_added_to_hass should load initial states from hass."""
+        hass = _make_hass()
+        auto_area = _make_auto_area()
+
+        from custom_components.auto_areas.auto_entity import AutoEntity
+        from homeassistant.components.sensor.const import SensorDeviceClass
+
+        with patch.object(AutoEntity, '_get_sensor_entities',
+                          return_value=["sensor.temp1", "sensor.temp2"]):
+            entity = AutoEntity(
+                hass=hass,
+                auto_area=auto_area,
+                device_class=SensorDeviceClass.TEMPERATURE,
+                name_prefix="Area Temperature ",
+                prefix="sensor.area_temperature_",
+            )
+
+        state1 = _make_state("sensor.temp1", "21.0")
+        state2 = _make_state("sensor.temp2", "22.5")
+        hass.states.get = MagicMock(side_effect=lambda eid: {
+            "sensor.temp1": state1,
+            "sensor.temp2": state2,
+        }.get(eid))
+
+        with patch.object(entity, 'async_write_ha_state'), \
+             patch('custom_components.auto_areas.auto_entity.async_track_state_change_event'):
+            await entity.async_added_to_hass()
+
+        assert "sensor.temp1" in entity.entity_states
+        assert "sensor.temp2" in entity.entity_states
