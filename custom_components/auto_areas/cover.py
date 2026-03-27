@@ -1,6 +1,5 @@
 """Cover group."""
 
-from functools import cached_property
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.group.cover import CoverGroup
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -68,17 +67,17 @@ class AutoCoverGroup(CoverGroup):
             self.entity_ids
         )
 
-    @cached_property
+    @property
     def name(self):
         """Name of this entity."""
         return f"{self._name_prefix}{self.auto_area.area_name}"
 
-    @cached_property
+    @property
     def device_info(self) -> DeviceInfo:
         """Information about this device."""
         return self.auto_area.device_info
 
-    @cached_property
+    @property
     def unique_id(self) -> str | None:
         """Return a unique ID."""
         return f"{self.auto_area.config_entry.entry_id}_cover_group"

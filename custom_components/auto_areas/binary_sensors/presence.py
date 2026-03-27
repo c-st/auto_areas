@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from functools import cached_property
 from typing import Literal, override
 from homeassistant.core import Event, EventStateChangedData
 from homeassistant.const import STATE_ON, STATE_OFF
@@ -44,7 +43,7 @@ class PresenceBinarySensor(
         LOGGER.debug("Presence entities %s", self.entity_ids)
 
     @override
-    @cached_property
+    @property
     def unique_id(self) -> str | None:
         """Return a unique ID."""
         return f"{self.auto_area.config_entry.entry_id}_aggregated_presence"

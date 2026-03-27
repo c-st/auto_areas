@@ -1,6 +1,5 @@
 """Base auto-entity class."""
 
-from functools import cached_property
 from typing import Generic, TypeVar, cast
 
 from homeassistant.core import Event, EventStateChangedData, State, HomeAssistant
@@ -66,27 +65,27 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             or entity.original_device_class == self.device_class
         ]
 
-    @cached_property
+    @property
     def name(self):
         """Name of this entity."""
         return f"{self._name_prefix}{self.auto_area.area_name}"
 
-    @cached_property
+    @property
     def unique_id(self) -> str:
         """Return a unique ID."""
         return f"{self.auto_area.config_entry.entry_id}_aggregated_{self.device_class}"
 
-    @cached_property
+    @property
     def device_class(self) -> _TDeviceClass:
         """Return device class."""
         return cast(_TDeviceClass, self._device_class)
 
-    @cached_property
+    @property
     def device_info(self) -> DeviceInfo:
         """Information about this device."""
         return self.auto_area.device_info
 
-    @cached_property
+    @property
     def suggested_display_precision(self) -> int | None:
         """Set the suggested precision (0.12)."""
         return 2

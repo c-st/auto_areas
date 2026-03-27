@@ -1,6 +1,5 @@
 """Temperature sensor."""
 
-from functools import cached_property
 from typing import Any, override
 
 from homeassistant.components.sensor import SensorEntity
@@ -25,7 +24,7 @@ class TemperatureSensor(AutoEntity[SensorEntity, SensorDeviceClass], SensorEntit
         )
 
     @override
-    @cached_property
+    @property
     def native_unit_of_measurement(self) -> str | None:
         """Return unit of measurement."""
         return self.hass.config.units.temperature_unit
