@@ -47,6 +47,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
         self.entity_ids: list[str] = self._get_sensor_entities()
         self.unsubscribe = None
         self.entity_states: dict[str, State] = {}
+        self.entity_float_values: dict[str, float] = {}
         self._aggregated_state: StateType = None
 
         LOGGER.info(
@@ -127,12 +128,14 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             STATE_UNAVAILABLE,
         ]:
             self.entity_states.pop(to_state.entity_id, None)
+            self.entity_float_values.pop(to_state.entity_id, None)
         else:
             try:
-                to_state.state = float(to_state.state)  # type: ignore
+                self.entity_float_values[to_state.entity_id] = float(to_state.state)
                 self.entity_states[to_state.entity_id] = to_state
             except ValueError:
                 self.entity_states.pop(to_state.entity_id, None)
+                self.entity_float_values.pop(to_state.entity_id, None)
 
         self._aggregated_state = self._get_state()
 
