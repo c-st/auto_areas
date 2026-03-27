@@ -1,5 +1,4 @@
 """Collection of utility methods for dealing with HomeAssistant."""
-from typing import Optional
 
 from homeassistant.core import HomeAssistant
 from homeassistant.const import STATE_UNAVAILABLE
@@ -30,7 +29,7 @@ def get_all_entities(
 
 def get_area_id(
     entity: RegistryEntry, device_registry: DeviceRegistry
-) -> Optional[str]:
+) -> str | None:
     """Get area_id from a registry entry."""
 
     # Defined directly at entity

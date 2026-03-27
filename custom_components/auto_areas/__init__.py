@@ -2,12 +2,11 @@
 from __future__ import annotations
 import asyncio
 
-from homeassistant.helpers import issue_registry
+from homeassistant.helpers import issue_registry, config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, Platform
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 
 
 from .auto_area import (
@@ -15,6 +14,8 @@ from .auto_area import (
 )
 
 from .const import DOMAIN, LOGGER, ISSUE_TYPE_YAML_DETECTED
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,
@@ -55,7 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_init(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
     """Initialize component."""
-    await asyncio.sleep(5)  # wait for all area devices to be initialized
+    await hass.async_block_till_done()  # wait for all pending setup tasks
     await auto_area.async_initialize()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

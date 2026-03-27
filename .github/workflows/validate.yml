@@ -7,12 +7,15 @@ on:
       - main
   pull_request:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   hassfest: # https://developers.home-assistant.io/blog/2020/04/16/hassfest
     name: "Hassfest Validation"
     runs-on: "ubuntu-latest"
     steps:
-        - uses: "actions/checkout@v4.1.7"
+        - uses: "actions/checkout@v4"
 
         - name: "Run hassfest validation"
           uses: "home-assistant/actions/hassfest@master"
@@ -21,7 +24,7 @@ jobs:
     name: "HACS Validation"
     runs-on: "ubuntu-latest"
     steps:
-        - uses: "actions/checkout@v4.1.7"
+        - uses: "actions/checkout@v4"
 
         - name: "Run HACS validation"
           uses: "hacs/action@main"
@@ -29,19 +32,19 @@ jobs:
             category: "integration"
 
   test:
-    name: "Unit tests"
+    name: "Tests (unit + integration)"
     runs-on: "ubuntu-latest"
     steps:
-        - uses: "actions/checkout@v4.1.7"
+        - uses: "actions/checkout@v4"
 
         - name: "Set up Python"
-          uses: actions/setup-python@v5.6.0
+          uses: actions/setup-python@v5
           with:
-            python-version: "3.12"
+            python-version: "3.13"
             cache: "pip"
 
         - name: "Install requirements"
           run: python3 -m pip install -r requirements-test.txt
 
-        - name: Run tests
-          run: pytest
+        - name: "Run tests"
+          run: pytest tests/ -v --timeout=60

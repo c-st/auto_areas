@@ -1,7 +1,5 @@
 """Presence lock switch."""
 from __future__ import annotations
-from functools import cached_property
-
 from homeassistant.components.switch import (
     SwitchEntity,
     SwitchDeviceClass,
@@ -31,22 +29,22 @@ class PresenceLockSwitch(SwitchEntity):
             self.name
         )
 
-    @cached_property
+    @property
     def name(self) -> str | UndefinedType | None:
         """Return the name of the entity."""
         return f"{PRESENCE_LOCK_SWITCH_PREFIX}{self.auto_area.area_name}"
 
-    @cached_property
+    @property
     def unique_id(self) -> str | None:
         """Return a unique ID."""
         return f"{self.auto_area.config_entry.entry_id}_presence_lock"
 
-    @cached_property
+    @property
     def device_info(self) -> DeviceInfo:
         """Information about this device."""
         return self.auto_area.device_info
 
-    @cached_property
+    @property
     def device_class(self) -> SwitchDeviceClass | None:
         """Return device class."""
         return SwitchDeviceClass.SWITCH

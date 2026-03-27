@@ -1,6 +1,5 @@
 """Base auto-entity class."""
 
-from functools import cached_property
 from typing import Generic, TypeVar, cast
 
 from homeassistant.core import Event, EventStateChangedData, State, HomeAssistant
@@ -48,6 +47,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
         self.entity_ids: list[str] = self._get_sensor_entities()
         self.unsubscribe = None
         self.entity_states: dict[str, State] = {}
+        self.entity_float_values: dict[str, float] = {}
         self._aggregated_state: StateType = None
 
         LOGGER.info(
@@ -66,27 +66,27 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             or entity.original_device_class == self.device_class
         ]
 
-    @cached_property
+    @property
     def name(self):
         """Name of this entity."""
         return f"{self._name_prefix}{self.auto_area.area_name}"
 
-    @cached_property
+    @property
     def unique_id(self) -> str:
         """Return a unique ID."""
         return f"{self.auto_area.config_entry.entry_id}_aggregated_{self.device_class}"
 
-    @cached_property
+    @property
     def device_class(self) -> _TDeviceClass:
         """Return device class."""
         return cast(_TDeviceClass, self._device_class)
 
-    @cached_property
+    @property
     def device_info(self) -> DeviceInfo:
         """Information about this device."""
         return self.auto_area.device_info
 
-    @cached_property
+    @property
     def suggested_display_precision(self) -> int | None:
         """Set the suggested precision (0.12)."""
         return 2
@@ -108,7 +108,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
                     )
 
         self._aggregated_state = self._get_state()
-        self.schedule_update_ha_state()
+        self.async_write_ha_state()
 
         # Subscribe to state changes
         self.unsubscribe = async_track_state_change_event(
@@ -128,16 +128,18 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
             STATE_UNAVAILABLE,
         ]:
             self.entity_states.pop(to_state.entity_id, None)
+            self.entity_float_values.pop(to_state.entity_id, None)
         else:
             try:
-                to_state.state = float(to_state.state)  # type: ignore
+                self.entity_float_values[to_state.entity_id] = float(to_state.state)
                 self.entity_states[to_state.entity_id] = to_state
             except ValueError:
                 self.entity_states.pop(to_state.entity_id, None)
+                self.entity_float_values.pop(to_state.entity_id, None)
 
         self._aggregated_state = self._get_state()
 
-        self.async_schedule_update_ha_state()
+        self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:
         """Clean up event listeners."""

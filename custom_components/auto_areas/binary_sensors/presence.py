@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from functools import cached_property
 from typing import Literal, override
 from homeassistant.core import Event, EventStateChangedData
 from homeassistant.const import STATE_ON, STATE_OFF
@@ -44,7 +43,7 @@ class PresenceBinarySensor(
         LOGGER.debug("Presence entities %s", self.entity_ids)
 
     @override
-    @cached_property
+    @property
     def unique_id(self) -> str | None:
         """Return a unique ID."""
         return f"{self.auto_area.config_entry.entry_id}_aggregated_presence"
@@ -90,7 +89,7 @@ class PresenceBinarySensor(
             self.entity_ids,
             PRESENCE_ON_STATES,
         )
-        self.schedule_update_ha_state()
+        self.async_write_ha_state()
 
         LOGGER.info(
             "%s: Initial presence %s",
@@ -130,9 +129,9 @@ class PresenceBinarySensor(
 
         if current_state in PRESENCE_ON_STATES:
             if not self.presence:
-                LOGGER.info("%s: Presence detected", self.auto_area.area_name)
+                LOGGER.debug("%s: Presence detected", self.auto_area.area_name)
                 self.presence = True
-                self.schedule_update_ha_state()
+                self.async_write_ha_state()
         else:
             if all_states_are_off(
                 self.hass,
@@ -140,9 +139,9 @@ class PresenceBinarySensor(
                 PRESENCE_ON_STATES,
             ):
                 if self.presence:
-                    LOGGER.info(
+                    LOGGER.debug(
                         "%s: Presence cleared",
                         self.auto_area.area_name
                     )
                     self.presence = False
-                    self.schedule_update_ha_state()
+                    self.async_write_ha_state()

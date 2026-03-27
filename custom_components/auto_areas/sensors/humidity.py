@@ -1,6 +1,5 @@
 """Humidity sensor."""
 
-from functools import cached_property
 from typing import Any, override
 
 from homeassistant.components.sensor import SensorEntity
@@ -26,7 +25,7 @@ class HumiditySensor(AutoEntity[SensorEntity, SensorDeviceClass], SensorEntity):
         )
 
     @override
-    @cached_property
+    @property
     def native_unit_of_measurement(self) -> str | None:
         """Return unit of measurement."""
         return PERCENTAGE

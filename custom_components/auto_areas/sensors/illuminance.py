@@ -1,6 +1,5 @@
 """Illuminance sensor."""
 
-from functools import cached_property
 from typing import Any, override
 
 from homeassistant.components.sensor import SensorEntity
@@ -31,13 +30,13 @@ class IlluminanceSensor(
         )
 
     @override
-    @cached_property
+    @property
     def native_unit_of_measurement(self) -> str | None:
         """Return unit of measurement."""
         return LIGHT_LUX
 
     @override
-    @cached_property
+    @property
     def suggested_display_precision(self) -> int | None:
         """Set the suggested precision (0)."""
         return 0
