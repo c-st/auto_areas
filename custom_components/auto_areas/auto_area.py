@@ -107,6 +107,9 @@ class AutoArea:
                     self.config_entry.entry_id
                 )
             return
+        # Skip our own entities to avoid infinite reload loops
+        if entity.platform == DOMAIN:
+            return
         from .ha_helpers import get_area_id
         if get_area_id(entity, self.device_registry) == self.area_id:
             LOGGER.debug(

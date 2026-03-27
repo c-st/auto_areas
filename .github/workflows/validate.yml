@@ -12,7 +12,7 @@ jobs:
     name: "Hassfest Validation"
     runs-on: "ubuntu-latest"
     steps:
-        - uses: "actions/checkout@v4.1.7"
+        - uses: "actions/checkout@v4"
 
         - name: "Run hassfest validation"
           uses: "home-assistant/actions/hassfest@master"
@@ -21,7 +21,7 @@ jobs:
     name: "HACS Validation"
     runs-on: "ubuntu-latest"
     steps:
-        - uses: "actions/checkout@v4.1.7"
+        - uses: "actions/checkout@v4"
 
         - name: "Run HACS validation"
           uses: "hacs/action@main"
@@ -32,12 +32,12 @@ jobs:
     name: "Unit tests"
     runs-on: "ubuntu-latest"
     steps:
-        - uses: "actions/checkout@v4.1.7"
+        - uses: "actions/checkout@v4"
 
         - name: "Set up Python"
-          uses: actions/setup-python@v5.6.0
+          uses: actions/setup-python@v5
           with:
-            python-version: "3.12"
+            python-version: "3.13"
             cache: "pip"
 
         - name: "Install requirements"
