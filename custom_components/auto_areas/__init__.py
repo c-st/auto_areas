@@ -56,7 +56,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_init(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoArea):
     """Initialize component."""
-    await hass.async_block_till_done()  # wait for all pending setup tasks
+    # Wait briefly for all area devices/entities to finish registering before
+    # building groups. async_block_till_done() can deadlock here during startup.
+    await asyncio.sleep(2)
     await auto_area.async_initialize()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
