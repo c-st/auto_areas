@@ -108,7 +108,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
                     )
 
         self._aggregated_state = self._get_state()
-        self.schedule_update_ha_state()
+        self.async_write_ha_state()
 
         # Subscribe to state changes
         self.unsubscribe = async_track_state_change_event(
@@ -139,7 +139,7 @@ class AutoEntity(Entity, Generic[_TEntity, _TDeviceClass]):
 
         self._aggregated_state = self._get_state()
 
-        self.async_schedule_update_ha_state()
+        self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:
         """Clean up event listeners."""

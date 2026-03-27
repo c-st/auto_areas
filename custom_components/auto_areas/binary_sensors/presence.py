@@ -89,7 +89,7 @@ class PresenceBinarySensor(
             self.entity_ids,
             PRESENCE_ON_STATES,
         )
-        self.schedule_update_ha_state()
+        self.async_write_ha_state()
 
         LOGGER.info(
             "%s: Initial presence %s",
@@ -131,7 +131,7 @@ class PresenceBinarySensor(
             if not self.presence:
                 LOGGER.info("%s: Presence detected", self.auto_area.area_name)
                 self.presence = True
-                self.schedule_update_ha_state()
+                self.async_write_ha_state()
         else:
             if all_states_are_off(
                 self.hass,
@@ -144,4 +144,4 @@ class PresenceBinarySensor(
                         self.auto_area.area_name
                     )
                     self.presence = False
-                    self.schedule_update_ha_state()
+                    self.async_write_ha_state()
