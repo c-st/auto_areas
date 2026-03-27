@@ -1,2 +1,2 @@
-homeassistant==2025.4.3
+homeassistant>=2026.2
 ruff==0.11.11
