@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from custom_components.auto_areas.binary_sensors.open import OpenBinarySensor
 from custom_components.auto_areas.binary_sensors.presence import PresenceBinarySensor
 from custom_components.auto_areas.binary_sensors.safety import SafetyBinarySensor
 
@@ -18,4 +19,5 @@ async def async_setup_entry(hass, entry, async_add_entities: AddEntitiesCallback
     async_add_entities([
         PresenceBinarySensor(hass, auto_area),
         SafetyBinarySensor(hass, auto_area),
+        OpenBinarySensor(hass, auto_area),
     ])

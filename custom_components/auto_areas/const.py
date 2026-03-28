@@ -102,3 +102,26 @@ SAFETY_BINARY_SENSOR_DEVICE_CLASSES = (
     BinarySensorDeviceClass.HEAT,
     BinarySensorDeviceClass.SAFETY,
 )
+
+# Open/closed entities
+OPEN_BINARY_SENSOR_PREFIX = "Area Open "
+OPEN_BINARY_SENSOR_ENTITY_PREFIX = "binary_sensor.area_open_"
+OPEN_BINARY_SENSOR_DEVICE_CLASSES = (
+    BinarySensorDeviceClass.DOOR,
+    BinarySensorDeviceClass.WINDOW,
+    BinarySensorDeviceClass.OPENING,
+    BinarySensorDeviceClass.GARAGE_DOOR,
+    BinarySensorDeviceClass.LOCK,
+)
+
+# Safety entities
+SAFETY_BINARY_SENSOR_PREFIX = "Area Safety "
+SAFETY_BINARY_SENSOR_ENTITY_PREFIX = "binary_sensor.area_safety_"
+SAFETY_BINARY_SENSOR_DEVICE_CLASSES = (
+    BinarySensorDeviceClass.SMOKE,
+    BinarySensorDeviceClass.CO,
+    BinarySensorDeviceClass.GAS,
+    BinarySensorDeviceClass.MOISTURE,
+    BinarySensorDeviceClass.HEAT,
+    BinarySensorDeviceClass.SAFETY,
+)
