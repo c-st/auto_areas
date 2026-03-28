@@ -33,6 +33,7 @@ class AutoLights:
         self.unsubscribe_sleep_mode = None
         self.unsubscribe_presence = None
         self.unsubscribe_illuminance = None
+        self.unsubscribe_lights = None
 
         # Config
         self.illuminance_threshold = (
@@ -70,6 +71,8 @@ class AutoLights:
 
         self.sleep_mode_enabled = None
         self.lights_turned_on = None
+        self.manually_turned_off = False
+        self._auto_turning_off = False
 
         LOGGER.debug(
             "%s: Managing light group entity: %s",
@@ -123,6 +126,12 @@ class AutoLights:
             self.auto_area.hass,
             self.illuminance_entity_id,
             self.handle_illuminance_change,
+        )
+
+        self.unsubscribe_lights = async_track_state_change_event(
+            self.hass,
+            self.light_group_entity_id,
+            self.handle_light_group_state_change,
         )
 
     async def handle_presence_state_change(self, event: Event[EventStateChangedData]):
@@ -181,6 +190,7 @@ class AutoLights:
             return
         else:
             # turn lights off
+            self.manually_turned_off = False
             if not self.sleep_mode_enabled:
                 LOGGER.info(
                     "%s: Turning lights off %s",
@@ -198,11 +208,15 @@ class AutoLights:
         self.lights_turned_on = True
 
     async def _turn_lights_off(self):
-        await self.hass.services.async_call(
-            LIGHT_DOMAIN,
-            SERVICE_TURN_OFF,
-            {ATTR_ENTITY_ID: self.light_group_entity_id},
-        )
+        self._auto_turning_off = True
+        try:
+            await self.hass.services.async_call(
+                LIGHT_DOMAIN,
+                SERVICE_TURN_OFF,
+                {ATTR_ENTITY_ID: self.light_group_entity_id},
+            )
+        finally:
+            self._auto_turning_off = False
         self.lights_turned_on = False
 
     async def handle_sleep_mode_state_change(self, event: Event[EventStateChangedData]):
@@ -263,8 +277,8 @@ class AutoLights:
         if self.sleep_mode_enabled:
             return
 
-        # Check if lights were already turned on before
-        if self.lights_turned_on:
+        # Respect manual override — don't turn lights back on
+        if self.manually_turned_off:
             return
 
         # Evaluate current illuminance
@@ -277,6 +291,28 @@ class AutoLights:
             self.light_group_entity_id,
         )
         await self._turn_lights_on()
+
+    async def handle_light_group_state_change(self, event: Event[EventStateChangedData]):
+        """Track manual light overrides by watching the light group state."""
+        to_state = event.data.get("new_state")
+        from_state = event.data.get("old_state")
+        if to_state is None or from_state is None:
+            return
+        if from_state.state == to_state.state:
+            return
+
+        if to_state.state == STATE_ON:
+            self.manually_turned_off = False
+        else:
+            # Lights turned off — detect manual action
+            presence_state = self.hass.states.get(self.presence_entity_id)
+            presence_on = presence_state and presence_state.state == STATE_ON
+            if presence_on and not self.sleep_mode_enabled and not self._auto_turning_off:
+                self.manually_turned_off = True
+                LOGGER.debug(
+                    "%s: Lights manually turned off while presence active — setting override",
+                    self.auto_area.area_name,
+                )
 
     def is_below_illuminance_threshold(self) -> bool:
         """Evaluate if current illuminance is below threshold."""
@@ -318,3 +354,6 @@ class AutoLights:
 
         if self.unsubscribe_illuminance is not None:
             self.unsubscribe_illuminance()
+
+        if self.unsubscribe_lights is not None:
+            self.unsubscribe_lights()
