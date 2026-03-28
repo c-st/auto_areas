@@ -307,7 +307,7 @@ class AutoLights:
             # Lights turned off — detect manual action
             presence_state = self.hass.states.get(self.presence_entity_id)
             presence_on = presence_state and presence_state.state == STATE_ON
-            if presence_on and not self.sleep_mode_enabled and not self._auto_turning_off:
+            if presence_on and not self.sleep_mode_enabled and not self._auto_turning_off and self.lights_turned_on:
                 self.manually_turned_off = True
                 LOGGER.debug(
                     "%s: Lights manually turned off while presence active — setting override",
