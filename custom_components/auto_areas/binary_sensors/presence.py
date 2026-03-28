@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Literal, override
 from homeassistant.core import Event, EventStateChangedData, CALLBACK_TYPE
 from homeassistant.const import STATE_ON, STATE_OFF
@@ -180,7 +179,7 @@ class PresenceBinarySensor(
                         self.async_write_ha_state()
 
     async def _handle_timeout(self, _now) -> None:
-        """Called after timeout expires — clear presence if still no sensors active."""
+        """Clear presence after timeout expires if no sensors are still active."""
         self._timeout_cancel = None
         if not any(
             state.state in PRESENCE_ON_STATES

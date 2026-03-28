@@ -256,9 +256,8 @@ class TestMultipleSensors:
 
         with patch(
             'custom_components.auto_areas.binary_sensors.presence.async_call_later'
-        ) as mock_call_later:
-            with patch.object(sensor, 'async_write_ha_state'):
-                await sensor._handle_state_change(event)
+        ) as mock_call_later, patch.object(sensor, 'async_write_ha_state'):
+            await sensor._handle_state_change(event)
 
         # No timeout started — motion2 still on
         mock_call_later.assert_not_called()
