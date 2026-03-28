@@ -36,6 +36,9 @@ SLEEP_MODE_SWITCH_ENTITY_PREFIX = "switch.area_sleep_mode_"
 PRESENCE_BINARY_SENSOR_PREFIX = "Area Presence "
 PRESENCE_BINARY_SENSOR_ENTITY_PREFIX = "binary_sensor.area_presence_"
 
+SAFETY_BINARY_SENSOR_PREFIX = "Area Safety "
+SAFETY_BINARY_SENSOR_ENTITY_PREFIX = "binary_sensor.area_safety_"
+
 ILLUMINANCE_SENSOR_PREFIX = "Area Illuminance "
 ILLUMINANCE_SENSOR_ENTITY_PREFIX = "sensor.area_illuminance_"
 
@@ -89,3 +92,13 @@ PRESENCE_ON_STATES = [
     STATE_HOME,
     STATE_PLAYING,
 ]
+
+# Safety entities
+SAFETY_BINARY_SENSOR_DEVICE_CLASSES = (
+    BinarySensorDeviceClass.SMOKE,
+    BinarySensorDeviceClass.CO,
+    BinarySensorDeviceClass.GAS,
+    BinarySensorDeviceClass.MOISTURE,
+    BinarySensorDeviceClass.HEAT,
+    BinarySensorDeviceClass.SAFETY,
+)

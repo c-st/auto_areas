@@ -66,6 +66,27 @@ If only relying on motion sensors, presence could be cleared if there is only li
 
 A new switch with ID `switch.area_presence_lock_{area_name}` is created for each area. If the switch is `on`, lights will not be turned off.
 
+### Environmental Safety
+
+Aggregates safety-related binary sensors within each area into a single `binary_sensor.area_safety_{area_name}` entity. If **any** safety sensor in the area is triggered, the aggregate is `on` (alert active). When all sensors are `off` (or no safety sensors are present), the aggregate is `off`.
+
+Supported `binary_sensor` device classes:
+
+- `smoke` — smoke detectors
+- `co` — carbon monoxide detectors
+- `gas` — gas leak detectors
+- `moisture` — water/leak detectors
+- `heat` — heat sensors (fire-related)
+- `safety` — generic safety sensors
+
+The sensor uses **OR** logic and **fails safe**: when no safety sensors are assigned to an area, the aggregate reports `off`.
+
+**Example use cases:**
+
+- Send a push notification when any safety sensor triggers in the house
+- Trigger a siren or alarm automation when smoke or CO is detected in any room
+- Create a dashboard card showing per-area safety status
+
 ### Control lights automatically
 
 Lights are automatically turned on and off based on presence in an area.
