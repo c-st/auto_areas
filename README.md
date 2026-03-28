@@ -93,9 +93,13 @@ Lights are automatically turned on and off based on presence in an area.
 
 By default all light entities of an area are managed. A list of entities to be ignored can be defined in the configuration options.
 
-#### Illuminance
+#### Illuminance threshold
 
-To not turn on lights during daytime an illuminance threshold can be configured. Only if an illuminance below this threshold is measured, the lights are turned on. Illuminance is constantly monitored: if an area is constantly occupied, lights would turn on once it's sufficiently dark in the area.
+You can configure a minimum illuminance threshold per area. When set:
+
+- **On entry:** If the area is already bright enough (above threshold), lights will not turn on automatically.
+- **While present:** If illuminance drops below the threshold and lights were not previously turned on by Auto Areas, lights will turn on automatically.
+- **Manual override:** If Auto Areas turned on the lights due to low illuminance and you then manually turn them off, they will stay off — even if illuminance drops further. This override resets when you leave the area or turn the lights back on.
 
 #### Sleep mode
 
@@ -279,9 +283,13 @@ Lights are automatically turned on and off based on presence in an area.
 
 By default all light entities of an area are managed. A list of entities to be ignored can be defined in the configuration options.
 
-#### Illuminance
+#### Illuminance threshold
 
-To not turn on lights during daytime an illuminance threshold can be configured. Only if an illuminance below this threshold is measured, the lights are turned on. Illuminance is constantly monitored: if an area is constantly occupied, lights would turn on once it's sufficiently dark in the area.
+You can configure a minimum illuminance threshold per area. When set:
+
+- **On entry:** If the area is already bright enough (above threshold), lights will not turn on automatically.
+- **While present:** If illuminance drops below the threshold and lights were not previously turned on by Auto Areas, lights will turn on automatically.
+- **Manual override:** If Auto Areas turned on the lights due to low illuminance and you then manually turn them off, they will stay off — even if illuminance drops further. This override resets when you leave the area or turn the lights back on.
 
 #### Sleep mode
 

@@ -270,6 +270,149 @@ class TestAutoLightsManualOverride:
         assert lights.manually_turned_off is False
 
 
+class TestIlluminanceManualOverride:
+    """Test illuminance manual override scenarios end-to-end."""
+
+    @pytest.mark.asyncio
+    async def test_auto_on_then_manual_off_then_illuminance_drop_stays_off(self):
+        """Auto-on then manual off → illuminance drop → lights stay off."""
+        from custom_components.auto_areas.const import CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE
+
+        auto_area = _make_auto_area(options={CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE: 100})
+        lights = _create_auto_lights(auto_area)
+        lights.sleep_mode_enabled = False
+
+        # Presence on, illuminance below threshold → auto_areas turns lights on
+        auto_area._states_map[lights.illuminance_entity_id] = _make_state(
+            lights.illuminance_entity_id, "50"
+        )
+        presence_event = _make_event(lights.presence_entity_id, STATE_OFF, STATE_ON)
+        await lights.handle_presence_state_change(presence_event)
+
+        auto_area.hass.services.async_call.assert_called_once_with(
+            "light", "turn_on", {"entity_id": lights.light_group_entity_id}
+        )
+        assert lights.lights_turned_on is True
+        auto_area.hass.services.async_call.reset_mock()
+
+        # User manually turns lights off
+        auto_area._states_map[lights.presence_entity_id] = _make_state(
+            lights.presence_entity_id, STATE_ON
+        )
+        light_off_event = _make_event(lights.light_group_entity_id, STATE_ON, STATE_OFF)
+        await lights.handle_light_group_state_change(light_off_event)
+        assert lights.manually_turned_off is True
+
+        # Another illuminance drop event → lights should NOT turn on
+        auto_area._states_map[lights.illuminance_entity_id] = _make_state(
+            lights.illuminance_entity_id, "30"
+        )
+        illuminance_event = _make_event(lights.illuminance_entity_id, "50", "30")
+        await lights.handle_illuminance_change(illuminance_event)
+
+        auto_area.hass.services.async_call.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_override_resets_on_presence_clear_next_entry_works(self):
+        """Override resets on presence clear → next entry works normally."""
+        from custom_components.auto_areas.const import CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE
+
+        auto_area = _make_auto_area(options={CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE: 100})
+        lights = _create_auto_lights(auto_area)
+        lights.sleep_mode_enabled = False
+
+        # Set up manual override state
+        lights.lights_turned_on = True
+        auto_area._states_map[lights.presence_entity_id] = _make_state(
+            lights.presence_entity_id, STATE_ON
+        )
+        light_off_event = _make_event(lights.light_group_entity_id, STATE_ON, STATE_OFF)
+        await lights.handle_light_group_state_change(light_off_event)
+        assert lights.manually_turned_off is True
+
+        # Presence clears
+        presence_off_event = _make_event(lights.presence_entity_id, STATE_ON, STATE_OFF)
+        await lights.handle_presence_state_change(presence_off_event)
+        assert lights.manually_turned_off is False
+        auto_area.hass.services.async_call.reset_mock()
+
+        # Presence returns with illuminance below threshold → lights should turn on
+        auto_area._states_map[lights.illuminance_entity_id] = _make_state(
+            lights.illuminance_entity_id, "50"
+        )
+        presence_on_event = _make_event(lights.presence_entity_id, STATE_OFF, STATE_ON)
+        await lights.handle_presence_state_change(presence_on_event)
+
+        auto_area.hass.services.async_call.assert_called_once_with(
+            "light", "turn_on", {"entity_id": lights.light_group_entity_id}
+        )
+
+    @pytest.mark.asyncio
+    async def test_override_resets_when_lights_turned_back_on(self):
+        """Override resets when lights turned back on → illuminance drop works again."""
+        from custom_components.auto_areas.const import CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE
+
+        auto_area = _make_auto_area(options={CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE: 100})
+        lights = _create_auto_lights(auto_area)
+        lights.sleep_mode_enabled = False
+
+        # Set up manual override state
+        lights.lights_turned_on = True
+        auto_area._states_map[lights.presence_entity_id] = _make_state(
+            lights.presence_entity_id, STATE_ON
+        )
+        light_off_event = _make_event(lights.light_group_entity_id, STATE_ON, STATE_OFF)
+        await lights.handle_light_group_state_change(light_off_event)
+        assert lights.manually_turned_off is True
+
+        # Lights turned back on (by user or scene)
+        light_on_event = _make_event(lights.light_group_entity_id, STATE_OFF, STATE_ON)
+        await lights.handle_light_group_state_change(light_on_event)
+        assert lights.manually_turned_off is False
+
+        # Another illuminance drop → lights should turn on
+        auto_area._states_map[lights.illuminance_entity_id] = _make_state(
+            lights.illuminance_entity_id, "50"
+        )
+        illuminance_event = _make_event(lights.illuminance_entity_id, "200", "50")
+        await lights.handle_illuminance_change(illuminance_event)
+
+        auto_area.hass.services.async_call.assert_called_with(
+            "light", "turn_on", {"entity_id": lights.light_group_entity_id}
+        )
+
+    @pytest.mark.asyncio
+    async def test_no_override_if_auto_areas_never_turned_lights_on(self):
+        """No override if auto_areas never turned lights on → illuminance drop turns lights on."""
+        from custom_components.auto_areas.const import CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE
+
+        auto_area = _make_auto_area(options={CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE: 100})
+        lights = _create_auto_lights(auto_area)
+        lights.sleep_mode_enabled = False
+        lights.lights_turned_on = False  # auto_areas did NOT turn lights on
+
+        # Presence on
+        auto_area._states_map[lights.presence_entity_id] = _make_state(
+            lights.presence_entity_id, STATE_ON
+        )
+
+        # User turns lights off manually (but lights_turned_on is False, so no override)
+        light_off_event = _make_event(lights.light_group_entity_id, STATE_ON, STATE_OFF)
+        await lights.handle_light_group_state_change(light_off_event)
+        assert lights.manually_turned_off is False  # not set because lights_turned_on was False
+
+        # Illuminance drops → lights should turn on
+        auto_area._states_map[lights.illuminance_entity_id] = _make_state(
+            lights.illuminance_entity_id, "50"
+        )
+        illuminance_event = _make_event(lights.illuminance_entity_id, "200", "50")
+        await lights.handle_illuminance_change(illuminance_event)
+
+        auto_area.hass.services.async_call.assert_called_once_with(
+            "light", "turn_on", {"entity_id": lights.light_group_entity_id}
+        )
+
+
 class TestAutoLightsCleanup:
     """Test cleanup unsubscribes all listeners."""
 
