@@ -19,6 +19,7 @@
                 "description": "Customize the behavior of this area.",
                 "data": {
                     "is_sleeping_area": "Sleeping area",
+                    "presence_timeout": "Presence timeout (seconds, 0 = disabled)",
                     "excluded_light_entities": "Excluded light entities:",
                     "auto_lights_illuminance_threshold": "Only turn on lights if area illuminance is below:",
                     "humidity_calculation": "Humidity calculation:",

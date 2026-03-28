@@ -37,6 +37,7 @@ from .const import (
     CONFIG_IS_SLEEPING_AREA,
     CONFIG_EXCLUDED_LIGHT_ENTITIES,
     CONFIG_AUTO_LIGHTS_MAX_ILLUMINANCE,
+    CONFIG_PRESENCE_TIMEOUT,
     CONFIG_TEMPERATURE_CALCULATION,
     DOMAIN,
     LOGGER,
@@ -146,6 +147,20 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         )
                         or False,  # type: ignore
                     ): bool,
+                    vol.Optional(
+                        CONFIG_PRESENCE_TIMEOUT,
+                        default=(self.config_entry.options or {}).get(
+                            CONFIG_PRESENCE_TIMEOUT, 0
+                        )
+                        or 0,  # type: ignore
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0,
+                            max=3600,
+                            unit_of_measurement="s",
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
                     vol.Optional(
                         CONFIG_EXCLUDED_LIGHT_ENTITIES,
                         default=(self.config_entry.options or {}).get(
