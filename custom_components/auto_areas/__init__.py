@@ -59,8 +59,15 @@ async def async_init(hass: HomeAssistant, entry: ConfigEntry, auto_area: AutoAre
     # Wait briefly for all area devices/entities to finish registering before
     # building groups. async_block_till_done() can deadlock here during startup.
     await asyncio.sleep(2)
-    await auto_area.async_initialize()
+    # Set up platforms first so the aggregate entities (light group, presence
+    # sensor, ...) exist and are available before AutoLights applies the initial
+    # light state. Doing this the other way around makes async_initialize call
+    # light.turn_on/off against a not-yet-created group, which on restart also
+    # sees the entity's restored (unavailable) placeholder state and logs
+    # "Referenced entities light.area_lights_<area> are missing or not currently
+    # available".
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await auto_area.async_initialize()
 
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 

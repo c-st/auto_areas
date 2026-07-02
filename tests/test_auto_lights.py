@@ -186,6 +186,43 @@ class TestAutoLightsNoLightGroup:
 
         auto_area.hass.services.async_call.assert_not_called()
 
+    @pytest.mark.asyncio
+    async def test_turn_on_skipped_when_light_group_unavailable(self):
+        """No service call while the light group is unavailable.
+
+        On restart the entity registry yields a restored 'unavailable'
+        placeholder for the group before the light platform re-creates it.
+        """
+        auto_area = _make_auto_area()
+        lights = _create_auto_lights(auto_area, with_light_group=False)
+        lights.sleep_mode_enabled = False
+        auto_area._states_map[lights.light_group_entity_id] = _make_state(
+            lights.light_group_entity_id, "unavailable"
+        )
+
+        event = _make_event(lights.presence_entity_id, STATE_OFF, STATE_ON)
+
+        await lights.handle_presence_state_change(event)
+
+        auto_area.hass.services.async_call.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_turn_off_skipped_when_light_group_unknown(self):
+        """No service call while the light group state is unknown."""
+        auto_area = _make_auto_area()
+        lights = _create_auto_lights(auto_area, with_light_group=False)
+        lights.sleep_mode_enabled = False
+        lights.lights_turned_on = True
+        auto_area._states_map[lights.light_group_entity_id] = _make_state(
+            lights.light_group_entity_id, "unknown"
+        )
+
+        event = _make_event(lights.presence_entity_id, STATE_ON, STATE_OFF)
+
+        await lights.handle_presence_state_change(event)
+
+        auto_area.hass.services.async_call.assert_not_called()
+
 
 class TestAutoLightsManualOverride:
     """Test manual light override prevents illuminance from turning lights back on."""
