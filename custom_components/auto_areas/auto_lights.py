@@ -4,6 +4,8 @@ from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.core import Event, EventStateChangedData
 from homeassistant.const import (
     STATE_ON,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
     SERVICE_TURN_ON,
     SERVICE_TURN_OFF,
     ATTR_ENTITY_ID,
@@ -200,18 +202,22 @@ class AutoLights:
             await self._turn_lights_off()
 
     def _light_group_available(self) -> bool:
-        """Return True if the area's light group entity exists.
+        """Return True if the area's light group entity exists and is available.
 
         The light group is only created for areas that actually have lights
-        (see light.py). Areas without lights, or a group that hasn't finished
-        setting up yet, would otherwise cause "Referenced entities ... are
-        missing or not currently available" warnings on every service call.
+        (see light.py). Areas without lights have no group at all. On restart the
+        entity registry also yields a restored (``unavailable``) placeholder
+        before the light platform re-creates the group. Calling light.turn_on/off
+        in either case logs "Referenced entities ... are missing or not currently
+        available", so skip while the group is absent or not yet available.
         """
-        if self.hass.states.get(self.light_group_entity_id) is None:
+        state = self.hass.states.get(self.light_group_entity_id)
+        if state is None or state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             LOGGER.debug(
-                "%s: No light group (%s) to control, skipping",
+                "%s: Light group (%s) not available (%s), skipping",
                 self.auto_area.area_name,
                 self.light_group_entity_id,
+                state.state if state else "missing",
             )
             return False
         return True
