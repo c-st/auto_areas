@@ -48,10 +48,21 @@ def _make_auto_area(area_name="living_room", options=None):
     return auto_area
 
 
-def _create_auto_lights(auto_area):
-    """Create an AutoLights instance."""
+def _create_auto_lights(auto_area, with_light_group=True):
+    """Create an AutoLights instance.
+
+    By default registers the area's light group in the mock state map, so that
+    tests exercise a normal area that actually has lights. Pass
+    ``with_light_group=False`` to simulate an area without any light entities
+    (no group exists), which AutoLights must not try to control.
+    """
     from custom_components.auto_areas.auto_lights import AutoLights
-    return AutoLights(auto_area)
+    lights = AutoLights(auto_area)
+    if with_light_group:
+        auto_area._states_map[lights.light_group_entity_id] = _make_state(
+            lights.light_group_entity_id, STATE_OFF
+        )
+    return lights
 
 
 class TestAutoLightsPresence:
@@ -132,6 +143,44 @@ class TestAutoLightsPresence:
         lights = _create_auto_lights(auto_area)
 
         event = _make_event(lights.presence_entity_id, STATE_ON, None)
+
+        await lights.handle_presence_state_change(event)
+
+        auto_area.hass.services.async_call.assert_not_called()
+
+
+class TestAutoLightsNoLightGroup:
+    """Areas without lights have no light group; AutoLights must not drive it.
+
+    Regression: a light group is only created when the area has at least one
+    light entity, but AutoLights is set up for every area. Calling
+    light.turn_on/off on a non-existent group logs
+    "Referenced entities light.area_lights_<area> are missing or not currently
+    available" on every presence change.
+    """
+
+    @pytest.mark.asyncio
+    async def test_turn_on_skipped_when_light_group_missing(self):
+        """No service call when presence is detected but no light group exists."""
+        auto_area = _make_auto_area()
+        lights = _create_auto_lights(auto_area, with_light_group=False)
+        lights.sleep_mode_enabled = False
+
+        event = _make_event(lights.presence_entity_id, STATE_OFF, STATE_ON)
+
+        await lights.handle_presence_state_change(event)
+
+        auto_area.hass.services.async_call.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_turn_off_skipped_when_light_group_missing(self):
+        """No service call when presence clears but no light group exists."""
+        auto_area = _make_auto_area()
+        lights = _create_auto_lights(auto_area, with_light_group=False)
+        lights.sleep_mode_enabled = False
+        lights.lights_turned_on = True
+
+        event = _make_event(lights.presence_entity_id, STATE_ON, STATE_OFF)
 
         await lights.handle_presence_state_change(event)
 

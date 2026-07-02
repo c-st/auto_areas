@@ -82,6 +82,44 @@ async def test_light_group_is_created(
 
 
 @pytest.mark.asyncio
+async def test_no_light_service_calls_for_area_without_lights(
+    hass: HomeAssistant,
+    test_area: ar.AreaEntry,
+    motion_sensor: str,
+    config_entry: MockConfigEntry,
+):
+    """Areas without lights must not issue light service calls.
+
+    Regression: the light group is only created when an area has lights, but
+    AutoLights runs for every area. Driving presence in a light-less area used
+    to call light.turn_on/off on a non-existent group, logging
+    "Referenced entities light.area_lights_test_room are missing or not
+    currently available" on every presence change.
+    """
+    from homeassistant.const import STATE_OFF, STATE_ON
+    from pytest_homeassistant_custom_component.common import async_mock_service
+
+    await hass.async_block_till_done()
+
+    # Sanity: this area has no lights, so no light group should exist.
+    assert hass.states.get("light.area_lights_test_room") is None
+
+    turn_on = async_mock_service(hass, "light", "turn_on")
+    turn_off = async_mock_service(hass, "light", "turn_off")
+
+    # Drive presence off -> on -> off to exercise turn on/off paths.
+    hass.states.async_set(motion_sensor, STATE_OFF)
+    await hass.async_block_till_done()
+    hass.states.async_set(motion_sensor, STATE_ON)
+    await hass.async_block_till_done()
+    hass.states.async_set(motion_sensor, STATE_OFF)
+    await hass.async_block_till_done()
+
+    assert not turn_on, "light.turn_on called for an area with no light group"
+    assert not turn_off, "light.turn_off called for an area with no light group"
+
+
+@pytest.mark.asyncio
 async def test_config_entry_unloads_cleanly(
     hass: HomeAssistant,
     test_area: ar.AreaEntry,

@@ -199,7 +199,26 @@ class AutoLights:
                 )
             await self._turn_lights_off()
 
+    def _light_group_available(self) -> bool:
+        """Return True if the area's light group entity exists.
+
+        The light group is only created for areas that actually have lights
+        (see light.py). Areas without lights, or a group that hasn't finished
+        setting up yet, would otherwise cause "Referenced entities ... are
+        missing or not currently available" warnings on every service call.
+        """
+        if self.hass.states.get(self.light_group_entity_id) is None:
+            LOGGER.debug(
+                "%s: No light group (%s) to control, skipping",
+                self.auto_area.area_name,
+                self.light_group_entity_id,
+            )
+            return False
+        return True
+
     async def _turn_lights_on(self):
+        if not self._light_group_available():
+            return
         await self.hass.services.async_call(
             LIGHT_DOMAIN,
             SERVICE_TURN_ON,
@@ -208,6 +227,8 @@ class AutoLights:
         self.lights_turned_on = True
 
     async def _turn_lights_off(self):
+        if not self._light_group_available():
+            return
         self._auto_turning_off = True
         try:
             await self.hass.services.async_call(
