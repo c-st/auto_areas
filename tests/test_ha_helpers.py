@@ -28,7 +28,7 @@ def _make_device_registry(devices=None):
     """Create a mock DeviceRegistry."""
     registry = MagicMock()
     devices = devices or {}
-    registry.devices.get = MagicMock(side_effect=lambda did: devices.get(did))
+    registry.async_get = MagicMock(side_effect=lambda did: devices.get(did))
     return registry
 
 
